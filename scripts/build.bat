@@ -1,0 +1,79 @@
+@echo off
+REM ========================================
+REM Build Script - Compile Java Servlet
+REM ========================================
+
+REM ==== Load config ====
+call "%~dp0config.bat"
+
+setlocal
+
+REM ==== CONFIG ====
+set PROJECT_ROOT=%~dp0..\
+set SRC_DIR=%PROJECT_ROOT%backend\src
+set WEBAPP_DIR=%PROJECT_ROOT%frontend\webapp
+set BUILD_DIR=%PROJECT_ROOT%build
+
+echo ========================================
+echo   Servlet/JSP Build Script
+echo ========================================
+echo.
+
+REM Clean old build directory
+if exist "%BUILD_DIR%" (
+    echo [1/3] Cleaning old build files...
+    rmdir /S /Q "%BUILD_DIR%"
+)
+
+REM Create output directory
+if not exist "%BUILD_DIR%\WEB-INF\classes" mkdir "%BUILD_DIR%\WEB-INF\classes"
+
+REM Check Tomcat path
+if not exist "%TOMCAT_HOME%" (
+    echo [ERROR] Tomcat not found: %TOMCAT_HOME%
+    echo Please check config.bat
+    exit /b 1
+)
+
+echo [2/3] Compiling Java source files...
+
+REM Compile all .java files in subdirectories
+for /r "%SRC_DIR%" %%f in (*.java) do (
+    echo Compiling: %%f
+    javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar" "%%f"
+    if %ERRORLEVEL% NEQ 0 (
+        echo [ERROR] Compilation failed!
+        exit /b 1
+    )
+)
+
+echo [3/3] Copying resource files...
+
+REM Copy web.xml
+if exist "%WEBAPP_DIR%\WEB-INF\web.xml" (
+    copy /Y "%WEBAPP_DIR%\WEB-INF\web.xml" "%BUILD_DIR%\WEB-INF\" >nul
+)
+
+REM Copy JSP files
+if exist "%WEBAPP_DIR%\jsp" (
+    if not exist "%BUILD_DIR%\jsp" mkdir "%BUILD_DIR%\jsp"
+    xcopy /Y /E "%WEBAPP_DIR%\jsp\*" "%BUILD_DIR%\jsp\" >nul
+)
+
+REM Copy root JSP and HTML
+if exist "%WEBAPP_DIR%\*.jsp" xcopy /Y /E "%WEBAPP_DIR%\*.jsp" "%BUILD_DIR%\" >nul
+if exist "%WEBAPP_DIR%\*.html" xcopy /Y /E "%WEBAPP_DIR%\*.html" "%BUILD_DIR%\" >nul
+
+echo.
+echo ========================================
+echo   Build Complete!
+echo   Output: %BUILD_DIR%
+echo ========================================
+echo.
+echo Next steps:
+echo   1. Run deploy.bat to deploy to Tomcat
+echo   2. Run startup.bat to start Tomcat
+echo.
+
+endlocal
+pause

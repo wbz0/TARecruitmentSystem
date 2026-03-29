@@ -1,138 +1,78 @@
-# 助教招聘系统
+# Software Engineering Group Project
 
-本仓库对应课程 `EBU6304 - Software Engineering Group Project` 的小组课程项目。
+基于 Tomcat + Servlet + JSP 的 Web 应用
 
-## 项目简介
+## 环境要求
 
-本项目旨在为 BUPT International School 开发一个简洁的助教（Teaching Assistant, TA）招聘系统，用于改进当前依赖表单和 Excel 文件的人工流程。系统希望为申请人、课程负责人（Module Organiser, MO）以及管理员提供更清晰、更高效的招聘管理流程。
+- JDK 17+
+- Apache Tomcat 11.x
 
-根据课程 handout 的要求，最终系统必须采用以下两种形式之一：
+## 快速开始
 
-- 独立运行的 Java 应用程序
-- 轻量级 Java Servlet/JSP Web 应用程序
+### 1. 首次配置
 
-所有持久化数据必须使用文本文件格式进行存储，例如 `TXT`、`CSV`、`JSON` 或 `XML`，不得使用数据库。
+```cmd
+cd scripts
+copy config.example.bat config.bat
+notepad config.bat
+```
 
-## 项目目标
+修改 `config.bat`，填入你的 Tomcat 路径：
 
-本系统的核心目标是支持助教招聘流程中的关键业务价值，包括但不限于：
+```bat
+set CATALINA_HOME=C:\apache-tomcat-11.0.7
+```
 
-- 创建申请人资料
-- 上传和管理简历
-- 浏览可申请岗位
-- 提交岗位申请
-- 查询申请状态
-- 由 MO 发布岗位
-- 由 MO 选择候选人
-- 由管理员检查 TA 总工作量
+### 2. 运行项目
 
-课程也允许加入可解释的 AI 辅助功能，例如：
+```cmd
+cd scripts
+build.bat
+deploy.bat
+startup.bat
+```
 
-- 申请人与岗位之间的技能匹配
-- 识别申请人缺失的技能
-- 协助进行工作量平衡
+### 3. 访问
 
-如果实现 AI 相关功能，必须保证结果可解释，不能直接无条件接受 AI 输出，同时应结合结构化规则或业务逻辑共同完成判断。
+- 首页: http://localhost:8080/groupproject/
+- Servlet: http://localhost:8080/groupproject/hello
+- JSP: http://localhost:8080/groupproject/jsp/welcome.jsp
 
-## 课程约束
+## 日常开发工作流 (修改代码后)
 
-本仓库开发时应遵循以下课程限制：
+当你修改了任何 `.java` 源码或 `.jsp/.html` 前端文件后，**无需重启 Tomcat**，只需要在 `scripts/` 目录下重新执行编译和部署命令：
 
-- 仅使用 Java 技术栈
-- 架构保持简单、模块化、易于解释
-- 不引入数据库
-- 不引入 Spring Boot、Hibernate 等重量级框架
-- 持久化数据使用简单文本文件格式
-- 优先实现能体现系统核心价值的功能
+```cmd
+cd scripts
+build.bat
+deploy.bat
+```
 
-## 建议目录结构
+*(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*
 
-为了符合课程考核要求，建议采用简单清晰的模块化结构：
+## 项目架构与目录说明
+
+为了完全契合《EBU6304 敏捷开发计划》中 **前端/后端分别协作** 的要求，也为了避免将来合代码时产生冲突，本项目的代码被物理隔离为两个顶级目录：
 
 ```text
-src/
-  model/        领域模型
-  service/      业务逻辑
-  repository/   基于文件的数据存储
-  util/         通用工具类
-  ui/           Java 界面层或 servlet/controller 层
-data/           文本格式持久化数据
-docs/           报告、截图、用户手册素材
-tests/          测试代码或测试程序
+carnegie_software_engineering/
+├── backend/               # 👨‍💻 后端开发工作区 (成员1-4)
+│   └── src/               # Java 源代码存放处 
+│
+├── frontend/              # 🎨 前端开发工作区 (成员5-6)
+│   └── webapp/            # JSP、HTML、CSS、JS 静态资源与 web.xml
+│
+├── scripts/               # ⚙️ 构建与部署脚本
+│   ├── build.bat          # 核心构建脚本 (将 backend 和 frontend 组装)
+│   ├── deploy.bat         # 核心部署脚本
+│   ├── startup.bat        # Tomcat 启动脚本
+│   └── config.example.bat # 配置文件模板
+│
+├── data/                  # 💾 纯文本数据存储 (JSON/txt)
+└── build/                 # 📦 脚本自动生成的打包产物 (被 Git 忽略)
 ```
 
-## 当前状态
+## 常见问题
 
-当前仓库已完成的基础准备包括：
-
-- 已阅读课程说明文档
-- 已初始化仓库说明文档
-- 已准备适用于 Java 项目的 `.gitignore`
-
-随着每次迭代推进，请持续更新本节内容。
-
-## 敏捷开发说明
-
-本项目应按照 Agile 方法进行迭代式开发。根据 handout，可参考以下阶段性目标：
-
-- Iteration 1：完成 backlog、原型和简要报告
-- Iteration 2：形成中期可运行版本
-- Iteration 3：扩展系统功能并完善实现
-- Iteration 4：最终优化与交付准备
-
-GitHub 仓库中的分支、提交记录、Pull Request、Issue 和 README 更新都应能清楚体现每位组员的贡献。
-
-## 运行说明
-
-本节应在项目实现结构明确后补充完整。
-
-后续建议补充的内容包括：
-
-1. 所需 JDK 版本
-2. 项目目录结构
-3. 构建步骤
-4. 运行步骤
-5. 测试步骤
-6. 数据文件位置
-
-示例占位内容如下：
-
-```bash
-# 编译
-# TODO: 补充实际编译命令
-
-# 运行
-# TODO: 补充实际运行命令
-```
-
-## 测试说明
-
-最终提交的软件材料应包括：
-
-- 源代码
-- 测试程序
-- 代码文档
-- 包含关键截图的用户手册
-- 本 README 文档，用于说明配置与运行方式
-
-当项目加入测试后，建议在此处补充：
-
-- 如何运行测试
-- 测试覆盖哪些功能
-- 演示过程中采用了哪些手工测试场景
-
-## 提交前检查清单
-
-在最终提交前，请将以下内容替换或补充完整：
-
-- 小组编号
-- 组员姓名
-- 最终选定的应用类型：桌面应用或 Servlet/JSP Web 应用
-- 当前已实现的实际功能
-- 真实可执行的构建与运行命令
-- 截图或用户手册链接
-- 最终测试说明
-
-## 备注
-
-本 README 基于课程 handout 编写，目的是为当前仓库提供一个清晰、规范的起始说明文档。后续会随着每个 sprint 的推进不断更新，使其能够支持展示、viva 以及最终提交。
+- **端口被占用**: 请修改您本机的 `Tomcat/conf/server.xml`，将 `<Connector port="8080" />` 改为其他端口。
+- **命令行乱码**: 请确保您的终端代码页格式正确，或在执行构建脚本时确保所有的本地 `.java` 文件是以 `UTF-8` 无 BOM 形式保存的。
