@@ -8,12 +8,19 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * RegisterServlet - 处理用户注册
  * 访问路径: /register
+ *
+ * 优化内容:
+ * - 添加日志记录
+ * - 增强输入验证
+ * - 统一JSON响应格式
+ * - 添加异常处理
  */
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
@@ -30,16 +37,28 @@ public class RegisterServlet extends HttpServlet {
         "^[a-zA-Z][a-zA-Z0-9_]{2,19}$"
     );
 
+    // 简单的日志方法
+    private void logInfo(String message) {
+        System.out.println("[RegisterServlet] " + message);
+    }
+
+    private void logError(String message, Throwable t) {
+        System.err.println("[RegisterServlet ERROR] " + message);
+        if (t != null) {
+            t.printStackTrace(System.err);
+        }
+    }
+
     @Override
     public void init() throws ServletException {
         userDao = UserDao.getInstance();
+        logInfo("RegisterServlet initialized");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"message\": \"Use POST to register\", \"example\": {\"username\": \"test\", \"password\": \"123456\", \"email\": \"test@example.com\", \"role\": \"TA\"}}");
+        writeJsonResponse(response, 200, true, "Use POST to register", null);
     }
 
     @Override
@@ -47,43 +66,54 @@ public class RegisterServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
 
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
-        String email = request.getParameter("email");
-        String roleStr = request.getParameter("role");
-
-        // 输入验证
-        String error = validateInput(username, password, confirmPassword, email, roleStr);
-        if (error != null) {
-            response.setStatus(400);
-            response.getWriter().write("{\"error\": \"" + error + "\"}");
-            return;
-        }
-
         try {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String email = request.getParameter("email");
+            String roleStr = request.getParameter("role");
+
+            // 输入验证
+            String error = validateInput(username, password, confirmPassword, email, roleStr);
+            if (error != null) {
+                logInfo("Validation failed: " + error);
+                writeJsonResponse(response, 400, false, error, null);
+                return;
+            }
+
+            // 去除输入首尾空格
+            username = username.trim();
+            email = email.trim();
+            roleStr = roleStr.trim();
+
             // 解析角色
             User.Role role;
             try {
                 role = User.Role.valueOf(roleStr.toUpperCase());
             } catch (IllegalArgumentException e) {
-                response.setStatus(400);
-                response.getWriter().write("{\"error\": \"Invalid role selected\"}");
+                logInfo("Invalid role: " + roleStr);
+                writeJsonResponse(response, 400, false, "Invalid role selected", null);
                 return;
             }
 
             // 创建用户
+            logInfo("Attempting to create user: " + username);
             User user = new User(username, password, email, role);
             User savedUser = userDao.create(user);
 
+            logInfo("User registered successfully: " + username + ", role: " + role);
+
             // 注册成功
-            response.setStatus(201);
-            response.getWriter().write("{\"success\": true, \"message\": \"Registration successful!\", \"userId\": \"" + savedUser.getUserId() + "\"}");
+            writeJsonResponse(response, 201, true, "Registration successful!",
+                "{\"userId\": \"" + savedUser.getUserId() + "\", \"username\": \"" + savedUser.getUsername() + "\"}");
 
         } catch (IllegalArgumentException e) {
             // 用户名或邮箱已存在
-            response.setStatus(409);
-            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+            logInfo("Registration failed: " + e.getMessage());
+            writeJsonResponse(response, 409, false, e.getMessage(), null);
+        } catch (Exception e) {
+            logError("Unexpected error during registration", e);
+            writeJsonResponse(response, 500, false, "An error occurred during registration. Please try again later.", null);
         }
     }
 
@@ -108,8 +138,14 @@ public class RegisterServlet extends HttpServlet {
         if (password.length() < 6) {
             return "Password must be at least 6 characters";
         }
+        if (password.length() > 100) {
+            return "Password is too long";
+        }
 
         // 验证确认密码
+        if (confirmPassword == null || confirmPassword.isEmpty()) {
+            return "Please confirm your password";
+        }
         if (!password.equals(confirmPassword)) {
             return "Passwords do not match";
         }
@@ -121,6 +157,9 @@ public class RegisterServlet extends HttpServlet {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             return "Invalid email format";
         }
+        if (email.length() > 100) {
+            return "Email is too long";
+        }
 
         // 验证角色
         if (role == null || role.trim().isEmpty()) {
@@ -128,5 +167,38 @@ public class RegisterServlet extends HttpServlet {
         }
 
         return null;
+    }
+
+    /**
+     * 统一的JSON响应写入方法
+     */
+    private void writeJsonResponse(HttpServletResponse response, int status, boolean success, String message, String data)
+            throws IOException {
+        response.setStatus(status);
+        PrintWriter out = response.getWriter();
+
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        json.append("\"success\": ").append(success).append(", ");
+        json.append("\"message\": \"").append(escapeJson(message)).append("\"");
+
+        if (data != null) {
+            json.append(", ").append(data);
+        }
+
+        json.append("}");
+        out.write(json.toString());
+    }
+
+    /**
+     * JSON字符串转义
+     */
+    private String escapeJson(String str) {
+        if (str == null) return "";
+        return str.replace("\\", "\\\\")
+                  .replace("\"", "\\\"")
+                  .replace("\n", "\\n")
+                  .replace("\r", "\\r")
+                  .replace("\t", "\\t");
     }
 }
