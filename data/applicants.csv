@@ -1,2 +1,3 @@
 applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt
 67b0cbd6-708d-4eb0-bf3f-2136033fea83,test-user-1,John Doe,S12345,Computer Science,Master,3.8,Java;Python;SQL,,,,,,2026-03-18T12:21:19.6964341,2026-03-18T12:21:19.7008927
+27c760b1-a6ab-42ba-b50b-4a27636549b7,1f95bc48-2fdb-4e23-905d-a408cdd67d79,John Doe,S12345678,Computer Science,Master,3.5,Java;Python;SQL,,1234567890,123 Main St,Teaching Assistant experience,I want to help students,2026-03-18T12:34:35.2165162,2026-03-18T12:35:35.064399

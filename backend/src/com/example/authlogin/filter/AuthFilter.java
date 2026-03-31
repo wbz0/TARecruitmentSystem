@@ -65,6 +65,7 @@ public class AuthFilter implements Filter {
         "/jsp/ta/",
         "/api/ta/",
         "/profile/",
+        "/applicant",
         "/application/",
         "/job/list",
         "/job/view"
