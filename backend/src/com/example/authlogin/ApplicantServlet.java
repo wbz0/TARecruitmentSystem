@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -499,9 +500,88 @@ public class ApplicantServlet extends HttpServlet {
     }
 
     /**
+     * 档案完整性验证结果
+     */
+    private static class CompletenessResult {
+        int completeness;
+        List<String> missingFields;
+
+        CompletenessResult(int completeness, List<String> missingFields) {
+            this.completeness = completeness;
+            this.missingFields = missingFields;
+        }
+    }
+
+    /**
+     * 计算档案完整性
+     */
+    private CompletenessResult calculateCompleteness(Applicant applicant) {
+        int totalFields = 12; // 总字段数
+        int filledFields = 0;
+        List<String> missingFields = new ArrayList<>();
+
+        // 必填字段 (4个)
+        if (isNotEmpty(applicant.getFullName())) {
+            filledFields++;
+        } else {
+            missingFields.add("fullName");
+        }
+        if (isNotEmpty(applicant.getStudentId())) {
+            filledFields++;
+        } else {
+            missingFields.add("studentId");
+        }
+        if (isNotEmpty(applicant.getDepartment())) {
+            filledFields++;
+        } else {
+            missingFields.add("department");
+        }
+        if (isNotEmpty(applicant.getProgram())) {
+            filledFields++;
+        } else {
+            missingFields.add("program");
+        }
+
+        // 选填字段 (8个)
+        if (isNotEmpty(applicant.getGpa())) filledFields++;
+        else missingFields.add("gpa");
+
+        if (applicant.getSkills() != null && !applicant.getSkills().isEmpty()) filledFields++;
+        else missingFields.add("skills");
+
+        if (isNotEmpty(applicant.getResumePath())) filledFields++;
+        else missingFields.add("resume");
+
+        if (isNotEmpty(applicant.getPhone())) filledFields++;
+        else missingFields.add("phone");
+
+        if (isNotEmpty(applicant.getAddress())) filledFields++;
+        else missingFields.add("address");
+
+        if (isNotEmpty(applicant.getExperience())) filledFields++;
+        else missingFields.add("experience");
+
+        if (isNotEmpty(applicant.getMotivation())) filledFields++;
+        else missingFields.add("motivation");
+
+        int completeness = (int) Math.round((double) filledFields / totalFields * 100);
+        return new CompletenessResult(completeness, missingFields);
+    }
+
+    /**
+     * 检查字符串是否不为空
+     */
+    private boolean isNotEmpty(String str) {
+        return str != null && !str.trim().isEmpty();
+    }
+
+    /**
      * 构建申请人档案JSON数据
      */
     private String buildApplicantJson(Applicant applicant) {
+        // 计算完整性
+        CompletenessResult completeness = calculateCompleteness(applicant);
+
         StringBuilder json = new StringBuilder();
         json.append("\"applicantId\": \"").append(escapeJson(applicant.getApplicantId())).append("\", ");
         json.append("\"userId\": \"").append(escapeJson(applicant.getUserId())).append("\", ");
@@ -515,7 +595,18 @@ public class ApplicantServlet extends HttpServlet {
         json.append("\"phone\": \"").append(escapeJson(applicant.getPhone() != null ? applicant.getPhone() : "")).append("\", ");
         json.append("\"address\": \"").append(escapeJson(applicant.getAddress() != null ? applicant.getAddress() : "")).append("\", ");
         json.append("\"experience\": \"").append(escapeJson(applicant.getExperience() != null ? applicant.getExperience() : "")).append("\", ");
-        json.append("\"motivation\": \"").append(escapeJson(applicant.getMotivation() != null ? applicant.getMotivation() : "")).append("\"");
+        json.append("\"motivation\": \"").append(escapeJson(applicant.getMotivation() != null ? applicant.getMotivation() : "")).append("\", ");
+
+        // 添加完整性信息
+        json.append("\"completeness\": ").append(completeness.completeness).append(", ");
+        json.append("\"missingFields\": [");
+        for (int i = 0; i < completeness.missingFields.size(); i++) {
+            json.append("\"").append(completeness.missingFields.get(i)).append("\"");
+            if (i < completeness.missingFields.size() - 1) {
+                json.append(", ");
+            }
+        }
+        json.append("]");
         return json.toString();
     }
 
