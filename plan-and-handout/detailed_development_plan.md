@@ -19,13 +19,13 @@
 负责：登录注册 + Session管理
 
 
-| 周次  | Commit | Message                       | Git Command                                                                        |
-| --- | ------ | ----------------------------- | ---------------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 创建User实体类和UserDao`     | `git commit -m "feat: 创建User实体类和UserDao" --author="member1 <member1@edu.com>"`     |
-| 周4  | #2     | `feat: 实现登录Servlet和注册Servlet` | `git commit -m "feat: 实现登录Servlet和注册Servlet" --author="member1 <member1@edu.com>"` |
-| 周5  | #3     | `feat: 添加Session管理和权限验证`      | `git commit -m "feat: 添加Session管理和权限验证" --author="member1 <member1@edu.com>"`      |
-| 周5  | #4     | `fix: 修复验证登录密码加密问题`           | `git commit -m "fix: 修复验证登录密码加密问题" --author="member1 <member1@edu.com>"`           |
-| 周6  | #5     | `refactor: 优化登录逻辑，添加错误处理`     | `git commit -m "refactor: 优化登录逻辑，添加错误处理" --author="member1 <member1@edu.com>"`     |
+| 周次  | Commit | Message                       | 状态 | Git Command                                                                        |
+| --- | ------ | ----------------------------- | --- | ---------------------------------------------------------------------------------- |
+| 周4  | #1     | `feat: 创建User实体类和UserDao`     | ✅ | `git commit -m "feat: 创建User实体类和UserDao" --author="member1 <member1@edu.com>"`     |
+| 周4  | #2     | `feat: 实现登录Servlet和注册Servlet` | ✅ | `git commit -m "feat: 实现登录Servlet和注册Servlet" --author="member1 <member1@edu.com>"` |
+| 周5  | #3     | `feat: 添加Session管理和权限验证`      | ✅ | `git commit -m "feat: 添加Session管理和权限验证" --author="member1 <member1@edu.com>"`      |
+| 周5  | #4     | `fix: 修复验证登录密码加密问题`           | ✅ | `git commit -m "fix: 修复验证登录密码加密问题" --author="member1 <member1@edu.com>"`           |
+| 周6  | #5     | `refactor: 优化登录逻辑，添加错误处理`     | ✅ | `git commit -m "refactor: 优化登录逻辑，添加错误处理" --author="member1 <member1@edu.com>"`     |
 
 
 ---
@@ -35,13 +35,13 @@
 负责：TA档案创建 + 简历上传
 
 
-| 周次  | Commit | Message                             | Git Command                                                                              |
-| --- | ------ | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 创建Applicant实体类和ApplicantDao` | `git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"` |
-| 周4  | #2     | `feat: 实现档案创建Servlet，支持基本信息存储`      | `git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`      |
-| 周5  | #3     | `feat: 实现简历文件上传功能`                  | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
-| 周5  | #4     | `fix: 修复文件上传大小限制问题`                 | `git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`                 |
-| 周6  | #5     | `refactor: 添加档案完整性验证`               | `git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`               |
+| 周次  | Commit | Message                             | 状态 | Git Command                                                                              |
+| --- | ------ | ----------------------------------- | --- | ---------------------------------------------------------------------------------------- |
+| 周4  | #1     | `feat: 创建Applicant实体类和ApplicantDao` | ✅ | `git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"` |
+| 周4  | #2     | `feat: 实现档案创建Servlet，支持基本信息存储`      | ✅ | `git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`      |
+| 周5  | #3     | `feat: 实现简历文件上传功能`                  | ✅ | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
+| 周5  | #4     | `fix: 修复文件上传大小限制问题`                 | ✅ | `git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`                 |
+| 周6  | #5     | `refactor: 添加档案完整性验证`               | ✅ | `git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`               |
 
 
 ---

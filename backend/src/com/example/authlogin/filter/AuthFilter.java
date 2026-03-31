@@ -42,7 +42,8 @@ public class AuthFilter implements Filter {
         "/HelloServlet",
         "/index.jsp",
         "/login.jsp",
-        "/register.jsp"
+        "/register.jsp",
+        "/test_applicant.jsp"
     ));
 
     // 需要特定角色的路径
@@ -64,6 +65,7 @@ public class AuthFilter implements Filter {
         "/jsp/ta/",
         "/api/ta/",
         "/profile/",
+        "/applicant",
         "/application/",
         "/job/list",
         "/job/view"
