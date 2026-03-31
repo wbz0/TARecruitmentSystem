@@ -1,0 +1,2 @@
+applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt
+67b0cbd6-708d-4eb0-bf3f-2136033fea83,test-user-1,John Doe,S12345,Computer Science,Master,3.8,Java;Python;SQL,,,,,,2026-03-18T12:21:19.6964341,2026-03-18T12:21:19.7008927
