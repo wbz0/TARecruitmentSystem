@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
  */
 @WebServlet("/applicant")
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024,      // 1 MB
-    maxFileSize = 1024 * 1024 * 5,        // 5 MB
-    maxRequestSize = 1024 * 1024 * 10     // 10 MB
+    fileSizeThreshold = 1024 * 1024,       // 1 MB - 当文件超过此大小时写入磁盘
+    maxFileSize = 1024 * 1024 * 10,       // 10 MB - 单个文件最大大小
+    maxRequestSize = 1024 * 1024 * 15     // 15 MB - 整个请求最大大小
 )
 public class ApplicantServlet extends HttpServlet {
 
@@ -58,6 +58,9 @@ public class ApplicantServlet extends HttpServlet {
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
         ".pdf", ".doc", ".docx"
     );
+
+    // 文件大小限制 (10 MB)
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -346,6 +349,16 @@ public class ApplicantServlet extends HttpServlet {
         } catch (IllegalArgumentException e) {
             logInfo("Resume upload failed: " + e.getMessage());
             writeJsonResponse(response, 400, false, e.getMessage(), null);
+        } catch (ServletException e) {
+            // 处理文件大小超限异常
+            String message = e.getMessage();
+            if (message != null && message.toLowerCase().contains("size")) {
+                logInfo("File size exceeded: " + message);
+                writeJsonResponse(response, 413, false, "File size exceeds the maximum limit of 10MB. Please upload a smaller file.", null);
+            } else {
+                logError("Servlet error during resume upload", e);
+                writeJsonResponse(response, 400, false, "File upload failed. " + e.getMessage(), null);
+            }
         } catch (Exception e) {
             logError("Unexpected error during resume upload", e);
             writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
@@ -373,8 +386,8 @@ public class ApplicantServlet extends HttpServlet {
         }
 
         // 检查文件大小（已经在@MultipartConfig中配置，但额外检查一下）
-        if (filePart.getSize() > 5 * 1024 * 1024) {
-            return "File size exceeds 5MB limit.";
+        if (filePart.getSize() > MAX_FILE_SIZE) {
+            return "File size exceeds 10MB limit.";
         }
 
         return null;
