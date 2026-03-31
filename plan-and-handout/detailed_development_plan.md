@@ -39,7 +39,7 @@
 | --- | ------ | ----------------------------------- | --- | ---------------------------------------------------------------------------------------- |
 | 周4  | #1     | `feat: 创建Applicant实体类和ApplicantDao` | ✅ | `git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"` |
 | 周4  | #2     | `feat: 实现档案创建Servlet，支持基本信息存储`      | ✅ | `git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`      |
-| 周5  | #3     | `feat: 实现简历文件上传功能`                  | ⏳ | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
+| 周5  | #3     | `feat: 实现简历文件上传功能`                  | ✅ | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
 | 周5  | #4     | `fix: 修复文件上传大小限制问题`                 | ⏳ | `git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`                 |
 | 周6  | #5     | `refactor: 添加档案完整性验证`               | ⏳ | `git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`               |
 

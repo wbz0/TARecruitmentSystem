@@ -4,14 +4,20 @@ import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.User;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -23,14 +29,35 @@ import java.util.stream.Collectors;
  * 访问路径: /applicant
  *
  * 功能:
- * - POST /applicant - 创建新的申请人档案
+ * - POST /applicant - 创建新的申请人档案（支持文件上传）
  * - GET /applicant - 获取当前用户的档案
  * - PUT /applicant - 更新档案
+ * - POST /applicant/upload - 上传简历文件
  */
 @WebServlet("/applicant")
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024,      // 1 MB
+    maxFileSize = 1024 * 1024 * 5,        // 5 MB
+    maxRequestSize = 1024 * 1024 * 10     // 10 MB
+)
 public class ApplicantServlet extends HttpServlet {
 
     private ApplicantDao applicantDao;
+
+    // 上传目录
+    private static final String UPLOAD_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data/resumes";
+
+    // 允许的文件类型
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+
+    // 允许的扩展名
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
+        ".pdf", ".doc", ".docx"
+    );
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -47,7 +74,16 @@ public class ApplicantServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         applicantDao = ApplicantDao.getInstance();
+        // 创建上传目录
+        createUploadDirectory();
         logInfo("ApplicantServlet initialized");
+    }
+
+    private void createUploadDirectory() {
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
     }
 
     @Override
@@ -86,6 +122,22 @@ public class ApplicantServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
 
+        // 检查是否是multipart请求（文件上传）
+        String contentType = request.getContentType();
+        if (contentType != null && contentType.toLowerCase().contains("multipart/form-data")) {
+            handleMultipartRequest(request, response);
+            return;
+        }
+
+        // 普通表单请求
+        handleFormRequest(request, response, false);
+    }
+
+    /**
+     * 处理普通表单请求（创建档案）
+     */
+    private void handleFormRequest(HttpServletRequest request, HttpServletResponse response, boolean isUpdate)
+            throws ServletException, IOException {
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -94,10 +146,20 @@ public class ApplicantServlet extends HttpServlet {
                 return;
             }
 
-            // 检查是否已有档案
-            if (applicantDao.existsByUserId(currentUser.getUserId())) {
-                writeJsonResponse(response, 409, false, "Applicant profile already exists. Use PUT to update.", null);
-                return;
+            Optional<Applicant> existingApplicant = applicantDao.findByUserId(currentUser.getUserId());
+
+            if (isUpdate) {
+                // 更新模式
+                if (existingApplicant.isEmpty()) {
+                    writeJsonResponse(response, 404, false, "Applicant profile not found. Please create one first.", null);
+                    return;
+                }
+            } else {
+                // 创建模式
+                if (existingApplicant.isPresent()) {
+                    writeJsonResponse(response, 409, false, "Applicant profile already exists. Use PUT to update.", null);
+                    return;
+                }
             }
 
             // 获取请求参数
@@ -120,9 +182,14 @@ public class ApplicantServlet extends HttpServlet {
                 return;
             }
 
-            // 创建申请人档案
-            Applicant applicant = new Applicant();
-            applicant.setUserId(currentUser.getUserId());
+            Applicant applicant;
+            if (isUpdate) {
+                applicant = existingApplicant.get();
+            } else {
+                applicant = new Applicant();
+                applicant.setUserId(currentUser.getUserId());
+            }
+
             applicant.setFullName(fullName.trim());
             applicant.setStudentId(studentId.trim());
             applicant.setDepartment(department != null ? department.trim() : null);
@@ -143,27 +210,35 @@ public class ApplicantServlet extends HttpServlet {
             }
 
             // 保存档案
-            Applicant savedApplicant = applicantDao.create(applicant);
-
-            logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
+            Applicant savedApplicant;
+            if (isUpdate) {
+                applicant.setUpdatedAt(LocalDateTime.now());
+                savedApplicant = applicantDao.update(applicant);
+                logInfo("Applicant profile updated successfully for user: " + currentUser.getUsername());
+            } else {
+                savedApplicant = applicantDao.create(applicant);
+                logInfo("Applicant profile created successfully for user: " + currentUser.getUsername());
+            }
 
             String data = "{\"applicantId\": \"" + savedApplicant.getApplicantId() + "\"}";
-            writeJsonResponse(response, 201, true, "Applicant profile created successfully!", data);
+            int status = isUpdate ? 200 : 201;
+            String message = isUpdate ? "Applicant profile updated successfully!" : "Applicant profile created successfully!";
+            writeJsonResponse(response, status, true, message, data);
 
         } catch (IllegalArgumentException e) {
-            logInfo("Profile creation failed: " + e.getMessage());
+            logInfo("Profile operation failed: " + e.getMessage());
             writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
-            logError("Unexpected error during profile creation", e);
+            logError("Unexpected error during profile operation", e);
             writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
     }
 
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * 处理multipart请求（文件上传）
+     */
+    private void handleMultipartRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
         try {
             // 获取当前登录用户
             User currentUser = getCurrentUser(request);
@@ -181,7 +256,7 @@ public class ApplicantServlet extends HttpServlet {
 
             Applicant applicant = applicantOpt.get();
 
-            // 获取请求参数
+            // 获取文本参数
             String fullName = request.getParameter("fullName");
             String studentId = request.getParameter("studentId");
             String department = request.getParameter("department");
@@ -193,12 +268,29 @@ public class ApplicantServlet extends HttpServlet {
             String experience = request.getParameter("experience");
             String motivation = request.getParameter("motivation");
 
-            // 更新字段（如果提供了新值）
+            // 处理文件上传
+            Part filePart = request.getPart("resume");
+            String resumePath = null;
+
+            if (filePart != null && filePart.getSize() > 0) {
+                // 验证文件
+                String fileError = validateFile(filePart);
+                if (fileError != null) {
+                    writeJsonResponse(response, 400, false, fileError, null);
+                    return;
+                }
+
+                // 保存文件
+                resumePath = saveFile(filePart, currentUser.getUserId());
+                applicant.setResumePath(resumePath);
+                logInfo("Resume uploaded successfully: " + resumePath);
+            }
+
+            // 更新文本字段（如果有提供）
             if (fullName != null && !fullName.trim().isEmpty()) {
                 applicant.setFullName(fullName.trim());
             }
             if (studentId != null && !studentId.trim().isEmpty()) {
-                // 检查学号是否被其他用户使用
                 Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(studentId.trim());
                 if (existingWithStudentId.isPresent() && !existingWithStudentId.get().getApplicantId().equals(applicant.getApplicantId())) {
                     writeJsonResponse(response, 400, false, "Student ID already exists", null);
@@ -227,8 +319,6 @@ public class ApplicantServlet extends HttpServlet {
             if (motivation != null) {
                 applicant.setMotivation(motivation.trim().isEmpty() ? null : motivation.trim());
             }
-
-            // 处理技能列表
             if (skills != null) {
                 List<String> skillList = Arrays.stream(skills.split(","))
                         .map(String::trim)
@@ -243,18 +333,113 @@ public class ApplicantServlet extends HttpServlet {
             // 保存更新
             Applicant updatedApplicant = applicantDao.update(applicant);
 
-            logInfo("Applicant profile updated successfully for user: " + currentUser.getUsername());
+            logInfo("Applicant profile updated with resume for user: " + currentUser.getUsername());
 
-            String data = "{\"applicantId\": \"" + updatedApplicant.getApplicantId() + "\"}";
-            writeJsonResponse(response, 200, true, "Applicant profile updated successfully!", data);
+            String data = "{\"applicantId\": \"" + updatedApplicant.getApplicantId() + "\"";
+            if (resumePath != null) {
+                data += ", \"resumePath\": \"" + escapeJson(resumePath) + "\"";
+            }
+            data += "}";
+
+            writeJsonResponse(response, 200, true, "Profile updated with resume!", data);
 
         } catch (IllegalArgumentException e) {
-            logInfo("Profile update failed: " + e.getMessage());
+            logInfo("Resume upload failed: " + e.getMessage());
             writeJsonResponse(response, 400, false, e.getMessage(), null);
         } catch (Exception e) {
-            logError("Unexpected error during profile update", e);
+            logError("Unexpected error during resume upload", e);
             writeJsonResponse(response, 500, false, "An error occurred. Please try again later.", null);
         }
+    }
+
+    /**
+     * 验证上传的文件
+     */
+    private String validateFile(Part filePart) {
+        String contentType = filePart.getContentType();
+        String fileName = extractFileName(filePart);
+
+        // 检查文件类型
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            return "Invalid file type. Only PDF, DOC, and DOCX files are allowed.";
+        }
+
+        // 检查文件扩展名
+        String lowerFileName = fileName.toLowerCase();
+        boolean hasValidExtension = ALLOWED_EXTENSIONS.stream()
+                .anyMatch(lowerFileName::endsWith);
+        if (!hasValidExtension) {
+            return "Invalid file extension. Only PDF, DOC, and DOCX files are allowed.";
+        }
+
+        // 检查文件大小（已经在@MultipartConfig中配置，但额外检查一下）
+        if (filePart.getSize() > 5 * 1024 * 1024) {
+            return "File size exceeds 5MB limit.";
+        }
+
+        return null;
+    }
+
+    /**
+     * 保存上传的文件
+     */
+    private String saveFile(Part filePart, String userId) throws IOException {
+        String fileName = extractFileName(filePart);
+
+        // 生成唯一文件名
+        String extension = fileName.substring(fileName.lastIndexOf("."));
+        String newFileName = userId + "_" + System.currentTimeMillis() + extension;
+
+        // 确保目录存在
+        File uploadDir = new File(UPLOAD_DIR);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        // 保存文件
+        File file = new File(uploadDir, newFileName);
+        filePart.write(file.getAbsolutePath());
+
+        // 返回相对路径
+        return "resumes/" + newFileName;
+    }
+
+    /**
+     * 从Part中提取文件名
+     */
+    private String extractFileName(Part part) {
+        String contentDisposition = part.getHeader("content-disposition");
+        if (contentDisposition != null) {
+            for (String token : contentDisposition.split(";")) {
+                token = token.trim();
+                if (token.startsWith("filename=")) {
+                    String fileName = token.substring(9);
+                    // 移除可能的引号
+                    if (fileName.startsWith("\"") && fileName.endsWith("\"")) {
+                        fileName = fileName.substring(1, fileName.length() - 1);
+                    }
+                    return fileName;
+                }
+            }
+        }
+        // 如果无法从header获取，使用原始文件名
+        String submittedFileName = part.getSubmittedFileName();
+        return submittedFileName != null ? submittedFileName : "resume";
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json;charset=UTF-8");
+
+        // 检查是否是multipart请求
+        String contentType = request.getContentType();
+        if (contentType != null && contentType.toLowerCase().contains("multipart/form-data")) {
+            handleMultipartRequest(request, response);
+            return;
+        }
+
+        handleFormRequest(request, response, true);
     }
 
     /**
@@ -313,6 +498,7 @@ public class ApplicantServlet extends HttpServlet {
         json.append("\"program\": \"").append(escapeJson(applicant.getProgram() != null ? applicant.getProgram() : "")).append("\", ");
         json.append("\"gpa\": \"").append(escapeJson(applicant.getGpa() != null ? applicant.getGpa() : "")).append("\", ");
         json.append("\"skills\": \"").append(escapeJson(applicant.getSkillsAsString())).append("\", ");
+        json.append("\"resumePath\": \"").append(escapeJson(applicant.getResumePath() != null ? applicant.getResumePath() : "")).append("\", ");
         json.append("\"phone\": \"").append(escapeJson(applicant.getPhone() != null ? applicant.getPhone() : "")).append("\", ");
         json.append("\"address\": \"").append(escapeJson(applicant.getAddress() != null ? applicant.getAddress() : "")).append("\", ");
         json.append("\"experience\": \"").append(escapeJson(applicant.getExperience() != null ? applicant.getExperience() : "")).append("\", ");
