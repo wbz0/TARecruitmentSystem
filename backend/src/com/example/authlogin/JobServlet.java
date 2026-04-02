@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -89,7 +90,8 @@ public class JobServlet extends HttpServlet {
                             .filter(j -> j.getStatus() == jobStatus)
                             .collect(Collectors.toList());
                 } catch (IllegalArgumentException e) {
-                    // 忽略无效状态
+                    // 无效状态，返回空列表
+                    jobs = new ArrayList<>();
                 }
             }
 
