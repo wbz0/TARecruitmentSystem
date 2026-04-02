@@ -43,7 +43,8 @@ public class AuthFilter implements Filter {
         "/index.jsp",
         "/login.jsp",
         "/register.jsp",
-        "/test_applicant.jsp"
+        "/test_applicant.jsp",
+        "/jobs"
     ));
 
     // 需要特定角色的路径
