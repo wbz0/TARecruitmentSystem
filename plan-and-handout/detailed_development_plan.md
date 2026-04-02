@@ -57,7 +57,7 @@
 | 周4  | #2     | `feat: 实现职位发布Servlet`     | ✅ | `git commit -m "feat: 实现职位发布Servlet" --author="member3 <member3@edu.com>"`     |
 | 周5  | #3     | `feat: 实现职位列表查询API，支持筛选`  | ✅ | `git commit -m "feat: 实现职位列表查询API，支持筛选" --author="member3 <member3@edu.com>"`  |
 | 周5  | #4     | `fix: 修复职位状态显示错误`         | ✅ | `git commit -m "fix: 修复职位状态显示错误" --author="member3 <member3@edu.com>"`         |
-| 周6  | #5     | `feat: 添加职位编辑和删除功能`       | ⏳ | `git commit -m "feat: 添加职位编辑和删除功能" --author="member3 <member3@edu.com>"`       |
+| 周6  | #5     | `feat: 添加职位编辑和删除功能`       | ✅ | `git commit -m "feat: 添加职位编辑和删除功能" --author="member3 <member3@edu.com>"`       |
 
 
 ---
