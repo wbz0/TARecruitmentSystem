@@ -71,7 +71,7 @@
 | --- | ------ | ----------------------------------------- | --- | ---------------------------------------------------------------------------------------------- |
 | 周4  | #1     | `feat: 创建Application申请实体类和ApplicationDao` | ✅ | `git commit -m "feat: 创建Application申请实体类和ApplicationDao" --author="member4 <member4@edu.com>"` |
 | 周4  | #2     | `feat: 实现职位申请Servlet`                     | ✅ | `git commit -m "feat: 实现职位申请Servlet" --author="member4 <member4@edu.com>"`                     |
-| 周5  | #3     | `feat: 实现申请状态查询API`                       |   | `git commit -m "feat: 实现申请状态查询API" --author="member4 <member4@edu.com>"`                       |
+| 周5  | #3     | `feat: 实现申请状态查询API`                       | ✅ | `git commit -m "feat: 实现申请状态查询API" --author="member4 <member4@edu.com>"`                       |
 | 周5  | #4     | `feat: 添加MO选择申请人功能`                       |   | `git commit -m "feat: 添加MO选择申请人功能" --author="member4 <member4@edu.com>"`                       |
 | 周6  | #5     | `fix: 修复状态更新不及时的问题`                       |   | `git commit -m "fix: 修复状态更新不及时的问题" --author="member4 <member4@edu.com>"`                       |
 
