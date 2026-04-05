@@ -342,8 +342,15 @@ public class ApplyServlet extends HttpServlet {
         // 接受申请
         boolean updated = applicationDao.accept(application.getApplicationId());
         if (updated) {
-            logInfo("Application accepted: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
-            writeJsonResponse(response, 200, true, "Application accepted successfully!", null);
+            // 获取更新后的申请状态
+            Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
+            if (updatedApp.isPresent()) {
+                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
+                logInfo("Application accepted: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
+                writeJsonResponse(response, 200, true, "Application accepted successfully!", data);
+            } else {
+                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+            }
         } else {
             writeJsonResponse(response, 500, false, "Failed to accept application", null);
         }
@@ -375,8 +382,15 @@ public class ApplyServlet extends HttpServlet {
         // 拒绝申请
         boolean updated = applicationDao.reject(application.getApplicationId());
         if (updated) {
-            logInfo("Application rejected: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
-            writeJsonResponse(response, 200, true, "Application rejected successfully!", null);
+            // 获取更新后的申请状态
+            Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
+            if (updatedApp.isPresent()) {
+                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
+                logInfo("Application rejected: " + application.getApplicationId() + " by MO: " + currentUser.getUsername());
+                writeJsonResponse(response, 200, true, "Application rejected successfully!", data);
+            } else {
+                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+            }
         } else {
             writeJsonResponse(response, 500, false, "Failed to reject application", null);
         }
@@ -412,8 +426,15 @@ public class ApplyServlet extends HttpServlet {
         // 撤回申请
         boolean updated = applicationDao.withdraw(application.getApplicationId());
         if (updated) {
-            logInfo("Application withdrawn: " + application.getApplicationId());
-            writeJsonResponse(response, 200, true, "Application withdrawn successfully!", null);
+            // 获取更新后的申请状态
+            Optional<Application> updatedApp = applicationDao.findById(application.getApplicationId());
+            if (updatedApp.isPresent()) {
+                String data = "{" + buildApplicationJson(updatedApp.get()) + "}";
+                logInfo("Application withdrawn: " + application.getApplicationId());
+                writeJsonResponse(response, 200, true, "Application withdrawn successfully!", data);
+            } else {
+                writeJsonResponse(response, 500, false, "Failed to retrieve updated application", null);
+            }
         } else {
             writeJsonResponse(response, 500, false, "Failed to withdraw application", null);
         }
