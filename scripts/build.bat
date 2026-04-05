@@ -54,6 +54,11 @@ echo Compiling Job model and DAO...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar" "%SRC_DIR%\com\example\authlogin\model\Job.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\dao\JobDao.java"
 
+REM Compile Application model and DAO (Member 4)
+echo Compiling Application model and DAO...
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar" "%SRC_DIR%\com\example\authlogin\model\Application.java"
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\dao\ApplicationDao.java"
+
 echo Third pass: compiling filter classes...
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\filter\AuthFilter.java"
 
@@ -64,6 +69,10 @@ javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\se
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\HelloServlet.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\ApplicantServlet.java"
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\JobServlet.java"
+
+REM Compile ApplyServlet (Member 4 - Application Status)
+echo Compiling ApplyServlet...
+javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\ApplyServlet.java"
 
 REM Compile permission util that depends on session util
 javac -encoding UTF-8 -d "%BUILD_DIR%\WEB-INF\classes" -cp "%TOMCAT_HOME%\lib\servlet-api.jar;%BUILD_DIR%\WEB-INF\classes" "%SRC_DIR%\com\example\authlogin\util\PermissionUtil.java"

@@ -1,3 +1,1 @@
 jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positions,workload,salary,deadline,status,createdAt,updatedAt
-e4d1eb24-20eb-4159-8880-bfb702e2bcf3,9eb417d4-ed85-41ff-ac49-c2d8a602ddc9,testmo,Python Tutor,CS102,Python Programming,Teach Python basics,Python;Teaching,1,8 hours/week,14/hour,2025-04-15T23:59:59,OPEN,2026-03-18T15:54:41.2345937,2026-03-18T15:54:41.2375961
-e457fbbb-6808-43be-82ac-5c3d5d951630,9eb417d4-ed85-41ff-ac49-c2d8a602ddc9,testmo,Java Teaching Assistant,CS101,Introduction to Programming,Help students with Java programming,Java;Programming;Teaching,2,10 hours/week,15/hour,2025-04-01T23:59:59,CLOSED,2026-03-18T15:54:41.2226252,2026-03-18T15:58:20.845897
