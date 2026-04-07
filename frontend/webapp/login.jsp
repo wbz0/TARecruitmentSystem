@@ -95,7 +95,7 @@
 
         <p class="register-hint">
             Don't have an account?
-            <a href="<%= contextPath %>/register.jsp">Go to Register (Coming Soon)</a>
+            <a href="<%= contextPath %>/register.jsp">Create one now</a>
         </p>
 
         <p class="login-footer">University Hiring System © 2026</p>

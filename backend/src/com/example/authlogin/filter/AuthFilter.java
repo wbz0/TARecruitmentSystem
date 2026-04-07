@@ -56,11 +56,6 @@ public class AuthFilter implements Filter {
         "/job/update"
     ));
 
-    private static final Set<String> ADMIN_PATHS = new HashSet<>(Arrays.asList(
-        "/jsp/admin/",
-        "/api/admin/"
-    ));
-
     // TA可访问的路径（除MO和ADMIN专属路径外）
     private static final Set<String> TA_PATHS = new HashSet<>(Arrays.asList(
         "/jsp/ta/",
@@ -87,9 +82,6 @@ public class AuthFilter implements Filter {
         String uri = httpRequest.getRequestURI();
         String contextPath = httpRequest.getContextPath();
         String path = uri.substring(contextPath.length());
-
-        // 获取请求方法
-        String method = httpRequest.getMethod();
 
         // 处理静态资源和CSS/JS
         if (path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".png") ||

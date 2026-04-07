@@ -3,6 +3,7 @@ package com.example.authlogin;
 import com.example.authlogin.dao.ApplicantDao;
 import com.example.authlogin.model.Applicant;
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.StoragePaths;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,9 +16,6 @@ import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +44,7 @@ public class ApplicantServlet extends HttpServlet {
     private ApplicantDao applicantDao;
 
     // 上传目录
-    private static final String UPLOAD_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data/resumes";
+    private static final String UPLOAD_DIR = StoragePaths.getResumeDir();
 
     // 允许的文件类型
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(

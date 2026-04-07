@@ -2,7 +2,6 @@ package com.example.authlogin;
 
 import com.example.authlogin.dao.ApplicationDao;
 import com.example.authlogin.dao.JobDao;
-import com.example.authlogin.dao.UserDao;
 import com.example.authlogin.model.Application;
 import com.example.authlogin.model.Job;
 import com.example.authlogin.model.User;
@@ -33,7 +32,6 @@ public class ApplyServlet extends HttpServlet {
 
     private ApplicationDao applicationDao;
     private JobDao jobDao;
-    private UserDao userDao;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -51,7 +49,6 @@ public class ApplyServlet extends HttpServlet {
     public void init() throws ServletException {
         applicationDao = ApplicationDao.getInstance();
         jobDao = JobDao.getInstance();
-        userDao = UserDao.getInstance();
         logInfo("ApplyServlet initialized");
     }
 

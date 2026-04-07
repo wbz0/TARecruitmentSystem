@@ -1,10 +1,9 @@
 package com.example.authlogin.dao;
 
 import com.example.authlogin.model.Applicant;
+import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +15,8 @@ import java.util.stream.Collectors;
  */
 public class ApplicantDao {
 
-    // 项目数据目录 - 使用固定绝对路径
-    private static final String DATA_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data";
+    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
+    private static final String DATA_DIR = StoragePaths.getDataDir();
     private static final String APPLICANT_FILE = DATA_DIR + File.separator + "applicants.csv";
     private static final String CSV_HEADER = "applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt";
 
