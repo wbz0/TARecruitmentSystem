@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 /**
  * LoginServlet - 处理用户登录
@@ -28,9 +27,7 @@ import java.util.regex.Pattern;
 public class LoginServlet extends HttpServlet {
 
     private UserDao userDao;
-
-    // 用户名验证正则 (字母开头，允许字母数字下划线，3-20字符)
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]{2,19}$");
+    private static final String INVALID_ROLE = "__INVALID_ROLE__";
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -65,6 +62,13 @@ public class LoginServlet extends HttpServlet {
             // 获取并验证输入
             String username = request.getParameter("username");
             String password = request.getParameter("password");
+            String requestedRole = normalizeRequestedRole(request.getParameter("role"));
+
+            if (INVALID_ROLE.equals(requestedRole)) {
+                logInfo("Validation failed: Invalid role parameter");
+                writeJsonResponse(response, 400, false, "Invalid role parameter", null);
+                return;
+            }
 
             // 输入验证
             String validationError = validateInput(username, password);
@@ -79,11 +83,20 @@ public class LoginServlet extends HttpServlet {
             password = password.trim();
 
             // 验证登录
-            logInfo("Attempting login for username: " + username);
+            logInfo("Attempting login for username: " + username +
+                (requestedRole != null ? ", requestedRole: " + requestedRole : ""));
             Optional<User> userOpt = userDao.verifyLogin(username, password);
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
+
+                if (requestedRole != null && !requestedRole.equals(user.getRole().name())) {
+                    logInfo("Login failed for username: " + username + " - Role mismatch. accountRole="
+                        + user.getRole().name() + ", requestedRole=" + requestedRole);
+                    writeJsonResponse(response, 403, false, "Selected login role does not match account role", null);
+                    return;
+                }
+
                 logInfo("Login successful for username: " + username + ", role: " + user.getRole());
 
                 // 创建会话
@@ -133,6 +146,27 @@ public class LoginServlet extends HttpServlet {
         }
 
         return null;
+    }
+
+    /**
+     * 规范化并验证前端传入的登录角色
+     * @return TA/MO/ADMIN/null/INVALID_ROLE
+     */
+    private String normalizeRequestedRole(String role) {
+        if (role == null) {
+            return null;
+        }
+
+        String normalizedRole = role.trim().toUpperCase();
+        if (normalizedRole.isEmpty()) {
+            return null;
+        }
+
+        if ("TA".equals(normalizedRole) || "MO".equals(normalizedRole) || "ADMIN".equals(normalizedRole)) {
+            return normalizedRole;
+        }
+
+        return INVALID_ROLE;
     }
 
     /**

@@ -84,20 +84,10 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo [3/3] Copying resource files...
 
-REM Copy web.xml
-if exist "%WEBAPP_DIR%\WEB-INF\web.xml" (
-    copy /Y "%WEBAPP_DIR%\WEB-INF\web.xml" "%BUILD_DIR%\WEB-INF\" >nul
+REM Copy all frontend webapp resources (JSP/HTML/CSS/JS/images/module folders)
+if exist "%WEBAPP_DIR%" (
+    xcopy /Y /E "%WEBAPP_DIR%\*" "%BUILD_DIR%\" >nul
 )
-
-REM Copy JSP files
-if exist "%WEBAPP_DIR%\jsp" (
-    if not exist "%BUILD_DIR%\jsp" mkdir "%BUILD_DIR%\jsp"
-    xcopy /Y /E "%WEBAPP_DIR%\jsp\*" "%BUILD_DIR%\jsp\" >nul
-)
-
-REM Copy root JSP and HTML
-if exist "%WEBAPP_DIR%\*.jsp" xcopy /Y /E "%WEBAPP_DIR%\*.jsp" "%BUILD_DIR%\" >nul
-if exist "%WEBAPP_DIR%\*.html" xcopy /Y /E "%WEBAPP_DIR%\*.html" "%BUILD_DIR%\" >nul
 
 echo.
 echo ========================================

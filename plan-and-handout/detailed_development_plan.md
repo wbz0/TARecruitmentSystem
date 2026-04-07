@@ -19,13 +19,13 @@
 负责：登录注册 + Session管理
 
 
-| 周次  | Commit | Message                       | 状态 | Git Command                                                                        |
+| 周次  | Commit | Message                       | 状态  | Git Command                                                                        |
 | --- | ------ | ----------------------------- | --- | ---------------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 创建User实体类和UserDao`     | ✅ | `git commit -m "feat: 创建User实体类和UserDao" --author="member1 <member1@edu.com>"`     |
-| 周4  | #2     | `feat: 实现登录Servlet和注册Servlet` | ✅ | `git commit -m "feat: 实现登录Servlet和注册Servlet" --author="member1 <member1@edu.com>"` |
-| 周5  | #3     | `feat: 添加Session管理和权限验证`      | ✅ | `git commit -m "feat: 添加Session管理和权限验证" --author="member1 <member1@edu.com>"`      |
-| 周5  | #4     | `fix: 修复验证登录密码加密问题`           | ✅ | `git commit -m "fix: 修复验证登录密码加密问题" --author="member1 <member1@edu.com>"`           |
-| 周6  | #5     | `refactor: 优化登录逻辑，添加错误处理`     | ✅ | `git commit -m "refactor: 优化登录逻辑，添加错误处理" --author="member1 <member1@edu.com>"`     |
+| 周4  | #1     | `feat: 创建User实体类和UserDao`     | ✅   | `git commit -m "feat: 创建User实体类和UserDao" --author="member1 <member1@edu.com>"`     |
+| 周4  | #2     | `feat: 实现登录Servlet和注册Servlet` | ✅   | `git commit -m "feat: 实现登录Servlet和注册Servlet" --author="member1 <member1@edu.com>"` |
+| 周5  | #3     | `feat: 添加Session管理和权限验证`      | ✅   | `git commit -m "feat: 添加Session管理和权限验证" --author="member1 <member1@edu.com>"`      |
+| 周5  | #4     | `fix: 修复验证登录密码加密问题`           | ✅   | `git commit -m "fix: 修复验证登录密码加密问题" --author="member1 <member1@edu.com>"`           |
+| 周6  | #5     | `refactor: 优化登录逻辑，添加错误处理`     | ✅   | `git commit -m "refactor: 优化登录逻辑，添加错误处理" --author="member1 <member1@edu.com>"`     |
 
 
 ---
@@ -35,13 +35,13 @@
 负责：TA档案创建 + 简历上传
 
 
-| 周次  | Commit | Message                             | 状态 | Git Command                                                                              |
+| 周次  | Commit | Message                             | 状态  | Git Command                                                                              |
 | --- | ------ | ----------------------------------- | --- | ---------------------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 创建Applicant实体类和ApplicantDao` | ✅ | `git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"` |
-| 周4  | #2     | `feat: 实现档案创建Servlet，支持基本信息存储`      | ✅ | `git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`      |
-| 周5  | #3     | `feat: 实现简历文件上传功能`                  | ✅ | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
-| 周5  | #4     | `fix: 修复文件上传大小限制问题`                 | ✅ | `git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`                 |
-| 周6  | #5     | `refactor: 添加档案完整性验证`               | ✅ | `git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`               |
+| 周4  | #1     | `feat: 创建Applicant实体类和ApplicantDao` | ✅   | `git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"` |
+| 周4  | #2     | `feat: 实现档案创建Servlet，支持基本信息存储`      | ✅   | `git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`      |
+| 周5  | #3     | `feat: 实现简历文件上传功能`                  | ✅   | `git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`                  |
+| 周5  | #4     | `fix: 修复文件上传大小限制问题`                 | ✅   | `git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`                 |
+| 周6  | #5     | `refactor: 添加档案完整性验证`               | ✅   | `git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`               |
 
 
 ---
@@ -51,13 +51,13 @@
 负责：MO发布职位 + 职位列表
 
 
-| 周次  | Commit | Message                   | 状态 | Git Command                                                                    |
+| 周次  | Commit | Message                   | 状态  | Git Command                                                                    |
 | --- | ------ | ------------------------- | --- | ------------------------------------------------------------------------------ |
-| 周4  | #1     | `feat: 创建Job职位实体类和JobDao` | ✅ | `git commit -m "feat: 创建Job职位实体类和JobDao" --author="member3 <member3@edu.com>"` |
-| 周4  | #2     | `feat: 实现职位发布Servlet`     | ✅ | `git commit -m "feat: 实现职位发布Servlet" --author="member3 <member3@edu.com>"`     |
-| 周5  | #3     | `feat: 实现职位列表查询API，支持筛选`  | ✅ | `git commit -m "feat: 实现职位列表查询API，支持筛选" --author="member3 <member3@edu.com>"`  |
-| 周5  | #4     | `fix: 修复职位状态显示错误`         | ✅ | `git commit -m "fix: 修复职位状态显示错误" --author="member3 <member3@edu.com>"`         |
-| 周6  | #5     | `feat: 添加职位编辑和删除功能`       | ✅ | `git commit -m "feat: 添加职位编辑和删除功能" --author="member3 <member3@edu.com>"`       |
+| 周4  | #1     | `feat: 创建Job职位实体类和JobDao` | ✅   | `git commit -m "feat: 创建Job职位实体类和JobDao" --author="member3 <member3@edu.com>"` |
+| 周4  | #2     | `feat: 实现职位发布Servlet`     | ✅   | `git commit -m "feat: 实现职位发布Servlet" --author="member3 <member3@edu.com>"`     |
+| 周5  | #3     | `feat: 实现职位列表查询API，支持筛选`  | ✅   | `git commit -m "feat: 实现职位列表查询API，支持筛选" --author="member3 <member3@edu.com>"`  |
+| 周5  | #4     | `fix: 修复职位状态显示错误`         | ✅   | `git commit -m "fix: 修复职位状态显示错误" --author="member3 <member3@edu.com>"`         |
+| 周6  | #5     | `feat: 添加职位编辑和删除功能`       | ✅   | `git commit -m "feat: 添加职位编辑和删除功能" --author="member3 <member3@edu.com>"`       |
 
 
 ---
@@ -67,13 +67,13 @@
 负责：查看申请状态 + MO选择
 
 
-| 周次  | Commit | Message                                   | 状态 | Git Command                                                                                    |
+| 周次  | Commit | Message                                   | 状态  | Git Command                                                                                    |
 | --- | ------ | ----------------------------------------- | --- | ---------------------------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 创建Application申请实体类和ApplicationDao` | ✅ | `git commit -m "feat: 创建Application申请实体类和ApplicationDao" --author="member4 <member4@edu.com>"` |
-| 周4  | #2     | `feat: 实现职位申请Servlet`                     | ✅ | `git commit -m "feat: 实现职位申请Servlet" --author="member4 <member4@edu.com>"`                     |
-| 周5  | #3     | `feat: 实现申请状态查询API`                       | ✅ | `git commit -m "feat: 实现申请状态查询API" --author="member4 <member4@edu.com>"`                       |
-| 周5  | #4     | `feat: 添加MO选择申请人功能`                       | ✅ | `git commit -m "feat: 添加MO选择申请人功能" --author="member4 <member4@edu.com>"`                       |
-| 周6  | #5     | `fix: 修复状态更新不及时的问题`                       | ✅ | `git commit -m "fix: 修复状态更新不及时的问题" --author="member4 <member4@edu.com>"`                       |
+| 周4  | #1     | `feat: 创建Application申请实体类和ApplicationDao` | ✅   | `git commit -m "feat: 创建Application申请实体类和ApplicationDao" --author="member4 <member4@edu.com>"` |
+| 周4  | #2     | `feat: 实现职位申请Servlet`                     | ✅   | `git commit -m "feat: 实现职位申请Servlet" --author="member4 <member4@edu.com>"`                     |
+| 周5  | #3     | `feat: 实现申请状态查询API`                       | ✅   | `git commit -m "feat: 实现申请状态查询API" --author="member4 <member4@edu.com>"`                       |
+| 周5  | #4     | `feat: 添加MO选择申请人功能`                       | ✅   | `git commit -m "feat: 添加MO选择申请人功能" --author="member4 <member4@edu.com>"`                       |
+| 周6  | #5     | `fix: 修复状态更新不及时的问题`                       | ✅   | `git commit -m "fix: 修复状态更新不及时的问题" --author="member4 <member4@edu.com>"`                       |
 
 
 ---
@@ -83,13 +83,13 @@
 负责：登录注册界面 + TA档案界面
 
 
-| 周次  | Commit | Message                   | Git Command                                                                    |
-| --- | ------ | ------------------------- | ------------------------------------------------------------------------------ |
-| 周4  | #1     | `feat: 设计并实现登录页面HTML/CSS` | `git commit -m "feat: 设计并实现登录页面HTML/CSS" --author="member5 <member5@edu.com>"` |
-| 周4  | #2     | `feat: 设计并实现注册页面`         | `git commit -m "feat: 设计并实现注册页面" --author="member5 <member5@edu.com>"`         |
-| 周5  | #3     | `feat: 设计并实现TA档案创建页面`     | `git commit -m "feat: 设计并实现TA档案创建页面" --author="member5 <member5@edu.com>"`     |
-| 周5  | #4     | `feat: 添加简历上传前端逻辑和进度显示`   | `git commit -m "feat: 添加简历上传前端逻辑和进度显示" --author="member5 <member5@edu.com>"`   |
-| 周6  | #5     | `style: 优化表单样式和用户体验`      | `git commit -m "style: 优化表单样式和用户体验" --author="member5 <member5@edu.com>"`      |
+| 周次  | Commit | Message                   | 状态 | Git Command                                                                    |
+| --- | ------ | ------------------------- | --- | ------------------------------------------------------------------------------ |
+| 周4  | #1     | `feat: 设计并实现登录页面HTML/CSS` | ✅ | `git commit -m "feat: 设计并实现登录页面HTML/CSS" --author="member5 <member5@edu.com>"` |
+| 周4  | #2     | `feat: 设计并实现注册页面`         |  | `git commit -m "feat: 设计并实现注册页面" --author="member5 <member5@edu.com>"`         |
+| 周5  | #3     | `feat: 设计并实现TA档案创建页面`     |  | `git commit -m "feat: 设计并实现TA档案创建页面" --author="member5 <member5@edu.com>"`     |
+| 周5  | #4     | `feat: 添加简历上传前端逻辑和进度显示`   |  | `git commit -m "feat: 添加简历上传前端逻辑和进度显示" --author="member5 <member5@edu.com>"`   |
+| 周6  | #5     | `style: 优化表单样式和用户体验`      |  | `git commit -m "style: 优化表单样式和用户体验" --author="member5 <member5@edu.com>"`      |
 
 
 ---
