@@ -19,8 +19,10 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +58,10 @@ public class ApplicantServlet extends HttpServlet {
     // 允许的扩展名
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
         ".pdf", ".doc", ".docx"
+    );
+
+    private static final List<String> ALLOWED_PROGRAMS = Arrays.asList(
+        "Undergraduate", "Master", "PhD"
     );
 
     // 文件大小限制 (10 MB)
@@ -165,23 +171,36 @@ public class ApplicantServlet extends HttpServlet {
             }
 
             // 获取请求参数
-            String fullName = request.getParameter("fullName");
-            String studentId = request.getParameter("studentId");
-            String department = request.getParameter("department");
-            String program = request.getParameter("program");
-            String gpa = request.getParameter("gpa");
-            String skills = request.getParameter("skills");
-            String phone = request.getParameter("phone");
-            String address = request.getParameter("address");
-            String experience = request.getParameter("experience");
-            String motivation = request.getParameter("motivation");
+            String fullName = normalizeInput(request.getParameter("fullName"));
+            String studentId = normalizeInput(request.getParameter("studentId"));
+            String department = normalizeInput(request.getParameter("department"));
+            String program = normalizeInput(request.getParameter("program"));
+            String gpa = normalizeInput(request.getParameter("gpa"));
+            String skills = normalizeInput(request.getParameter("skills"));
+            String phone = normalizeInput(request.getParameter("phone"));
+            String address = normalizeInput(request.getParameter("address"));
+            String experience = normalizeInput(request.getParameter("experience"));
+            String motivation = normalizeInput(request.getParameter("motivation"));
 
             // 输入验证
-            String error = validateInput(fullName, studentId, department, program);
+            String error = validateInput(
+                    fullName, studentId, department, program,
+                    gpa, skills, phone, address, experience, motivation,
+                    true
+            );
             if (error != null) {
                 logInfo("Validation failed: " + error);
                 writeJsonResponse(response, 400, false, error, null);
                 return;
+            }
+
+            Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(studentId);
+            if (existingWithStudentId.isPresent()) {
+                if (!isUpdate || existingApplicant.isEmpty()
+                        || !existingWithStudentId.get().getApplicantId().equals(existingApplicant.get().getApplicantId())) {
+                    writeJsonResponse(response, 400, false, "Student ID already exists", null);
+                    return;
+                }
             }
 
             Applicant applicant;
@@ -192,24 +211,16 @@ public class ApplicantServlet extends HttpServlet {
                 applicant.setUserId(currentUser.getUserId());
             }
 
-            applicant.setFullName(fullName.trim());
-            applicant.setStudentId(studentId.trim());
-            applicant.setDepartment(department != null ? department.trim() : null);
-            applicant.setProgram(program != null ? program.trim() : null);
-            applicant.setGpa(gpa != null ? gpa.trim() : null);
-            applicant.setPhone(phone != null ? phone.trim() : null);
-            applicant.setAddress(address != null ? address.trim() : null);
-            applicant.setExperience(experience != null ? experience.trim() : null);
-            applicant.setMotivation(motivation != null ? motivation.trim() : null);
-
-            // 处理技能列表
-            if (skills != null && !skills.trim().isEmpty()) {
-                List<String> skillList = Arrays.stream(skills.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
-                applicant.setSkills(skillList);
-            }
+            applicant.setFullName(fullName);
+            applicant.setStudentId(studentId);
+            applicant.setDepartment(department);
+            applicant.setProgram(program);
+            applicant.setGpa(gpa);
+            applicant.setPhone(phone);
+            applicant.setAddress(address);
+            applicant.setExperience(experience);
+            applicant.setMotivation(motivation);
+            applicant.setSkills(parseSkills(skills));
 
             // 保存档案
             Applicant savedApplicant;
@@ -270,6 +281,16 @@ public class ApplicantServlet extends HttpServlet {
             String experience = request.getParameter("experience");
             String motivation = request.getParameter("motivation");
 
+            String updateValidationError = validatePartialInput(
+                    fullName, studentId, department, program,
+                    gpa, skills, phone, address, experience, motivation
+            );
+            if (updateValidationError != null) {
+                logInfo("Partial update validation failed: " + updateValidationError);
+                writeJsonResponse(response, 400, false, updateValidationError, null);
+                return;
+            }
+
             // 处理文件上传
             Part filePart = request.getPart("resume");
             String resumePath = null;
@@ -289,44 +310,41 @@ public class ApplicantServlet extends HttpServlet {
             }
 
             // 更新文本字段（如果有提供）
-            if (fullName != null && !fullName.trim().isEmpty()) {
-                applicant.setFullName(fullName.trim());
+            if (fullName != null) {
+                applicant.setFullName(normalizeInput(fullName));
             }
-            if (studentId != null && !studentId.trim().isEmpty()) {
-                Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(studentId.trim());
+            if (studentId != null) {
+                String normalizedStudentId = normalizeInput(studentId);
+                Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(normalizedStudentId);
                 if (existingWithStudentId.isPresent() && !existingWithStudentId.get().getApplicantId().equals(applicant.getApplicantId())) {
                     writeJsonResponse(response, 400, false, "Student ID already exists", null);
                     return;
                 }
-                applicant.setStudentId(studentId.trim());
+                applicant.setStudentId(normalizedStudentId);
             }
             if (department != null) {
-                applicant.setDepartment(department.trim().isEmpty() ? null : department.trim());
+                applicant.setDepartment(normalizeInput(department));
             }
             if (program != null) {
-                applicant.setProgram(program.trim().isEmpty() ? null : program.trim());
+                applicant.setProgram(normalizeInput(program));
             }
             if (gpa != null) {
-                applicant.setGpa(gpa.trim().isEmpty() ? null : gpa.trim());
+                applicant.setGpa(normalizeInput(gpa));
             }
             if (phone != null) {
-                applicant.setPhone(phone.trim().isEmpty() ? null : phone.trim());
+                applicant.setPhone(normalizeInput(phone));
             }
             if (address != null) {
-                applicant.setAddress(address.trim().isEmpty() ? null : address.trim());
+                applicant.setAddress(normalizeInput(address));
             }
             if (experience != null) {
-                applicant.setExperience(experience.trim().isEmpty() ? null : experience.trim());
+                applicant.setExperience(normalizeInput(experience));
             }
             if (motivation != null) {
-                applicant.setMotivation(motivation.trim().isEmpty() ? null : motivation.trim());
+                applicant.setMotivation(normalizeInput(motivation));
             }
             if (skills != null) {
-                List<String> skillList = Arrays.stream(skills.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
-                applicant.setSkills(skillList);
+                applicant.setSkills(parseSkills(normalizeInput(skills)));
             }
 
             // 更新时间
@@ -465,36 +483,489 @@ public class ApplicantServlet extends HttpServlet {
         return (User) session.getAttribute("user");
     }
 
-    /**
-     * 验证必填字段
-     */
-    private String validateInput(String fullName, String studentId, String department, String program) {
-        if (fullName == null || fullName.trim().isEmpty()) {
-            return "Full name is required";
+    private String normalizeInput(String value) {
+        if (value == null) {
+            return null;
         }
-        if (fullName.trim().length() > 100) {
-            return "Full name is too long";
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private List<String> parseSkills(String skills) {
+        if (skills == null || skills.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(skills.split("[;,]"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private String validatePartialInput(
+            String fullNameRaw,
+            String studentIdRaw,
+            String departmentRaw,
+            String programRaw,
+            String gpaRaw,
+            String skillsRaw,
+            String phoneRaw,
+            String addressRaw,
+            String experienceRaw,
+            String motivationRaw
+    ) {
+        if (fullNameRaw != null) {
+            String fullName = normalizeInput(fullNameRaw);
+            if (fullName == null) {
+                return "Full name cannot be empty.";
+            }
+            String fullNameError = validateFullName(fullName);
+            if (fullNameError != null) {
+                return fullNameError;
+            }
         }
 
-        if (studentId == null || studentId.trim().isEmpty()) {
-            return "Student ID is required";
-        }
-        if (studentId.trim().length() > 50) {
-            return "Student ID is too long";
-        }
-
-        if (department == null || department.trim().isEmpty()) {
-            return "Department is required";
-        }
-        if (department.trim().length() > 100) {
-            return "Department is too long";
+        if (studentIdRaw != null) {
+            String studentId = normalizeInput(studentIdRaw);
+            if (studentId == null) {
+                return "Student ID cannot be empty.";
+            }
+            String studentIdError = validateStudentId(studentId);
+            if (studentIdError != null) {
+                return studentIdError;
+            }
         }
 
-        if (program == null || program.trim().isEmpty()) {
-            return "Program is required";
+        if (departmentRaw != null) {
+            String department = normalizeInput(departmentRaw);
+            if (department == null) {
+                return "Department cannot be empty.";
+            }
+            String departmentError = validateDepartment(department);
+            if (departmentError != null) {
+                return departmentError;
+            }
+        }
+
+        if (programRaw != null) {
+            String program = normalizeInput(programRaw);
+            if (program == null) {
+                return "Program cannot be empty.";
+            }
+            String programError = validateProgram(program);
+            if (programError != null) {
+                return programError;
+            }
+        }
+
+        String gpa = normalizeInput(gpaRaw);
+        if (gpaRaw != null && gpa != null) {
+            String gpaError = validateGpa(gpa);
+            if (gpaError != null) {
+                return gpaError;
+            }
+        }
+
+        String skills = normalizeInput(skillsRaw);
+        if (skillsRaw != null && skills != null) {
+            String skillsError = validateSkills(skills);
+            if (skillsError != null) {
+                return skillsError;
+            }
+        }
+
+        String phone = normalizeInput(phoneRaw);
+        if (phoneRaw != null && phone != null) {
+            String phoneError = validatePhone(phone);
+            if (phoneError != null) {
+                return phoneError;
+            }
+        }
+
+        String address = normalizeInput(addressRaw);
+        if (addressRaw != null && address != null) {
+            String addressError = validateAddress(address);
+            if (addressError != null) {
+                return addressError;
+            }
+        }
+
+        String experience = normalizeInput(experienceRaw);
+        if (experienceRaw != null && experience != null) {
+            String experienceError = validateLongTextField(experience, "Related experience");
+            if (experienceError != null) {
+                return experienceError;
+            }
+        }
+
+        String motivation = normalizeInput(motivationRaw);
+        if (motivationRaw != null && motivation != null) {
+            String motivationError = validateLongTextField(motivation, "Motivation");
+            if (motivationError != null) {
+                return motivationError;
+            }
         }
 
         return null;
+    }
+
+    private String validateInput(
+            String fullName,
+            String studentId,
+            String department,
+            String program,
+            String gpa,
+            String skills,
+            String phone,
+            String address,
+            String experience,
+            String motivation,
+            boolean requireRequiredFields
+    ) {
+        if (requireRequiredFields && fullName == null) {
+            return "Full name is required.";
+        }
+        if (fullName != null) {
+            String fullNameError = validateFullName(fullName);
+            if (fullNameError != null) {
+                return fullNameError;
+            }
+        }
+
+        if (requireRequiredFields && studentId == null) {
+            return "Student ID is required.";
+        }
+        if (studentId != null) {
+            String studentIdError = validateStudentId(studentId);
+            if (studentIdError != null) {
+                return studentIdError;
+            }
+        }
+
+        if (requireRequiredFields && department == null) {
+            return "Department is required.";
+        }
+        if (department != null) {
+            String departmentError = validateDepartment(department);
+            if (departmentError != null) {
+                return departmentError;
+            }
+        }
+
+        if (requireRequiredFields && program == null) {
+            return "Program is required.";
+        }
+        if (program != null) {
+            String programError = validateProgram(program);
+            if (programError != null) {
+                return programError;
+            }
+        }
+
+        if (gpa != null) {
+            String gpaError = validateGpa(gpa);
+            if (gpaError != null) {
+                return gpaError;
+            }
+        }
+        if (skills != null) {
+            String skillsError = validateSkills(skills);
+            if (skillsError != null) {
+                return skillsError;
+            }
+        }
+        if (phone != null) {
+            String phoneError = validatePhone(phone);
+            if (phoneError != null) {
+                return phoneError;
+            }
+        }
+        if (address != null) {
+            String addressError = validateAddress(address);
+            if (addressError != null) {
+                return addressError;
+            }
+        }
+        if (experience != null) {
+            String experienceError = validateLongTextField(experience, "Related experience");
+            if (experienceError != null) {
+                return experienceError;
+            }
+        }
+        if (motivation != null) {
+            String motivationError = validateLongTextField(motivation, "Motivation");
+            if (motivationError != null) {
+                return motivationError;
+            }
+        }
+
+        return null;
+    }
+
+    private String validateFullName(String value) {
+        if (value.length() < 2) {
+            return "Full name must be at least 2 characters.";
+        }
+        if (value.length() > 100) {
+            return "Full name must be 100 characters or fewer.";
+        }
+        if (!hasLetterOrCjk(value)) {
+            return "Full name must include at least one letter.";
+        }
+        if (!value.matches("^[A-Za-z\\u00C0-\\u024F\\u4E00-\\u9FFF\\s.'-]+$")) {
+            return "Full name contains unsupported characters.";
+        }
+        if (hasExcessiveRepeatedChars(value, 4)) {
+            return "Full name contains too many repeated characters.";
+        }
+        return null;
+    }
+
+    private String validateStudentId(String value) {
+        if (!value.matches("^\\d{10}$")) {
+            return "Student ID must be exactly 10 digits, for example 2023213039.";
+        }
+        if (!value.matches("^20\\d{8}$")) {
+            return "Student ID should start with 20, for example 2023213051.";
+        }
+        int year = Integer.parseInt(value.substring(0, 4));
+        if (year < 2010 || year > 2099) {
+            return "Student ID year appears invalid. Please check the first 4 digits.";
+        }
+        if (value.matches("^(\\d)\\1{9}$")) {
+            return "Student ID appears invalid. Please check your official 10-digit student number.";
+        }
+        return null;
+    }
+
+    private String validateDepartment(String value) {
+        if (value.length() < 2) {
+            return "Department must be at least 2 characters.";
+        }
+        if (value.length() > 100) {
+            return "Department must be 100 characters or fewer.";
+        }
+        if (!hasLetterOrCjk(value)) {
+            return "Department should include letters.";
+        }
+        if (!value.matches("^[A-Za-z0-9\\u00C0-\\u024F\\u4E00-\\u9FFF\\s&(),./'-]+$")) {
+            return "Department contains unsupported characters.";
+        }
+        if (hasExcessiveRepeatedChars(value, 6)) {
+            return "Department contains too many repeated characters.";
+        }
+        return null;
+    }
+
+    private String validateProgram(String value) {
+        if (!ALLOWED_PROGRAMS.contains(value)) {
+            return "Please select a valid program option.";
+        }
+        return null;
+    }
+
+    private String validateGpa(String value) {
+        if (value.length() > 20) {
+            return "GPA must be 20 characters or fewer.";
+        }
+        if (!value.matches("^[0-9.,/\\s]+$")) {
+            return "GPA may only include digits, spaces, decimal separators, and '/'.";
+        }
+
+        String normalized = value.replaceAll("\\s+", "").replace(",", ".");
+        String[] parts = normalized.split("/", -1);
+        if (parts.length > 2) {
+            return "GPA format is invalid. Use one optional '/'.";
+        }
+        if (!parts[0].matches("^\\d{1,3}(\\.\\d{1,2})?$")) {
+            return "GPA value supports up to 2 decimal places.";
+        }
+
+        double actual = Double.parseDouble(parts[0]);
+        if (actual < 0) {
+            return "GPA cannot be negative.";
+        }
+
+        if (parts.length == 2) {
+            if (!parts[1].matches("^\\d{1,3}(\\.\\d{1,2})?$")) {
+                return "GPA scale supports up to 2 decimal places.";
+            }
+            double scale = Double.parseDouble(parts[1]);
+            if (scale < 4 || scale > 100) {
+                return "GPA scale should be between 4 and 100.";
+            }
+            if (actual > scale) {
+                return "GPA value cannot be greater than the GPA scale.";
+            }
+        } else if (actual > 4.3) {
+            return "For GPA above 4.3, please include scale (for example 85/100).";
+        }
+
+        return null;
+    }
+
+    private String validateSkills(String value) {
+        if (value.length() > 300) {
+            return "Skills must be 300 characters or fewer.";
+        }
+        if (value.matches("(^[;,].*|.*[;,]\\s*[;,].*|.*[;,]\\s*$)")) {
+            return "Please remove empty skill items between separators.";
+        }
+
+        List<String> items = parseSkills(value);
+        if (items.size() > 12) {
+            return "Please list up to 12 skills.";
+        }
+
+        Set<String> seen = new HashSet<>();
+        for (String skill : items) {
+            if (skill.length() < 2 || skill.length() > 40) {
+                return "Each skill should be 2 to 40 characters.";
+            }
+            if (!hasLetterOrCjk(skill)) {
+                return "Each skill should include letters.";
+            }
+            if (!skill.matches("^[A-Za-z0-9\\u00C0-\\u024F\\u4E00-\\u9FFF+#&./\\-\\s]+$")) {
+                return "Skills contain unsupported characters.";
+            }
+            if (hasExcessiveRepeatedChars(skill, 5)) {
+                return "A skill item has too many repeated characters.";
+            }
+            String normalized = skill.toLowerCase().replaceAll("\\s+", " ").trim();
+            if (!seen.add(normalized)) {
+                return "Duplicate skills found. Please keep each skill only once.";
+            }
+        }
+
+        return null;
+    }
+
+    private String validatePhone(String value) {
+        if (value.length() > 30) {
+            return "Phone number must be 30 characters or fewer.";
+        }
+        if (!value.matches("^[\\d+\\-()./\\s]+$")) {
+            return "Phone number may only include digits, spaces, and + - ( ) . /.";
+        }
+        if (countOccurrences(value, '+') > 1) {
+            return "Phone number can contain only one '+'.";
+        }
+        if (value.indexOf('+') > 0) {
+            return "If used, '+' must be at the beginning.";
+        }
+        if (!hasBalancedParentheses(value)) {
+            return "Phone number parentheses are not balanced.";
+        }
+
+        String digits = value.replaceAll("\\D", "");
+        if (digits.length() < 8 || digits.length() > 15) {
+            return "Phone number should contain 8 to 15 digits.";
+        }
+        if (digits.matches("^(\\d)\\1+$")) {
+            return "Phone number appears invalid. Please check repeated digits.";
+        }
+        if (value.startsWith("+") && digits.length() < 10) {
+            return "International format should usually contain at least 10 digits.";
+        }
+        return null;
+    }
+
+    private String validateAddress(String value) {
+        if (value.length() > 200) {
+            return "Address must be 200 characters or fewer.";
+        }
+        if (value.length() < 5) {
+            return "Address should be at least 5 characters if provided.";
+        }
+        if (!hasLetterOrCjk(value)) {
+            return "Address should include letters.";
+        }
+        if (hasOnlyPunctuationAndSpace(value)) {
+            return "Address cannot contain only punctuation.";
+        }
+        if (!value.matches("^[A-Za-z0-9\\u00C0-\\u024F\\u4E00-\\u9FFF\\s#&(),./:'-]+$")) {
+            return "Address contains unsupported characters.";
+        }
+        if (hasExcessiveRepeatedChars(value, 8)) {
+            return "Address contains too many repeated characters.";
+        }
+        return null;
+    }
+
+    private String validateLongTextField(String value, String label) {
+        if (value.length() > 1200) {
+            return label + " must be 1200 characters or fewer.";
+        }
+        if (value.length() < 20) {
+            return label + " should be at least 20 characters if provided.";
+        }
+        if (getTextContentUnits(value) < 10) {
+            return label + " should contain more detail (about 10 words/characters).";
+        }
+        if (hasExcessiveRepeatedChars(value, 8)) {
+            return label + " contains too many repeated characters.";
+        }
+        return null;
+    }
+
+    private boolean hasLetterOrCjk(String value) {
+        return value != null && value.matches(".*[A-Za-z\\u00C0-\\u024F\\u4E00-\\u9FFF].*");
+    }
+
+    private boolean hasOnlyPunctuationAndSpace(String value) {
+        return value != null && !value.matches(".*[A-Za-z0-9\\u00C0-\\u024F\\u4E00-\\u9FFF].*");
+    }
+
+    private boolean hasExcessiveRepeatedChars(String value, int threshold) {
+        if (value == null) {
+            return false;
+        }
+        int safeThreshold = Math.max(1, threshold);
+        return value.matches(".*(.)\\1{" + safeThreshold + ",}.*");
+    }
+
+    private boolean hasBalancedParentheses(String value) {
+        int balance = 0;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '(') {
+                balance++;
+            } else if (c == ')') {
+                balance--;
+                if (balance < 0) {
+                    return false;
+                }
+            }
+        }
+        return balance == 0;
+    }
+
+    private int countOccurrences(String value, char target) {
+        int count = 0;
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) == target) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int getTextContentUnits(String value) {
+        if (value == null || value.isEmpty()) {
+            return 0;
+        }
+
+        int cjkChars = value.replaceAll("[^\\u4E00-\\u9FFF]", "").length();
+        String latinPart = value.replaceAll("[\\u4E00-\\u9FFF]", " ");
+        String[] tokens = latinPart.split("[^A-Za-z0-9'-]+");
+
+        int latinWords = 0;
+        for (String token : tokens) {
+            if (!token.isEmpty()) {
+                latinWords++;
+            }
+        }
+
+        return cjkChars + latinWords;
     }
 
     /**

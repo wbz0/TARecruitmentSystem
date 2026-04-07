@@ -13,14 +13,17 @@
 <body>
     <main class="profile-page">
         <section class="profile-hero" aria-labelledby="profile-page-title">
-            <div class="hero-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false">
-                    <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
-                </svg>
+            <div class="profile-hero-aside">
+                <a class="logout-link" href="<%= contextPath %>/logout">Log out</a>
+                <div class="hero-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
+                    </svg>
+                </div>
             </div>
             <span class="profile-badge">TA Workspace</span>
             <h1 id="profile-page-title">Build your applicant profile</h1>
-            <p class="subtitle">Complete your academic details first. Resume upload will be added in the next step.</p>
+            <p class="subtitle">Create your profile below, then upload your resume in Step 2. Inline validation will help you correct format issues as you type.</p>
         </section>
 
         <section class="profile-layout" aria-label="TA applicant profile setup">
@@ -29,9 +32,8 @@
                     <div>
                         <p class="eyebrow">Step 1</p>
                         <h2>Create your TA profile</h2>
-                        <p class="section-copy">Provide the information the system needs before you browse and apply for positions.</p>
+                        <p class="section-copy">Complete the required fields first, then enrich optional details. After creation, this form becomes read-only and you can replace your resume from the right panel.</p>
                     </div>
-                    <a class="logout-link" href="<%= contextPath %>/logout">Log out</a>
                 </div>
 
                 <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
@@ -70,8 +72,9 @@
                                     id="student-id"
                                     name="studentId"
                                     type="text"
-                                    placeholder="e.g. 2026123456"
-                                    maxlength="50"
+                                    placeholder="e.g. 2023213039"
+                                    inputmode="numeric"
+                                    maxlength="10"
                                     required
                                 >
                             </div>

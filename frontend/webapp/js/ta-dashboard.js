@@ -44,6 +44,27 @@
         resumePath: ""
     };
 
+    var fieldValidationState = {
+        feedbackByKey: {},
+        touchedByKey: {}
+    };
+
+    var orderedInputKeys = [
+        "fullName",
+        "studentId",
+        "department",
+        "program",
+        "gpa",
+        "phone",
+        "skills",
+        "address",
+        "experience",
+        "motivation"
+    ];
+
+    initializeRealtimeValidation();
+    initializeEnterKeyBehavior();
+
     form.addEventListener("submit", function (event) {
         event.preventDefault();
 
@@ -71,7 +92,7 @@
 
         var validationError = validateForm();
         if (validationError) {
-            showMessage(validationError.message, "error");
+            showMessage("Please fix the highlighted fields and try again.", "error");
             if (validationError.field && typeof validationError.field.focus === "function") {
                 validationError.field.focus();
             }
@@ -229,6 +250,8 @@
         setFieldValue(inputs.experience, payload.experience);
         setFieldValue(inputs.motivation, payload.motivation);
 
+        clearAllFieldValidation();
+        resetFieldTouchedState();
         setFormDisabled(true);
         form.classList.add("is-readonly");
 
@@ -261,6 +284,8 @@
         setFormDisabled(false);
         form.classList.remove("is-readonly");
         hideBanner();
+        clearAllFieldValidation();
+        resetFieldTouchedState();
         refreshSubmitButton();
         refreshResumeArea();
     }
@@ -592,67 +617,542 @@
     }
 
     function validateForm() {
-        var fullName = inputs.fullName.value.trim();
-        var studentId = inputs.studentId.value.trim();
-        var department = inputs.department.value.trim();
-        var program = inputs.program.value.trim();
-        var gpa = inputs.gpa.value.trim();
-        var skills = inputs.skills.value.trim();
-        var phone = inputs.phone.value.trim();
-        var address = inputs.address.value.trim();
-        var experience = inputs.experience.value.trim();
-        var motivation = inputs.motivation.value.trim();
+        var firstError = null;
 
-        if (!fullName) {
-            return buildValidationError("Please enter your full name.", inputs.fullName);
-        }
-        if (fullName.length > 100) {
-            return buildValidationError("Full name must be 100 characters or fewer.", inputs.fullName);
+        Object.keys(inputs).forEach(function (key) {
+            if (!inputs[key]) {
+                return;
+            }
+
+            fieldValidationState.touchedByKey[key] = true;
+            var result = validateSingleField(key, { forceRequired: true });
+            if (!firstError && result && result.message) {
+                firstError = buildValidationError(result.message, result.field);
+            }
+        });
+
+        return firstError;
+    }
+
+    function initializeRealtimeValidation() {
+        Object.keys(inputs).forEach(function (key) {
+            var field = inputs[key];
+            if (!field) {
+                return;
+            }
+
+            fieldValidationState.feedbackByKey[key] = ensureFieldFeedbackNode(key, field);
+            fieldValidationState.touchedByKey[key] = false;
+
+            field.addEventListener("blur", function () {
+                if (state.hasExistingProfile || field.disabled) {
+                    return;
+                }
+                fieldValidationState.touchedByKey[key] = true;
+                validateSingleField(key, { forceRequired: true });
+            });
+
+            if (field.tagName === "SELECT") {
+                field.addEventListener("change", function () {
+                    if (state.hasExistingProfile || field.disabled) {
+                        return;
+                    }
+                    validateSingleField(key, {
+                        forceRequired: fieldValidationState.touchedByKey[key] === true
+                    });
+                });
+                return;
+            }
+
+            field.addEventListener("input", function () {
+                if (state.hasExistingProfile || field.disabled) {
+                    return;
+                }
+                validateSingleField(key, {
+                    forceRequired: fieldValidationState.touchedByKey[key] === true
+                });
+            });
+
+            field.addEventListener("change", function () {
+                if (state.hasExistingProfile || field.disabled) {
+                    return;
+                }
+                validateSingleField(key, {
+                    forceRequired: fieldValidationState.touchedByKey[key] === true
+                });
+            });
+        });
+    }
+
+    function initializeEnterKeyBehavior() {
+        form.addEventListener("keydown", function (event) {
+            if (!event || event.key !== "Enter" || event.isComposing) {
+                return;
+            }
+
+            var target = event.target;
+            if (!target || target.form !== form) {
+                return;
+            }
+
+            // Keep native Enter behavior for multiline input.
+            if (target.tagName === "TEXTAREA") {
+                return;
+            }
+
+            // Allow explicit submit from submit button.
+            if (target === submitButton || (target.tagName === "BUTTON" && target.type === "submit")) {
+                return;
+            }
+
+            // Avoid accidental submit from Enter while filling fields.
+            event.preventDefault();
+
+            if (state.hasExistingProfile || state.isLoading || state.isSubmitting || target.disabled) {
+                return;
+            }
+
+            var key = getFieldKeyByElement(target);
+            if (key) {
+                fieldValidationState.touchedByKey[key] = true;
+                var result = validateSingleField(key, { forceRequired: true });
+                if (result && result.message) {
+                    return;
+                }
+            }
+
+            focusNextFormControl(target);
+        });
+    }
+
+    function getFieldKeyByElement(element) {
+        var matchedKey = "";
+        Object.keys(inputs).some(function (key) {
+            if (inputs[key] === element) {
+                matchedKey = key;
+                return true;
+            }
+            return false;
+        });
+        return matchedKey;
+    }
+
+    function focusNextFormControl(current) {
+        var orderedControls = [];
+        orderedInputKeys.forEach(function (key) {
+            if (inputs[key]) {
+                orderedControls.push(inputs[key]);
+            }
+        });
+        if (submitButton) {
+            orderedControls.push(submitButton);
         }
 
-        if (!studentId) {
-            return buildValidationError("Please enter your student ID.", inputs.studentId);
-        }
-        if (studentId.length > 50) {
-            return buildValidationError("Student ID must be 50 characters or fewer.", inputs.studentId);
+        var currentIndex = orderedControls.indexOf(current);
+        if (currentIndex < 0) {
+            return;
         }
 
-        if (!department) {
-            return buildValidationError("Please enter your department.", inputs.department);
+        var next;
+        var i;
+        for (i = currentIndex + 1; i < orderedControls.length; i += 1) {
+            next = orderedControls[i];
+            if (!next || next.disabled || typeof next.focus !== "function") {
+                continue;
+            }
+            next.focus();
+            return;
         }
-        if (department.length > 100) {
-            return buildValidationError("Department must be 100 characters or fewer.", inputs.department);
+    }
+
+    function ensureFieldFeedbackNode(key, field) {
+        var container = field.closest(".field");
+        if (!container) {
+            return null;
         }
 
-        if (!program) {
-            return buildValidationError("Please select your program.", inputs.program);
+        var selector = ".field-feedback[data-for=\"" + key + "\"]";
+        var feedback = container.querySelector(selector);
+        if (!feedback) {
+            feedback = document.createElement("p");
+            feedback.className = "field-feedback";
+            feedback.setAttribute("data-for", key);
+            feedback.setAttribute("role", "status");
+            feedback.setAttribute("aria-live", "polite");
+            feedback.id = field.id ? field.id + "-feedback" : key + "-feedback";
+
+            var fieldHint = container.querySelector(".field-hint");
+            if (fieldHint) {
+                container.insertBefore(feedback, fieldHint);
+            } else {
+                container.appendChild(feedback);
+            }
         }
 
-        if (gpa.length > 20) {
-            return buildValidationError("GPA must be 20 characters or fewer.", inputs.gpa);
+        var describedBy = field.getAttribute("aria-describedby");
+        if (!describedBy) {
+            field.setAttribute("aria-describedby", feedback.id);
+        } else if ((" " + describedBy + " ").indexOf(" " + feedback.id + " ") === -1) {
+            field.setAttribute("aria-describedby", describedBy + " " + feedback.id);
         }
 
-        if (skills.length > 300) {
-            return buildValidationError("Skills must be 300 characters or fewer.", inputs.skills);
+        return feedback;
+    }
+
+    function clearAllFieldValidation() {
+        Object.keys(inputs).forEach(function (key) {
+            setFieldValidationResult(key, "");
+        });
+    }
+
+    function resetFieldTouchedState() {
+        Object.keys(inputs).forEach(function (key) {
+            fieldValidationState.touchedByKey[key] = false;
+        });
+    }
+
+    function setFieldValidationResult(key, message) {
+        var field = inputs[key];
+        var feedback = fieldValidationState.feedbackByKey[key];
+        if (!field || !feedback) {
+            return;
         }
 
-        if (phone.length > 30) {
-            return buildValidationError("Phone number must be 30 characters or fewer.", inputs.phone);
+        if (message) {
+            feedback.textContent = message;
+            feedback.classList.add("is-visible");
+            field.classList.add("is-invalid");
+            field.setAttribute("aria-invalid", "true");
+            return;
         }
 
-        if (address.length > 200) {
-            return buildValidationError("Address must be 200 characters or fewer.", inputs.address);
+        feedback.textContent = "";
+        feedback.classList.remove("is-visible");
+        field.classList.remove("is-invalid");
+        field.removeAttribute("aria-invalid");
+    }
+
+    function validateSingleField(key, options) {
+        var field = inputs[key];
+        if (!field) {
+            return null;
         }
 
-        if (experience.length > 1200) {
-            return buildValidationError("Related experience must be 1200 characters or fewer.", inputs.experience);
+        if (field.disabled) {
+            setFieldValidationResult(key, "");
+            return {
+                field: field,
+                message: ""
+            };
         }
 
-        if (motivation.length > 1200) {
-            return buildValidationError("Motivation must be 1200 characters or fewer.", inputs.motivation);
+        var settings = options || {};
+        var forceRequired = settings.forceRequired === true;
+        var value = typeof field.value === "string" ? field.value.trim() : "";
+        var message = getFieldValidationMessage(key, value, forceRequired);
+        setFieldValidationResult(key, message);
+
+        return {
+            field: field,
+            message: message
+        };
+    }
+
+    function getFieldValidationMessage(key, value, forceRequired) {
+        var isRequired = key === "fullName" || key === "studentId" || key === "department" || key === "program";
+        if (isRequired && forceRequired && !value) {
+            if (key === "fullName") {
+                return "Please enter your full name.";
+            }
+            if (key === "studentId") {
+                return "Please enter your student ID.";
+            }
+            if (key === "department") {
+                return "Please enter your department.";
+            }
+            return "Please select your program.";
         }
 
-        return null;
+        if (!value) {
+            return "";
+        }
+
+        if (key === "fullName") {
+            if (value.length > 100) {
+                return "Full name must be 100 characters or fewer.";
+            }
+            if (value.length < 2) {
+                return "Full name must be at least 2 characters.";
+            }
+            if (!hasLetterOrCjk(value)) {
+                return "Full name must include at least one letter.";
+            }
+            if (!/^[A-Za-z\u00C0-\u024F\u4E00-\u9FFF\s.'-]+$/.test(value)) {
+                return "Full name may only include letters, spaces, apostrophes, periods, and hyphens.";
+            }
+            if (hasExcessiveRepeatedChars(value, 4)) {
+                return "Full name contains too many repeated characters.";
+            }
+            return "";
+        }
+
+        if (key === "studentId") {
+            if (!/^\d{10}$/.test(value)) {
+                return "Student ID must be exactly 10 digits, for example 2023213039.";
+            }
+            if (!/^20\d{8}$/.test(value)) {
+                return "Student ID should start with 20, for example 2023213051.";
+            }
+            var intakeYear = parseInt(value.substring(0, 4), 10);
+            if (isNaN(intakeYear) || intakeYear < 2010 || intakeYear > 2099) {
+                return "Student ID year appears invalid. Please check the first 4 digits.";
+            }
+            if (/^(\d)\1{9}$/.test(value)) {
+                return "Student ID appears invalid. Please check your official 10-digit student number.";
+            }
+            return "";
+        }
+
+        if (key === "department") {
+            if (value.length > 100) {
+                return "Department must be 100 characters or fewer.";
+            }
+            if (value.length < 2) {
+                return "Department must be at least 2 characters.";
+            }
+            if (!hasLetterOrCjk(value)) {
+                return "Department should include letters.";
+            }
+            if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF\s&(),./'-]+$/.test(value)) {
+                return "Department contains unsupported characters.";
+            }
+            if (hasExcessiveRepeatedChars(value, 6)) {
+                return "Department contains too many repeated characters.";
+            }
+            return "";
+        }
+
+        if (key === "program") {
+            if (["Undergraduate", "Master", "PhD"].indexOf(value) === -1) {
+                return "Please select a valid program option.";
+            }
+            return "";
+        }
+
+        if (key === "gpa") {
+            if (value.length > 20) {
+                return "GPA must be 20 characters or fewer.";
+            }
+            if (!/^[0-9.,/\s]+$/.test(value)) {
+                return "GPA may only include digits, spaces, decimal separators, and '/'.";
+            }
+
+            var normalized = value.replace(/\s+/g, "").replace(/,/g, ".");
+            if (normalized.split("/").length > 2) {
+                return "GPA format is invalid. Use one optional '/'.";
+            }
+            var parts = normalized.split("/");
+            if (!/^\d{1,3}(\.\d{1,2})?$/.test(parts[0])) {
+                return "GPA value supports up to 2 decimal places.";
+            }
+
+            var actual = parseFloat(parts[0]);
+            if (isNaN(actual) || actual < 0) {
+                return "GPA cannot be negative.";
+            }
+
+            if (parts.length === 2) {
+                if (!/^\d{1,3}(\.\d{1,2})?$/.test(parts[1])) {
+                    return "GPA scale supports up to 2 decimal places.";
+                }
+                var scale = parseFloat(parts[1]);
+                if (isNaN(scale) || scale < 4 || scale > 100) {
+                    return "GPA scale should be between 4 and 100.";
+                }
+                if (actual > scale) {
+                    return "GPA value cannot be greater than the GPA scale.";
+                }
+            } else {
+                if (actual > 4.3) {
+                    return "For GPA above 4.3, please include scale (for example 85/100).";
+                }
+            }
+            return "";
+        }
+
+        if (key === "skills") {
+            if (value.length > 300) {
+                return "Skills must be 300 characters or fewer.";
+            }
+            if (/(^[;,]|[;,]\s*[;,]|[;,]\s*$)/.test(value)) {
+                return "Please remove empty skill items between separators.";
+            }
+
+            var items = value.split(/[;,]/).map(function (item) {
+                return item.trim();
+            }).filter(function (item) {
+                return item.length > 0;
+            });
+
+            if (items.length === 0) {
+                return "";
+            }
+            if (items.length > 12) {
+                return "Please list up to 12 skills.";
+            }
+
+            var seen = {};
+            var i;
+            for (i = 0; i < items.length; i += 1) {
+                var skill = items[i];
+                if (skill.length < 2 || skill.length > 40) {
+                    return "Each skill should be 2 to 40 characters.";
+                }
+                if (!hasLetterOrCjk(skill)) {
+                    return "Each skill should include letters.";
+                }
+                if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF+#&./\-\s]+$/.test(skill)) {
+                    return "Skills contain unsupported characters.";
+                }
+                if (hasExcessiveRepeatedChars(skill, 5)) {
+                    return "A skill item has too many repeated characters.";
+                }
+                var normalizedSkill = skill.toLowerCase().replace(/\s+/g, " ");
+                if (seen[normalizedSkill]) {
+                    return "Duplicate skills found. Please keep each skill only once.";
+                }
+                seen[normalizedSkill] = true;
+            }
+            return "";
+        }
+
+        if (key === "phone") {
+            if (value.length > 30) {
+                return "Phone number must be 30 characters or fewer.";
+            }
+            if (!/^[\d+\-()./\s]+$/.test(value)) {
+                return "Phone number may only include digits, spaces, and + - ( ) . /.";
+            }
+
+            var plusMatches = value.match(/\+/g);
+            if (plusMatches && plusMatches.length > 1) {
+                return "Phone number can contain only one '+'.";
+            }
+            if (value.indexOf("+") > 0) {
+                return "If used, '+' must be at the beginning.";
+            }
+            if (!hasBalancedParentheses(value)) {
+                return "Phone number parentheses are not balanced.";
+            }
+
+            var digits = value.replace(/\D/g, "");
+            if (digits.length < 8 || digits.length > 15) {
+                return "Phone number should contain 8 to 15 digits.";
+            }
+            if (/^(\d)\1+$/.test(digits)) {
+                return "Phone number appears invalid. Please check repeated digits.";
+            }
+            if (value.charAt(0) === "+" && digits.length < 10) {
+                return "International format should usually contain at least 10 digits.";
+            }
+            return "";
+        }
+
+        if (key === "address") {
+            if (value.length > 200) {
+                return "Address must be 200 characters or fewer.";
+            }
+            if (value.length < 5) {
+                return "Address should be at least 5 characters if provided.";
+            }
+            if (!hasLetterOrCjk(value)) {
+                return "Address should include letters.";
+            }
+            if (hasOnlyPunctuationAndSpace(value)) {
+                return "Address cannot contain only punctuation.";
+            }
+            if (!/^[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF\s#&(),./:'-]+$/.test(value)) {
+                return "Address contains unsupported characters.";
+            }
+            if (hasExcessiveRepeatedChars(value, 8)) {
+                return "Address contains too many repeated characters.";
+            }
+            return "";
+        }
+
+        if (key === "experience") {
+            return validateLongTextField(value, "Related experience");
+        }
+
+        if (key === "motivation") {
+            return validateLongTextField(value, "Motivation");
+        }
+
+        return "";
+    }
+
+    function hasLetterOrCjk(text) {
+        return /[A-Za-z\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
+    }
+
+    function hasOnlyPunctuationAndSpace(text) {
+        return !/[A-Za-z0-9\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
+    }
+
+    function hasBalancedParentheses(text) {
+        var balance = 0;
+        var i;
+        for (i = 0; i < text.length; i += 1) {
+            var char = text.charAt(i);
+            if (char === "(") {
+                balance += 1;
+            } else if (char === ")") {
+                balance -= 1;
+                if (balance < 0) {
+                    return false;
+                }
+            }
+        }
+        return balance === 0;
+    }
+
+    function hasExcessiveRepeatedChars(text, threshold) {
+        if (!text) {
+            return false;
+        }
+        var safeThreshold = typeof threshold === "number" ? Math.max(1, threshold) : 4;
+        var repeatedPattern = new RegExp("(.)\\1{" + safeThreshold + ",}");
+        return repeatedPattern.test(text);
+    }
+
+    function getTextContentUnits(text) {
+        if (!text) {
+            return 0;
+        }
+        var cjkChars = text.match(/[\u4E00-\u9FFF]/g) || [];
+        var latinWords = text
+            .replace(/[\u4E00-\u9FFF]/g, " ")
+            .match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
+        return cjkChars.length + latinWords.length;
+    }
+
+    function validateLongTextField(value, label) {
+        if (value.length > 1200) {
+            return label + " must be 1200 characters or fewer.";
+        }
+        if (!value) {
+            return "";
+        }
+        if (value.length < 20) {
+            return label + " should be at least 20 characters if provided.";
+        }
+        if (getTextContentUnits(value) < 10) {
+            return label + " should contain more detail (about 10 words/characters).";
+        }
+        if (hasExcessiveRepeatedChars(value, 8)) {
+            return label + " contains too many repeated characters.";
+        }
+        return "";
     }
 
     function buildValidationError(message, field) {

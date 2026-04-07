@@ -10,18 +10,24 @@
     margin: 0 auto 24px;
     min-height: 208px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 96px;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-auto-rows: min-content;
     align-content: center;
     column-gap: 20px;
     row-gap: 12px;
 }
 
-.profile-hero .hero-icon {
+.profile-hero-aside {
     grid-column: 2;
     grid-row: 1 / span 3;
-    justify-self: end;
-    align-self: stretch;
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    align-self: start;
+    gap: 12px;
+}
+
+.profile-hero .hero-icon {
     width: 80px;
     height: 80px;
     margin-bottom: 0;
@@ -147,10 +153,11 @@
     justify-content: center;
     min-height: 42px;
     padding: 0 16px;
-    border-radius: 14px;
-    border: 1px solid #d2d2d7;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
     color: #1d1d1f;
     background: #fff;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
@@ -160,7 +167,13 @@
 .logout-link:hover {
     transform: translateY(-1px);
     border-color: #0071e3;
-    box-shadow: 0 4px 16px rgba(0, 113, 227, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 113, 227, 0.15);
+}
+
+.logout-link:focus-visible {
+    outline: none;
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16), 0 4px 24px rgba(0, 113, 227, 0.15);
 }
 
 .profile-banner {
@@ -260,6 +273,32 @@
     background-color: #fff;
     border-color: #0071e3;
     box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+}
+
+.field-feedback {
+    display: none;
+    margin: 6px 4px 0;
+    color: #b42318;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.field-feedback.is-visible {
+    display: block;
+}
+
+.field input.is-invalid,
+.field select.is-invalid,
+.field textarea.is-invalid {
+    border-color: #f97066;
+    background-color: #fff7f7;
+}
+
+.field input.is-invalid:focus,
+.field select.is-invalid:focus,
+.field textarea.is-invalid:focus {
+    border-color: #f97066;
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.14);
 }
 
 .field input:disabled,
@@ -588,6 +627,17 @@
 @media (max-width: 640px) {
     .profile-page {
         padding: 28px 16px 40px;
+    }
+
+    .profile-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-hero-aside {
+        grid-column: 1;
+        grid-row: auto;
+        justify-content: flex-end;
+        margin-bottom: 6px;
     }
 
     .profile-card,
