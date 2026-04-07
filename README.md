@@ -11,6 +11,7 @@
 
 ### 1. 首次配置
 
+Windows:
 ```cmd
 cd scripts
 copy config.example.bat config.bat
@@ -23,13 +24,43 @@ notepad config.bat
 set CATALINA_HOME=C:\apache-tomcat-11.0.7
 ```
 
+macOS / Linux:
+```bash
+cd scripts
+cp config.example.sh config.sh
+```
+
+修改 `config.sh`，填入你的 Tomcat 路径：
+```bash
+export CATALINA_HOME="/path/to/apache-tomcat-11.0.7"
+export TOMCAT_HOME="${CATALINA_HOME}"
+export APP_NAME="groupproject"
+```
+
 ### 2. 运行项目
 
+Windows:
 ```cmd
 cd scripts
 build.bat
 deploy.bat
 startup.bat
+```
+
+macOS / Linux（推荐一键）:
+```bash
+cd scripts
+chmod +x *.sh
+./onekey.sh
+```
+
+或分步执行：
+```bash
+cd scripts
+chmod +x *.sh
+./build.sh
+./deploy.sh
+./startup.sh
 ```
 
 ### 3. 访问
@@ -42,10 +73,18 @@ startup.bat
 
 当你修改了任何 `.java` 源码或 `.jsp/.html` 前端文件后，**无需重启 Tomcat**，只需要在 `scripts/` 目录下重新执行编译和部署命令：
 
+Windows:
 ```cmd
 cd scripts
 build.bat
 deploy.bat
+```
+
+macOS / Linux:
+```bash
+cd scripts
+./build.sh
+./deploy.sh
 ```
 
 *(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*

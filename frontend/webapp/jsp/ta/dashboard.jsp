@@ -218,22 +218,48 @@
                     </ul>
                 </section>
 
-                <section class="side-card upload-placeholder-card" aria-labelledby="resume-placeholder-title">
-                    <p class="side-card-label">Next planned task</p>
-                    <h3 id="resume-placeholder-title">Resume upload placeholder</h3>
-                    <p class="side-card-copy">Resume upload and progress display will be connected in the next implementation round.</p>
-                    <div class="upload-placeholder-box">
-                        <div class="upload-placeholder-icon" aria-hidden="true">
+                <section class="side-card upload-card" aria-labelledby="resume-upload-title">
+                    <p class="side-card-label">Step 2</p>
+                    <h3 id="resume-upload-title">Resume upload</h3>
+                    <p class="side-card-copy">Upload your resume in PDF, DOC, or DOCX format. Maximum size is 10MB.</p>
+
+                    <div class="upload-file-panel">
+                        <label class="upload-file-label" for="resume-file-input">Choose file</label>
+                        <input
+                            id="resume-file-input"
+                            class="upload-file-input"
+                            type="file"
+                            name="resume"
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        >
+                        <p id="resume-file-name" class="upload-file-name">No file selected.</p>
+                    </div>
+
+                    <div id="resume-current-info" class="upload-current hidden" aria-live="polite"></div>
+
+                    <div class="upload-progress-box hidden" id="resume-progress-wrap" aria-live="polite">
+                        <div class="upload-progress-meta">
+                            <span id="resume-progress-text">0%</span>
+                            <span id="resume-progress-status">Waiting to upload</span>
+                        </div>
+                        <div class="upload-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                            <span id="resume-progress-bar" class="upload-progress-bar"></span>
+                        </div>
+                    </div>
+
+                    <div class="upload-hint-box">
+                        <div class="upload-hint-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" focusable="false">
                                 <path d="M12 3.75L16.5 8.25V18.75H7.5V5.25H12ZM12.75 4.81V8.25H16.19L12.75 4.81ZM9.75 12H14.25V13.5H9.75V12ZM9.75 15H14.25V16.5H9.75V15ZM9.75 9H11.25V10.5H9.75V9Z" />
                             </svg>
                         </div>
                         <div>
-                            <p class="upload-placeholder-title">Upload disabled for this round</p>
-                            <p class="upload-placeholder-text">Accepted file types will be PDF, DOC, and DOCX after the next planned task is implemented.</p>
+                            <p class="upload-placeholder-title">Create profile first</p>
+                            <p class="upload-placeholder-text">If you choose a file before profile creation, it will upload automatically right after the profile is created.</p>
                         </div>
                     </div>
-                    <button class="placeholder-button" type="button" disabled>Upload resume soon</button>
+                    <div id="resume-upload-message" class="upload-message hidden" role="status" aria-live="polite"></div>
+                    <button id="resume-upload-btn" class="placeholder-button" type="button" disabled>Upload selected resume</button>
                 </section>
             </aside>
         </section>

@@ -9,6 +9,18 @@
     var bannerBox = document.getElementById("existing-profile-banner");
     var submitButton = document.getElementById("profile-submit");
     var formFields = form.querySelectorAll("input, select, textarea");
+    var resumeFileInput = document.getElementById("resume-file-input");
+    var resumeFileName = document.getElementById("resume-file-name");
+    var resumeUploadButton = document.getElementById("resume-upload-btn");
+    var resumeUploadMessage = document.getElementById("resume-upload-message");
+    var resumeCurrentInfo = document.getElementById("resume-current-info");
+    var resumeProgressWrap = document.getElementById("resume-progress-wrap");
+    var resumeProgressBar = document.getElementById("resume-progress-bar");
+    var resumeProgressText = document.getElementById("resume-progress-text");
+    var resumeProgressStatus = document.getElementById("resume-progress-status");
+
+    var ALLOWED_RESUME_EXTENSIONS = [".pdf", ".doc", ".docx"];
+    var MAX_RESUME_SIZE = 10 * 1024 * 1024;
 
     var inputs = {
         fullName: document.getElementById("full-name"),
@@ -26,7 +38,10 @@
     var state = {
         hasExistingProfile: false,
         isSubmitting: false,
-        isLoading: false
+        isLoading: false,
+        isUploadingResume: false,
+        selectedResumeFile: null,
+        resumePath: ""
     };
 
     form.addEventListener("submit", function (event) {
@@ -39,6 +54,16 @@
         handleCreate();
     });
 
+    if (resumeFileInput) {
+        resumeFileInput.addEventListener("change", handleResumeFileChange);
+    }
+
+    if (resumeUploadButton) {
+        resumeUploadButton.addEventListener("click", handleManualResumeUpload);
+    }
+
+    refreshResumeArea();
+    hideResumeProgress();
     loadExistingProfile({ silentWhenMissing: true });
 
     function handleCreate() {
@@ -79,7 +104,29 @@
                     return;
                 }
 
-                return loadExistingProfile({ afterCreate: true, silentWhenMissing: false });
+                if (!state.selectedResumeFile) {
+                    return loadExistingProfile({ afterCreate: true, silentWhenMissing: false });
+                }
+
+                showMessage("Profile created. Uploading your selected resume...", "success");
+                return uploadSelectedResume({ expectExistingProfile: true, fromCreateFlow: true })
+                    .then(function () {
+                        return { uploadSuccess: true };
+                    })
+                    .catch(function (error) {
+                        var uploadErrorMessage = "Profile created, but resume upload failed. Please try uploading again.";
+                        if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
+                            uploadErrorMessage = error.userMessage.trim();
+                        }
+                        showResumeMessage(uploadErrorMessage, "error");
+                        return {
+                            uploadSuccess: false
+                        };
+                    })
+                    .then(function (uploadResult) {
+                        var createdNow = uploadResult && uploadResult.uploadSuccess === true;
+                        return loadExistingProfile({ afterCreate: createdNow, silentWhenMissing: false });
+                    });
             })
             .catch(function () {
                 showMessage("Network error. Please try again in a moment.", "error");
@@ -140,6 +187,7 @@
             .finally(function () {
                 state.isLoading = false;
                 refreshSubmitButton();
+                refreshResumeArea();
             });
     }
 
@@ -168,6 +216,7 @@
 
     function applyExistingProfile(payload, createdNow) {
         state.hasExistingProfile = true;
+        state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
 
         setFieldValue(inputs.fullName, payload.fullName);
         setFieldValue(inputs.studentId, payload.studentId);
@@ -191,12 +240,13 @@
             bannerMessage += " Current completeness: " + completeness + "%.";
         }
         if (missingCount > 0) {
-            bannerMessage += " Resume upload and the remaining improvements will be handled in the next planned task.";
+            bannerMessage += " You can continue improving the remaining fields and upload or replace your resume from the side panel.";
         }
 
         showBanner(bannerMessage);
         submitButton.textContent = "Profile already created";
         submitButton.disabled = true;
+        refreshResumeArea();
 
         if (createdNow) {
             showMessage("Profile created successfully. Your saved information is now displayed below.", "success");
@@ -207,10 +257,12 @@
 
     function enableCreateMode() {
         state.hasExistingProfile = false;
+        state.resumePath = "";
         setFormDisabled(false);
         form.classList.remove("is-readonly");
         hideBanner();
         refreshSubmitButton();
+        refreshResumeArea();
     }
 
     function refreshSubmitButton() {
@@ -248,6 +300,295 @@
         Array.prototype.forEach.call(formFields, function (field) {
             field.disabled = disabled;
         });
+    }
+
+    function handleResumeFileChange(event) {
+        hideResumeMessage();
+        hideResumeProgress();
+
+        var file = event && event.target && event.target.files ? event.target.files[0] : null;
+        if (!file) {
+            setSelectedResumeFile(null);
+            return;
+        }
+
+        var fileError = validateResumeFile(file);
+        if (fileError) {
+            setSelectedResumeFile(null);
+            showResumeMessage(fileError, "error");
+            return;
+        }
+
+        setSelectedResumeFile(file);
+        if (state.hasExistingProfile) {
+            showResumeMessage("Resume file is ready. Click upload to replace your current resume.", "success");
+        } else {
+            showResumeMessage("Resume file is ready and will upload right after profile creation.", "success");
+        }
+    }
+
+    function handleManualResumeUpload() {
+        hideMessage();
+
+        if (state.isUploadingResume || state.isLoading || state.isSubmitting) {
+            return;
+        }
+
+        if (!state.hasExistingProfile) {
+            showResumeMessage("Please create your profile first. The selected resume will also upload automatically after creation.", "error");
+            return;
+        }
+
+        uploadSelectedResume({ expectExistingProfile: true, fromCreateFlow: false })
+            .then(function () {
+                return loadExistingProfile({ afterCreate: false, silentWhenMissing: false });
+            })
+            .catch(function (error) {
+                var uploadErrorMessage = "Resume upload failed. Please try again.";
+                if (error && typeof error.userMessage === "string" && error.userMessage.trim()) {
+                    uploadErrorMessage = error.userMessage.trim();
+                }
+                showResumeMessage(uploadErrorMessage, "error");
+            });
+    }
+
+    function uploadSelectedResume(options) {
+        var settings = options || {};
+
+        if (!state.selectedResumeFile) {
+            var noFileError = new Error("No resume file selected.");
+            noFileError.userMessage = "Please choose a resume file first.";
+            return Promise.reject(noFileError);
+        }
+
+        var file = state.selectedResumeFile;
+        var fileError = validateResumeFile(file);
+        if (fileError) {
+            var invalidFileError = new Error(fileError);
+            invalidFileError.userMessage = fileError;
+            return Promise.reject(invalidFileError);
+        }
+
+        setResumeUploading(true);
+        updateResumeProgress(0, "Uploading...");
+        showResumeMessage("Uploading " + file.name + "...", "success");
+
+        return uploadResumeWithProgress(file)
+            .then(function (result) {
+                var status = result.status;
+                var payload = result.payload;
+
+                if (status === 401) {
+                    handleUnauthorized();
+                    var unauthorizedError = new Error("Unauthorized.");
+                    unauthorizedError.userMessage = "Your session has expired. Redirecting to login...";
+                    throw unauthorizedError;
+                }
+
+                if (status === 404 && settings.expectExistingProfile) {
+                    var notFoundError = new Error("Applicant profile not found.");
+                    notFoundError.userMessage = "Please create your profile first, then upload the resume.";
+                    throw notFoundError;
+                }
+
+                if (status < 200 || status >= 300 || !payload || payload.success !== true) {
+                    var serverMessage = payload && typeof payload.message === "string" && payload.message.trim()
+                        ? payload.message.trim()
+                        : "Resume upload failed. Please try again.";
+                    var uploadError = new Error(serverMessage);
+                    uploadError.userMessage = serverMessage;
+                    throw uploadError;
+                }
+
+                updateResumeProgress(100, "Upload completed");
+                state.resumePath = typeof payload.resumePath === "string" ? payload.resumePath : state.resumePath;
+                setSelectedResumeFile(null);
+                showResumeMessage("Resume uploaded successfully.", "success");
+
+                if (!settings.fromCreateFlow) {
+                    showMessage("Resume updated successfully.", "success");
+                }
+            })
+            .finally(function () {
+                setResumeUploading(false);
+                refreshResumeArea();
+            });
+    }
+
+    function uploadResumeWithProgress(file) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("PUT", contextPath + "/applicant", true);
+            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+            xhr.upload.onprogress = function (event) {
+                if (!event || !event.lengthComputable) {
+                    updateResumeProgress(0, "Uploading...");
+                    return;
+                }
+
+                var percent = Math.min(100, Math.max(0, Math.round((event.loaded / event.total) * 100)));
+                updateResumeProgress(percent, "Uploading...");
+            };
+
+            xhr.onerror = function () {
+                var networkError = new Error("Network error.");
+                networkError.userMessage = "Network error during file upload. Please try again.";
+                reject(networkError);
+            };
+
+            xhr.onabort = function () {
+                var abortError = new Error("Upload aborted.");
+                abortError.userMessage = "Upload was interrupted. Please try again.";
+                reject(abortError);
+            };
+
+            xhr.onload = function () {
+                resolve({
+                    status: xhr.status,
+                    payload: parseResponse(xhr.responseText || "")
+                });
+            };
+
+            var data = new FormData();
+            data.append("resume", file, file.name);
+            xhr.send(data);
+        });
+    }
+
+    function validateResumeFile(file) {
+        if (!file) {
+            return "Please choose a resume file first.";
+        }
+
+        var lowerName = typeof file.name === "string" ? file.name.toLowerCase() : "";
+        var extensionAllowed = ALLOWED_RESUME_EXTENSIONS.some(function (extension) {
+            return lowerName.endsWith(extension);
+        });
+        if (!extensionAllowed) {
+            return "Invalid file format. Please upload a PDF, DOC, or DOCX file.";
+        }
+
+        if (typeof file.size === "number" && file.size > MAX_RESUME_SIZE) {
+            return "File size exceeds 10MB. Please choose a smaller file.";
+        }
+
+        return null;
+    }
+
+    function setSelectedResumeFile(file) {
+        state.selectedResumeFile = file || null;
+        if (resumeFileInput && !file) {
+            resumeFileInput.value = "";
+        }
+        refreshResumeArea();
+    }
+
+    function setResumeUploading(uploading) {
+        state.isUploadingResume = uploading;
+        refreshResumeArea();
+    }
+
+    function refreshResumeArea() {
+        if (resumeFileName) {
+            if (state.selectedResumeFile) {
+                resumeFileName.textContent = state.selectedResumeFile.name + " (" + formatFileSize(state.selectedResumeFile.size) + ")";
+            } else {
+                resumeFileName.textContent = "No file selected.";
+            }
+        }
+
+        if (resumeCurrentInfo) {
+            if (state.resumePath) {
+                resumeCurrentInfo.textContent = "Current uploaded resume: " + state.resumePath;
+                resumeCurrentInfo.classList.remove("hidden");
+            } else if (state.hasExistingProfile) {
+                resumeCurrentInfo.textContent = "No resume uploaded yet.";
+                resumeCurrentInfo.classList.remove("hidden");
+            } else {
+                resumeCurrentInfo.textContent = "";
+                resumeCurrentInfo.classList.add("hidden");
+            }
+        }
+
+        if (resumeUploadButton) {
+            if (state.isUploadingResume) {
+                resumeUploadButton.disabled = true;
+                resumeUploadButton.textContent = "Uploading...";
+            } else if (!state.hasExistingProfile) {
+                resumeUploadButton.disabled = true;
+                resumeUploadButton.textContent = state.selectedResumeFile
+                    ? "Will upload after profile creation"
+                    : "Upload selected resume";
+            } else {
+                resumeUploadButton.disabled = !state.selectedResumeFile;
+                resumeUploadButton.textContent = state.resumePath ? "Replace uploaded resume" : "Upload selected resume";
+            }
+        }
+    }
+
+    function updateResumeProgress(percent, statusText) {
+        var normalizedPercent = typeof percent === "number" ? Math.min(100, Math.max(0, percent)) : 0;
+        if (resumeProgressWrap) {
+            resumeProgressWrap.classList.remove("hidden");
+        }
+        if (resumeProgressBar) {
+            resumeProgressBar.style.width = normalizedPercent + "%";
+        }
+        if (resumeProgressText) {
+            resumeProgressText.textContent = normalizedPercent + "%";
+        }
+        if (resumeProgressStatus) {
+            resumeProgressStatus.textContent = typeof statusText === "string" && statusText.trim()
+                ? statusText
+                : "Uploading...";
+        }
+    }
+
+    function hideResumeProgress() {
+        if (resumeProgressWrap) {
+            resumeProgressWrap.classList.add("hidden");
+        }
+        if (resumeProgressBar) {
+            resumeProgressBar.style.width = "0%";
+        }
+        if (resumeProgressText) {
+            resumeProgressText.textContent = "0%";
+        }
+        if (resumeProgressStatus) {
+            resumeProgressStatus.textContent = "Waiting to upload";
+        }
+    }
+
+    function showResumeMessage(message, type) {
+        if (!resumeUploadMessage) {
+            return;
+        }
+        resumeUploadMessage.textContent = message;
+        resumeUploadMessage.classList.remove("hidden", "error", "success");
+        resumeUploadMessage.classList.add(type === "success" ? "success" : "error");
+    }
+
+    function hideResumeMessage() {
+        if (!resumeUploadMessage) {
+            return;
+        }
+        resumeUploadMessage.textContent = "";
+        resumeUploadMessage.classList.remove("error", "success");
+        resumeUploadMessage.classList.add("hidden");
+    }
+
+    function formatFileSize(bytes) {
+        if (typeof bytes !== "number" || bytes < 0) {
+            return "0 B";
+        }
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        if (bytes < 1024 * 1024) {
+            return (bytes / 1024).toFixed(1) + " KB";
+        }
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
     }
 
     function validateForm() {
