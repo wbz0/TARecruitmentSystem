@@ -1,10 +1,9 @@
 package com.example.authlogin.dao;
 
 import com.example.authlogin.model.User;
+import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -18,9 +17,8 @@ import java.util.stream.Collectors;
  */
 public class UserDao {
 
-    // 项目数据目录 - 使用固定绝对路径
-    // 如果部署到Tomcat，需要确保此路径可写
-    private static final String DATA_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data";
+    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
+    private static final String DATA_DIR = StoragePaths.getDataDir();
     private static final String USER_FILE = DATA_DIR + File.separator + "users.csv";
     private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
 

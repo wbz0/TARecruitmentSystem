@@ -3,6 +3,7 @@
 # =========================
 build/
 scripts/config.bat
+scripts/config.sh
 author.md
 /nul
 .cursor/rules/

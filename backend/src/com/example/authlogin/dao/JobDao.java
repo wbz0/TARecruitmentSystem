@@ -1,6 +1,7 @@
 package com.example.authlogin.dao;
 
 import com.example.authlogin.model.Job;
+import com.example.authlogin.util.StoragePaths;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -15,8 +16,8 @@ import java.util.stream.Collectors;
  */
 public class JobDao {
 
-    // 项目数据目录 - 使用固定绝对路径
-    private static final String DATA_DIR = "D:/HuaweiMoveData/Users/Carne/Desktop/SoftwareEngineering/data";
+    // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
+    private static final String DATA_DIR = StoragePaths.getDataDir();
     private static final String JOB_FILE = DATA_DIR + File.separator + "jobs.csv";
     private static final String CSV_HEADER = "jobId,moId,moName,title,courseCode,courseName,description,requiredSkills,positions,workload,salary,deadline,status,createdAt,updatedAt";
 
