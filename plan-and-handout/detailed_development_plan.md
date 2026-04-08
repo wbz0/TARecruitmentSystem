@@ -83,13 +83,13 @@
 负责：登录注册界面 + TA档案界面
 
 
-| 周次  | Commit | Message                   | 状态 | Git Command                                                                    |
+| 周次  | Commit | Message                   | 状态  | Git Command                                                                    |
 | --- | ------ | ------------------------- | --- | ------------------------------------------------------------------------------ |
-| 周4  | #1     | `feat: 设计并实现登录页面HTML/CSS` | ✅ | `git commit -m "feat: 设计并实现登录页面HTML/CSS" --author="member5 <member5@edu.com>"` |
-| 周4  | #2     | `feat: 设计并实现注册页面`         | ✅ | `git commit -m "feat: 设计并实现注册页面" --author="member5 <member5@edu.com>"`         |
-| 周5  | #3     | `feat: 设计并实现TA档案创建页面`     | ✅ | `git commit -m "feat: 设计并实现TA档案创建页面" --author="member5 <member5@edu.com>"`     |
-| 周5  | #4     | `feat: 添加简历上传前端逻辑和进度显示`   | ✅ | `git commit -m "feat: 添加简历上传前端逻辑和进度显示" --author="member5 <member5@edu.com>"`   |
-| 周6  | #5     | `style: 优化表单样式和用户体验`      | ✅ | `git commit -m "style: 优化表单样式和用户体验" --author="member5 <member5@edu.com>"`      |
+| 周4  | #1     | `feat: 设计并实现登录页面HTML/CSS` | ✅   | `git commit -m "feat: 设计并实现登录页面HTML/CSS" --author="member5 <member5@edu.com>"` |
+| 周4  | #2     | `feat: 设计并实现注册页面`         | ✅   | `git commit -m "feat: 设计并实现注册页面" --author="member5 <member5@edu.com>"`         |
+| 周5  | #3     | `feat: 设计并实现TA档案创建页面`     | ✅   | `git commit -m "feat: 设计并实现TA档案创建页面" --author="member5 <member5@edu.com>"`     |
+| 周5  | #4     | `feat: 添加简历上传前端逻辑和进度显示`   | ✅   | `git commit -m "feat: 添加简历上传前端逻辑和进度显示" --author="member5 <member5@edu.com>"`   |
+| 周6  | #5     | `style: 优化表单样式和用户体验`      | ✅   | `git commit -m "style: 优化表单样式和用户体验" --author="member5 <member5@edu.com>"`      |
 
 
 ---
@@ -99,13 +99,13 @@
 负责：职位浏览界面 + 申请状态界面
 
 
-| 周次  | Commit | Message                | Git Command                                                                 |
-| --- | ------ | ---------------------- | --------------------------------------------------------------------------- |
-| 周4  | #1     | `feat: 设计并实现职位列表页面`    | `git commit -m "feat: 设计并实现职位列表页面" --author="member6 <member6@edu.com>"`    |
-| 周4  | #2     | `feat: 设计并实现职位详情页面`    | `git commit -m "feat: 设计并实现职位详情页面" --author="member6 <member6@edu.com>"`    |
-| 周5  | #3     | `feat: 设计并实现MO发布职位页面`  | `git commit -m "feat: 设计并实现MO发布职位页面" --author="member6 <member6@edu.com>"`  |
-| 周5  | #4     | `feat: 设计并实现申请状态查看页面`  | `git commit -m "feat: 设计并实现申请状态查看页面" --author="member6 <member6@edu.com>"`  |
-| 周6  | #5     | `feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化` | `git commit -m "feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化" --author="member6 <member6@edu.com>"` |
+| 周次  | Commit | Message                              | 状态  | Git Command                                                                               |
+| --- | ------ | ------------------------------------ | --- | ----------------------------------------------------------------------------------------- |
+| 周4  | #1     | `feat: 设计并实现职位列表页面`                  | ✅   | `git commit -m "feat: 设计并实现职位列表页面" --author="member6 <member6@edu.com>"`                  |
+| 周4  | #2     | `feat: 设计并实现职位详情页面`                  | ✅   | `git commit -m "feat: 设计并实现职位详情页面" --author="member6 <member6@edu.com>"`                  |
+| 周5  | #3     | `feat: 设计并实现MO发布职位页面`                | ✅   | `git commit -m "feat: 设计并实现MO发布职位页面" --author="member6 <member6@edu.com>"`                |
+| 周5  | #4     | `feat: 设计并实现申请状态查看页面`                | ✅   | `git commit -m "feat: 设计并实现申请状态查看页面" --author="member6 <member6@edu.com>"`                |
+| 周6  | #5     | `feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化` | ✅   | `git commit -m "feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化" --author="member6 <member6@edu.com>"` |
 
 
 ---

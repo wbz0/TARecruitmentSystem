@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户登录 - TA 招聘系统</title>
+    <title>Login - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/login.css">
 </head>
 <body>
@@ -29,15 +29,15 @@
             <form id="login-form" class="login-form" method="post" action="<%= contextPath %>/login" novalidate>
                 <div class="field">
                     <div class="field-label-row">
-                        <label for="username">Email address</label>
+                        <label for="username">Username or email</label>
                     </div>
                     <input
                         id="username"
                         name="username"
                         type="text"
-                        placeholder="name@university.edu"
+                        placeholder="username or name@university.edu"
                         autocomplete="username"
-                        maxlength="50"
+                        maxlength="100"
                         required
                     >
                 </div>
@@ -68,7 +68,7 @@
                 <div class="login-actions" role="group" aria-label="角色登录按钮">
                     <button
                         id="ta-login-submit"
-                        class="login-action-btn login-action-btn-secondary"
+                        class="login-action-btn"
                         type="submit"
                         data-role="TA"
                     >
@@ -80,7 +80,7 @@
                     </button>
                     <button
                         id="mo-login-submit"
-                        class="login-action-btn login-action-btn-primary"
+                        class="login-action-btn"
                         type="submit"
                         data-role="MO"
                     >
@@ -89,6 +89,18 @@
                         </svg>
                         <span>MO Login</span>
                     </button>
+                    <button
+                        id="admin-login-submit"
+                        class="login-action-btn"
+                        type="submit"
+                        data-role="ADMIN"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M12 3.75L18.75 6.75V11.25C18.75 15.2141 15.901 18.5261 12 19.5C8.09904 18.5261 5.25 15.2141 5.25 11.25V6.75L12 3.75Z" />
+                            <path d="M9.75 11.625L11.25 13.125L14.25 10.125" />
+                        </svg>
+                        <span>Admin</span>
+                    </button>
                 </div>
             </form>
         </section>
@@ -96,6 +108,10 @@
         <p class="register-hint">
             Don't have an account?
             <a href="<%= contextPath %>/register.jsp">Create one now</a>
+        </p>
+        <p class="register-hint">
+            Need admin access?
+            <a href="<%= contextPath %>/admin-register.jsp">Create admin account</a>
         </p>
 
         <p class="login-footer">University Hiring System © 2026</p>

@@ -69,6 +69,16 @@ chmod +x *.sh
 - Servlet: http://localhost:8080/groupproject/hello
 - JSP: http://localhost:8080/groupproject/jsp/welcome.jsp
 
+## Standard Demo Accounts
+
+预览、联调与对外说明时统一使用以下固定测试账号；如果本地数据缺失，请先补齐再测试，并保持本节与实际使用一致。
+
+| Role | Username | Password |
+| --- | --- | --- |
+| TA | `ta_demo` | `Pass1234` |
+| MO | `mo_demo` | `Pass1234` |
+| Admin | `admin_demo` | `Pass1234` |
+
 ## 日常开发工作流 (修改代码后)
 
 当你修改了任何 `.java` 源码或 `.jsp/.html` 前端文件后，**无需重启 Tomcat**，只需要在 `scripts/` 目录下重新执行编译和部署命令：

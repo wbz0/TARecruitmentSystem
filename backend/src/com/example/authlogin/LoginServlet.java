@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * LoginServlet - 处理用户登录
@@ -28,6 +29,11 @@ public class LoginServlet extends HttpServlet {
 
     private UserDao userDao;
     private static final String INVALID_ROLE = "__INVALID_ROLE__";
+    private static final int LOGIN_IDENTIFIER_MAX_LENGTH = 100;
+    private static final int PASSWORD_MIN_LENGTH = 6;
+    private static final int PASSWORD_MAX_LENGTH = 100;
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9_]{2,19}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -60,7 +66,7 @@ public class LoginServlet extends HttpServlet {
 
         try {
             // 获取并验证输入
-            String username = request.getParameter("username");
+            String loginIdentifier = request.getParameter("username");
             String password = request.getParameter("password");
             String requestedRole = normalizeRequestedRole(request.getParameter("role"));
 
@@ -71,7 +77,7 @@ public class LoginServlet extends HttpServlet {
             }
 
             // 输入验证
-            String validationError = validateInput(username, password);
+            String validationError = validateInput(loginIdentifier, password);
             if (validationError != null) {
                 logInfo("Validation failed: " + validationError);
                 writeJsonResponse(response, 400, false, validationError, null);
@@ -79,25 +85,25 @@ public class LoginServlet extends HttpServlet {
             }
 
             // 去除输入首尾空格
-            username = username.trim();
+            loginIdentifier = loginIdentifier.trim();
             password = password.trim();
 
             // 验证登录
-            logInfo("Attempting login for username: " + username +
+            logInfo("Attempting login for identifier: " + loginIdentifier +
                 (requestedRole != null ? ", requestedRole: " + requestedRole : ""));
-            Optional<User> userOpt = userDao.verifyLogin(username, password);
+            Optional<User> userOpt = userDao.verifyLogin(loginIdentifier, password);
 
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
                 if (requestedRole != null && !requestedRole.equals(user.getRole().name())) {
-                    logInfo("Login failed for username: " + username + " - Role mismatch. accountRole="
+                    logInfo("Login failed for identifier: " + loginIdentifier + " - Role mismatch. accountRole="
                         + user.getRole().name() + ", requestedRole=" + requestedRole);
                     writeJsonResponse(response, 403, false, "Selected login role does not match account role", null);
                     return;
                 }
 
-                logInfo("Login successful for username: " + username + ", role: " + user.getRole());
+                logInfo("Login successful for identifier: " + loginIdentifier + ", role: " + user.getRole());
 
                 // 创建会话
                 HttpSession session = request.getSession(true);
@@ -112,8 +118,8 @@ public class LoginServlet extends HttpServlet {
                 writeJsonResponse(response, 200, true, "Login successful",
                     "{\"username\": \"" + user.getUsername() + "\", \"role\": \"" + user.getRole().name() + "\", \"redirect\": \"" + redirectPage + "\"}");
             } else {
-                logInfo("Login failed for username: " + username + " - Invalid credentials");
-                writeJsonResponse(response, 401, false, "Invalid username or password", null);
+                logInfo("Login failed for identifier: " + loginIdentifier + " - Invalid credentials");
+                writeJsonResponse(response, 401, false, "Invalid username/email or password", null);
             }
         } catch (Exception e) {
             logError("Unexpected error during login", e);
@@ -125,27 +131,84 @@ public class LoginServlet extends HttpServlet {
      * 验证用户输入
      * @return 错误信息，如果验证通过返回null
      */
-    private String validateInput(String username, String password) {
-        // 验证用户名
-        if (username == null || username.trim().isEmpty()) {
-            return "Username is required";
+    private String validateInput(String loginIdentifier, String password) {
+        String identifierText = loginIdentifier != null ? loginIdentifier.trim() : "";
+        String passwordText = password != null ? password.trim() : "";
+
+        // 验证用户名或邮箱
+        if (identifierText.isEmpty()) {
+            return "Username or email is required";
         }
-        if (username.length() > 50) {
-            return "Username is too long";
+        if (identifierText.length() > LOGIN_IDENTIFIER_MAX_LENGTH) {
+            return "Username or email is too long";
+        }
+        if (hasControlChars(loginIdentifier) || containsDangerousMarkup(loginIdentifier)) {
+            return "Username or email contains unsupported characters";
+        }
+        if (identifierText.contains("@")) {
+            if (!isValidEmailAddress(identifierText)) {
+                return "Invalid email format";
+            }
+        } else if (!USERNAME_PATTERN.matcher(identifierText).matches()) {
+            return "Invalid username format";
         }
 
         // 验证密码
-        if (password == null || password.isEmpty()) {
+        if (passwordText.isEmpty()) {
             return "Password is required";
         }
-        if (password.length() < 6) {
+        if (passwordText.length() < PASSWORD_MIN_LENGTH) {
             return "Password must be at least 6 characters";
         }
-        if (password.length() > 100) {
+        if (passwordText.length() > PASSWORD_MAX_LENGTH) {
             return "Password is too long";
+        }
+        if (hasControlChars(password)) {
+            return "Password contains unsupported characters";
         }
 
         return null;
+    }
+
+    private boolean hasControlChars(String value) {
+        return value != null && value.matches(".*[\\x00-\\x1F\\x7F].*");
+    }
+
+    private boolean containsDangerousMarkup(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        String text = value.toLowerCase();
+        return text.matches(".*<[^>]*>.*")
+            || text.contains("javascript:")
+            || text.matches(".*on\\w+\\s*=.*");
+    }
+
+    private boolean isValidEmailAddress(String email) {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            return false;
+        }
+
+        String[] parts = email.split("@", -1);
+        if (parts.length != 2) {
+            return false;
+        }
+
+        String local = parts[0];
+        String domain = parts[1];
+        if (local.isEmpty() || domain.isEmpty()) {
+            return false;
+        }
+        if (local.startsWith(".") || local.endsWith(".") || local.contains("..")) {
+            return false;
+        }
+        if (domain.startsWith(".") || domain.endsWith(".") || domain.contains("..")) {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -19,7 +19,10 @@ public class UserDao {
 
     // 项目数据目录 - 使用可移植路径，避免依赖本机绝对路径
     private static final String DATA_DIR = StoragePaths.getDataDir();
-    private static final String USER_FILE = DATA_DIR + File.separator + "users.csv";
+    private static final String USER_FILE_TA = DATA_DIR + File.separator + "users_ta.csv";
+    private static final String USER_FILE_MO = DATA_DIR + File.separator + "users_mo.csv";
+    private static final String USER_FILE_ADMIN = DATA_DIR + File.separator + "users_admin.csv";
+    private static final String LEGACY_USER_FILE = DATA_DIR + File.separator + "users.csv";
     private static final String CSV_HEADER = "userId,username,password,email,role,createdAt,lastLoginAt";
 
     private static UserDao instance;
@@ -40,17 +43,18 @@ public class UserDao {
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }
+        initUserFiles();
     }
 
     /**
      * 初始化用户数据文件
      */
-    private void initUserFile() {
-        File userFile = new File(USER_FILE);
+    private void initUserFile(String filePath) {
+        File userFile = new File(filePath);
         if (!userFile.exists()) {
             try {
                 userFile.createNewFile();
-                try (FileWriter writer = new FileWriter(USER_FILE)) {
+                try (FileWriter writer = new FileWriter(filePath)) {
                     writer.write(CSV_HEADER + "\n");
                 }
             } catch (IOException e) {
@@ -59,14 +63,39 @@ public class UserDao {
         }
     }
 
+    private void initUserFiles() {
+        initUserFile(USER_FILE_TA);
+        initUserFile(USER_FILE_MO);
+        initUserFile(USER_FILE_ADMIN);
+    }
+
     /**
      * 读取所有用户
      */
     private List<User> readAllUsers() {
-        initUserFile();
+        initUserFiles();
         List<User> users = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
+        users.addAll(readUsersFromFile(USER_FILE_TA));
+        users.addAll(readUsersFromFile(USER_FILE_MO));
+        users.addAll(readUsersFromFile(USER_FILE_ADMIN));
+
+        // 兼容历史 users.csv。只有在新拆分文件都为空时回退读取旧文件。
+        if (users.isEmpty()) {
+            users.addAll(readUsersFromFile(LEGACY_USER_FILE));
+        }
+
+        return users;
+    }
+
+    private List<User> readUsersFromFile(String filePath) {
+        List<User> users = new ArrayList<>();
+        File userFile = new File(filePath);
+        if (!userFile.exists()) {
+            return users;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             boolean isFirstLine = true;
             while ((line = reader.readLine()) != null) {
@@ -92,8 +121,8 @@ public class UserDao {
     /**
      * 写入所有用户
      */
-    private void writeAllUsers(List<User> users) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(USER_FILE))) {
+    private void writeUsersToFile(String filePath, List<User> users) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
             writer.println(CSV_HEADER);
             for (User user : users) {
                 writer.println(user.toCsv());
@@ -101,6 +130,19 @@ public class UserDao {
         } catch (IOException e) {
             throw new RuntimeException("Failed to write users file", e);
         }
+    }
+
+    private String getUserFileByRole(User.Role role) {
+        if (role == User.Role.TA) {
+            return USER_FILE_TA;
+        }
+        if (role == User.Role.MO) {
+            return USER_FILE_MO;
+        }
+        if (role == User.Role.ADMIN) {
+            return USER_FILE_ADMIN;
+        }
+        throw new IllegalArgumentException("Unsupported role: " + role);
     }
 
     /**
@@ -116,8 +158,12 @@ public class UserDao {
      * 根据用户名查找用户
      */
     public Optional<User> findByUsername(String username) {
+        if (username == null) {
+            return Optional.empty();
+        }
+        String normalized = username.trim();
         return readAllUsers().stream()
-                .filter(u -> u.getUsername().equals(username))
+                .filter(u -> u.getUsername().equals(normalized))
                 .findFirst();
     }
 
@@ -125,8 +171,12 @@ public class UserDao {
      * 根据邮箱查找用户
      */
     public Optional<User> findByEmail(String email) {
+        if (email == null) {
+            return Optional.empty();
+        }
+        String normalized = email.trim();
         return readAllUsers().stream()
-                .filter(u -> u.getEmail().equals(email))
+                .filter(u -> u.getEmail().equalsIgnoreCase(normalized))
                 .findFirst();
     }
 
@@ -148,18 +198,31 @@ public class UserDao {
      * 保存用户（新建或更新）
      */
     public User save(User user) {
-        List<User> users = readAllUsers();
+        initUserFiles();
 
-        Optional<User> existingUser = users.stream()
-                .filter(u -> u.getUserId().equals(user.getUserId()))
-                .findFirst();
+        String targetFile = getUserFileByRole(user.getRole());
+        List<User> targetUsers = readUsersFromFile(targetFile);
+        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
+        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
+        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
 
-        if (existingUser.isPresent()) {
-            users.remove(existingUser.get());
+        taUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
+        moUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
+        adminUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
+        targetUsers.removeIf(u -> u.getUserId().equals(user.getUserId()));
+        targetUsers.add(user);
+
+        if (USER_FILE_TA.equals(targetFile)) {
+            taUsers = targetUsers;
+        } else if (USER_FILE_MO.equals(targetFile)) {
+            moUsers = targetUsers;
+        } else {
+            adminUsers = targetUsers;
         }
 
-        users.add(user);
-        writeAllUsers(users);
+        writeUsersToFile(USER_FILE_TA, taUsers);
+        writeUsersToFile(USER_FILE_MO, moUsers);
+        writeUsersToFile(USER_FILE_ADMIN, adminUsers);
 
         return user;
     }
@@ -201,13 +264,19 @@ public class UserDao {
      * 删除用户
      */
     public boolean delete(String userId) {
-        List<User> users = readAllUsers();
-        boolean removed = users.removeIf(u -> u.getUserId().equals(userId));
+        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
+        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
+        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
+
+        boolean removed = taUsers.removeIf(u -> u.getUserId().equals(userId));
+        removed = moUsers.removeIf(u -> u.getUserId().equals(userId)) || removed;
+        removed = adminUsers.removeIf(u -> u.getUserId().equals(userId)) || removed;
 
         if (removed) {
-            writeAllUsers(users);
+            writeUsersToFile(USER_FILE_TA, taUsers);
+            writeUsersToFile(USER_FILE_MO, moUsers);
+            writeUsersToFile(USER_FILE_ADMIN, adminUsers);
         }
-
         return removed;
     }
 
@@ -222,7 +291,11 @@ public class UserDao {
      * 根据角色查找用户
      */
     public List<User> findByRole(User.Role role) {
-        return readAllUsers().stream()
+        List<User> usersByRole = readUsersFromFile(getUserFileByRole(role));
+        if (!usersByRole.isEmpty()) {
+            return usersByRole.stream().collect(Collectors.toList());
+        }
+        return readUsersFromFile(LEGACY_USER_FILE).stream()
                 .filter(u -> u.getRole() == role)
                 .collect(Collectors.toList());
     }
@@ -231,8 +304,11 @@ public class UserDao {
      * 验证用户登录
      * 返回用户对象（密码已验证）
      */
-    public Optional<User> verifyLogin(String username, String password) {
-        Optional<User> userOpt = findByUsername(username);
+    public Optional<User> verifyLogin(String usernameOrEmail, String password) {
+        Optional<User> userOpt = findByUsername(usernameOrEmail);
+        if (!userOpt.isPresent()) {
+            userOpt = findByEmail(usernameOrEmail);
+        }
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -281,15 +357,31 @@ public class UserDao {
      * 清空所有用户（仅用于测试）
      */
     public void deleteAll() {
-        writeAllUsers(new ArrayList<>());
+        writeUsersToFile(USER_FILE_TA, new ArrayList<>());
+        writeUsersToFile(USER_FILE_MO, new ArrayList<>());
+        writeUsersToFile(USER_FILE_ADMIN, new ArrayList<>());
     }
 
     /**
      * 批量创建用户（仅用于测试初始化）
      */
     public void batchCreate(List<User> users) {
-        List<User> existingUsers = readAllUsers();
-        existingUsers.addAll(users);
-        writeAllUsers(existingUsers);
+        List<User> taUsers = readUsersFromFile(USER_FILE_TA);
+        List<User> moUsers = readUsersFromFile(USER_FILE_MO);
+        List<User> adminUsers = readUsersFromFile(USER_FILE_ADMIN);
+
+        for (User user : users) {
+            if (user.getRole() == User.Role.TA) {
+                taUsers.add(user);
+            } else if (user.getRole() == User.Role.MO) {
+                moUsers.add(user);
+            } else if (user.getRole() == User.Role.ADMIN) {
+                adminUsers.add(user);
+            }
+        }
+
+        writeUsersToFile(USER_FILE_TA, taUsers);
+        writeUsersToFile(USER_FILE_MO, moUsers);
+        writeUsersToFile(USER_FILE_ADMIN, adminUsers);
     }
 }

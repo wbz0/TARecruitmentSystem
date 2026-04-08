@@ -2,6 +2,24 @@
     box-sizing: border-box;
 }
 
+:root {
+    --ui-bg: #f5f5f7;
+    --ui-surface: #ffffff;
+    --ui-surface-muted: #f5f5f7;
+    --ui-border: #e5e5ea;
+    --ui-border-strong: #d2d2d7;
+    --ui-text-primary: #1d1d1f;
+    --ui-text-secondary: #86868b;
+    --ui-text-tertiary: #aeaeb2;
+    --ui-brand: #0071e3;
+    --ui-brand-hover: #0077ed;
+    --ui-brand-press: #0067d1;
+    --ui-shadow-card: 0 1px 8px rgba(0, 0, 0, 0.04);
+    --ui-shadow-float: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --ui-radius-card: 24px;
+    --ui-radius-control: 12px;
+}
+
 html,
 body {
     height: 100%;
@@ -10,8 +28,8 @@ body {
 body {
     margin: 0;
     font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
-    color: #1d1d1f;
-    background: #f5f5f7;
+    color: var(--ui-text-primary);
+    background: var(--ui-bg);
 }
 
 .login-page {
@@ -37,15 +55,15 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow-float);
     margin-bottom: 18px;
 }
 
 .hero-icon svg {
     width: 28px;
     height: 28px;
-    fill: #0071e3;
+    fill: var(--ui-brand);
 }
 
 .login-hero h1 {
@@ -59,7 +77,7 @@ body {
 
 .subtitle {
     margin: 8px 0 0;
-    color: #86868b;
+    color: var(--ui-text-secondary);
     font-size: 15px;
     line-height: 1.5;
     text-align: center;
@@ -67,9 +85,10 @@ body {
 
 .login-card {
     width: min(384px, 100%);
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
     padding: 32px;
 }
 
@@ -120,7 +139,7 @@ body {
 
 .field label {
     margin: 0;
-    color: #86868b;
+    color: var(--ui-text-secondary);
     font-size: 13px;
     line-height: 1.5;
     font-weight: 500;
@@ -129,7 +148,7 @@ body {
 .forgot-link {
     border: none;
     background: transparent;
-    color: #0071e3;
+    color: var(--ui-brand);
     font-size: 13px;
     line-height: 1.5;
     font-weight: 500;
@@ -141,23 +160,23 @@ body {
 .field input {
     width: 100%;
     height: 48px;
-    border: 1px solid rgba(0, 0, 0, 0);
-    border-radius: 14px;
-    background: #f5f5f7;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-surface-muted);
     padding: 0 16px;
     font-size: 15px;
-    color: #1d1d1f;
+    color: var(--ui-text-primary);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .field input::placeholder {
-    color: #aeaeb2;
+    color: var(--ui-text-tertiary);
 }
 
 .field input:focus {
-    background: #fff;
-    border-color: #0071e3;
+    background: var(--ui-surface);
+    border-color: var(--ui-brand);
     box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
 }
 
@@ -167,7 +186,7 @@ body {
     gap: 10px;
     padding: 0 4px;
     margin-top: 2px;
-    color: #86868b;
+    color: var(--ui-text-secondary);
     font-size: 13px;
     line-height: 1.5;
     font-weight: 500;
@@ -177,20 +196,20 @@ body {
     margin: 0;
     width: 16px;
     height: 16px;
-    accent-color: #0071e3;
+    accent-color: var(--ui-brand);
 }
 
 .login-actions {
-    display: flex;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
     margin-top: 2px;
 }
 
 .login-action-btn {
-    flex: 1;
     height: 45px;
     border: 1px solid transparent;
-    border-radius: 14px;
+    border-radius: var(--ui-radius-control);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -200,7 +219,9 @@ body {
     font-weight: 500;
     padding: 0 14px;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, opacity 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s, opacity 0.2s;
+    background: var(--ui-surface-muted);
+    color: var(--ui-text-primary);
 }
 
 .login-action-btn span {
@@ -215,49 +236,23 @@ body {
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
-}
-
-.login-action-btn-secondary {
-    background: #f5f5f7;
-    color: #1d1d1f;
-}
-
-.login-action-btn-secondary svg {
-    stroke: #1d1d1f;
-}
-
-.login-action-btn-primary {
-    background: #0071e3;
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(0, 113, 227, 0.3);
-}
-
-.login-action-btn-primary svg {
-    stroke: #fff;
+    stroke: currentColor;
 }
 
 .login-action-btn.is-selected {
     transform: translateY(-1px);
-}
-
-.login-action-btn-secondary.is-selected {
-    border-color: #d2d2d7;
-}
-
-.login-action-btn-primary.is-selected {
+    background: var(--ui-brand);
+    color: #fff;
     box-shadow: 0 2px 12px rgba(0, 113, 227, 0.3), 0 0 0 2px rgba(0, 113, 227, 0.2);
 }
 
 .login-action-btn:hover {
     transform: translateY(-1px);
-}
-
-.login-action-btn-secondary:hover {
     background: #ececef;
 }
 
-.login-action-btn-primary:hover {
-    background: #0067d1;
+.login-action-btn.is-selected:hover {
+    background: var(--ui-brand-press);
 }
 
 .login-action-btn:active {
@@ -273,13 +268,13 @@ body {
 .register-hint {
     margin: 14px 0 0;
     text-align: center;
-    color: #86868b;
+    color: var(--ui-text-secondary);
     font-size: 13px;
     line-height: 1.5;
 }
 
 .register-hint a {
-    color: #0071e3;
+    color: var(--ui-brand);
     text-decoration: none;
 }
 
@@ -290,7 +285,7 @@ body {
 .login-footer {
     margin: 8px 0 0;
     text-align: center;
-    color: #aeaeb2;
+    color: var(--ui-text-tertiary);
     font-size: 13px;
     line-height: 1.5;
 }
@@ -308,5 +303,9 @@ body {
     .login-card {
         border-radius: 20px;
         padding: 24px 18px;
+    }
+
+    .login-actions {
+        grid-template-columns: 1fr;
     }
 }

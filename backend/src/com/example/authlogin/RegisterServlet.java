@@ -28,13 +28,17 @@ public class RegisterServlet extends HttpServlet {
 
     // 邮箱验证正则
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
     // 用户名验证正则 (字母开头，允许字母数字下划线，3-20字符)
     private static final Pattern USERNAME_PATTERN = Pattern.compile(
         "^[a-zA-Z][a-zA-Z0-9_]{2,19}$"
     );
+    private static final int USERNAME_MAX_LENGTH = 20;
+    private static final int EMAIL_MAX_LENGTH = 100;
+    private static final int PASSWORD_MIN_LENGTH = 6;
+    private static final int PASSWORD_MAX_LENGTH = 100;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -82,6 +86,7 @@ public class RegisterServlet extends HttpServlet {
 
             // 去除输入首尾空格
             username = username.trim();
+            password = password.trim();
             email = email.trim();
             roleStr = roleStr.trim();
 
@@ -122,50 +127,118 @@ public class RegisterServlet extends HttpServlet {
      */
     private String validateInput(String username, String password,
                                   String confirmPassword, String email, String role) {
+        String usernameText = username != null ? username.trim() : "";
+        String emailText = email != null ? email.trim() : "";
+        String passwordText = password != null ? password.trim() : "";
+        String confirmPasswordText = confirmPassword != null ? confirmPassword.trim() : "";
+        String roleText = role != null ? role.trim().toUpperCase() : "";
+
         // 验证用户名
-        if (username == null || username.trim().isEmpty()) {
+        if (usernameText.isEmpty()) {
             return "Username is required";
         }
-        if (!USERNAME_PATTERN.matcher(username).matches()) {
+        if (usernameText.length() > USERNAME_MAX_LENGTH) {
+            return "Username is too long";
+        }
+        if (hasControlChars(username) || containsDangerousMarkup(username)) {
+            return "Username contains unsupported characters";
+        }
+        if (!USERNAME_PATTERN.matcher(usernameText).matches()) {
             return "Username must be 3-20 characters, start with a letter, and contain only letters, numbers, and underscores";
         }
 
         // 验证密码
-        if (password == null || password.isEmpty()) {
+        if (passwordText.isEmpty()) {
             return "Password is required";
         }
-        if (password.length() < 6) {
+        if (passwordText.length() < PASSWORD_MIN_LENGTH) {
             return "Password must be at least 6 characters";
         }
-        if (password.length() > 100) {
+        if (passwordText.length() > PASSWORD_MAX_LENGTH) {
             return "Password is too long";
+        }
+        if (hasControlChars(password)) {
+            return "Password contains unsupported characters";
         }
 
         // 验证确认密码
-        if (confirmPassword == null || confirmPassword.isEmpty()) {
+        if (confirmPasswordText.isEmpty()) {
             return "Please confirm your password";
         }
-        if (!password.equals(confirmPassword)) {
+        if (!passwordText.equals(confirmPasswordText)) {
             return "Passwords do not match";
         }
 
         // 验证邮箱
-        if (email == null || email.trim().isEmpty()) {
+        if (emailText.isEmpty()) {
             return "Email is required";
         }
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            return "Invalid email format";
-        }
-        if (email.length() > 100) {
+        if (emailText.length() > EMAIL_MAX_LENGTH) {
             return "Email is too long";
+        }
+        if (hasControlChars(email) || containsDangerousMarkup(email)) {
+            return "Email contains unsupported characters";
+        }
+        if (!isValidEmailAddress(emailText)) {
+            return "Invalid email format";
         }
 
         // 验证角色
-        if (role == null || role.trim().isEmpty()) {
+        if (roleText.isEmpty()) {
             return "Please select a role";
+        }
+        if (!isSupportedRole(roleText)) {
+            return "Invalid role selected";
         }
 
         return null;
+    }
+
+    private boolean isValidEmailAddress(String email) {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            return false;
+        }
+
+        String[] parts = email.split("@", -1);
+        if (parts.length != 2) {
+            return false;
+        }
+
+        String local = parts[0];
+        String domain = parts[1];
+        if (local.isEmpty() || domain.isEmpty()) {
+            return false;
+        }
+
+        if (local.startsWith(".") || local.endsWith(".") || local.contains("..")) {
+            return false;
+        }
+        if (domain.startsWith(".") || domain.endsWith(".") || domain.contains("..")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean hasControlChars(String value) {
+        return value != null && value.matches(".*[\\x00-\\x1F\\x7F].*");
+    }
+
+    private boolean containsDangerousMarkup(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        String text = value.toLowerCase();
+        return text.matches(".*<[^>]*>.*")
+            || text.contains("javascript:")
+            || text.matches(".*on\\w+\\s*=.*");
+    }
+
+    private boolean isSupportedRole(String role) {
+        return "TA".equals(role) || "MO".equals(role) || "ADMIN".equals(role);
     }
 
     /**
