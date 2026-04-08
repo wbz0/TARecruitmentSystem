@@ -26,7 +26,8 @@
     var state = {
         loading: false,
         applications: [],
-        withdrawingId: ""
+        withdrawingId: "",
+        loadError: false
     };
 
     filterForm.addEventListener("submit", function (event) {
@@ -38,6 +39,7 @@
         resetButton.addEventListener("click", function () {
             statusFilter.value = "";
             keywordFilter.value = "";
+            hideMessage();
             render();
         });
     }
@@ -56,6 +58,7 @@
         }
 
         setLoading(true);
+        state.loadError = false;
         hideMessage();
         listSummaryNode.textContent = "Loading applications...";
         listNode.innerHTML = "";
@@ -77,6 +80,7 @@
 
                 if (response.status === 403) {
                     showMessage("This page is available for TA accounts only.", "error");
+                    state.loadError = true;
                     state.applications = [];
                     render();
                     return;
@@ -88,6 +92,7 @@
                         errorMessage = payload.message.trim();
                     }
                     showMessage(errorMessage, "error");
+                    state.loadError = true;
                     state.applications = [];
                     render();
                     return;
@@ -98,6 +103,7 @@
             })
             .catch(function () {
                 showMessage("Network error. Please try again.", "error");
+                state.loadError = true;
                 state.applications = [];
                 render();
             })
@@ -172,9 +178,21 @@
     function renderList(applications) {
         listNode.innerHTML = "";
 
+        if (state.loadError) {
+            listSummaryNode.textContent = "Unable to load applications right now.";
+            listNode.appendChild(createEmptyState("load-error"));
+            return;
+        }
+
+        if (!Array.isArray(state.applications) || state.applications.length === 0) {
+            listSummaryNode.textContent = "No applications submitted yet.";
+            listNode.appendChild(createEmptyState("no-applications"));
+            return;
+        }
+
         if (!Array.isArray(applications) || applications.length === 0) {
             listSummaryNode.textContent = "No applications match the current filters.";
-            listNode.appendChild(createEmptyState());
+            listNode.appendChild(createEmptyState("no-match"));
             return;
         }
 
@@ -222,11 +240,26 @@
         return card;
     }
 
-    function createEmptyState() {
+    function createEmptyState(mode) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
+
+        if (mode === "load-error") {
+            empty.innerHTML =
+                "<p class=\"empty-title\">Unable to load applications</p>" +
+                "<p class=\"empty-copy\">Please check your network and click refresh to retry.</p>";
+            return empty;
+        }
+
+        if (mode === "no-match") {
+            empty.innerHTML =
+                "<p class=\"empty-title\">No matching applications</p>" +
+                "<p class=\"empty-copy\">Try clearing status or keyword filters to broaden results.</p>";
+            return empty;
+        }
+
         empty.innerHTML =
-            "<p class=\"empty-title\">No applications to display</p>" +
+            "<p class=\"empty-title\">No applications yet</p>" +
             "<p class=\"empty-copy\">After you apply for a job, the status will appear here.</p>";
         return empty;
     }

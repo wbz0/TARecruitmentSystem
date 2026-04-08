@@ -55,9 +55,12 @@
 
         hideMessage();
 
-        var validationMessage = validateForm();
-        if (validationMessage) {
-            showMessage(validationMessage, "error");
+        var validationResult = validateForm();
+        if (validationResult && validationResult.message) {
+            showMessage(validationResult.message, "error");
+            if (validationResult.field && typeof validationResult.field.focus === "function") {
+                validationResult.field.focus();
+            }
             return;
         }
 
@@ -186,10 +189,15 @@
         var item = document.createElement("article");
         item.className = "job-item";
 
+        var jobId = safeText(job.jobId, "");
         var status = safeText(job.status, "OPEN").toUpperCase();
         var courseText = safeText(job.courseCode, "-");
         if (job.courseName) {
             courseText += " · " + safeText(job.courseName);
+        }
+        var reviewHref = contextPath + "/jsp/mo/applicant-selection.jsp";
+        if (jobId) {
+            reviewHref += "?jobId=" + encodeURIComponent(jobId);
         }
 
         item.innerHTML =
@@ -201,6 +209,9 @@
             "<div class=\"job-item-meta\">" +
                 "<span>Positions: " + escapeHtml(String(job.positions || 0)) + "</span>" +
                 "<span>Deadline: " + escapeHtml(formatDateTime(job.deadline)) + "</span>" +
+            "</div>" +
+            "<div class=\"job-item-actions\">" +
+                "<a class=\"ghost-link\" href=\"" + escapeHtml(reviewHref) + "\">Review applicants</a>" +
             "</div>";
 
         return item;
@@ -218,28 +229,99 @@
     function validateForm() {
         var title = fields.title.value.trim();
         var courseCode = fields.courseCode.value.trim();
+        var courseName = fields.courseName.value.trim();
+        var description = fields.description.value.trim();
+        var requiredSkills = fields.requiredSkills.value.trim();
         var positionsText = fields.positions.value.trim();
+        var workload = fields.workload.value.trim();
+        var salary = fields.salary.value.trim();
+        var deadlineText = fields.deadline.value.trim();
 
         if (!title) {
-            fields.title.focus();
-            return "Job title is required.";
+            return buildValidationError("Job title is required.", fields.title);
         }
         if (title.length > 200) {
-            fields.title.focus();
-            return "Job title must be 200 characters or fewer.";
+            return buildValidationError("Job title must be 200 characters or fewer.", fields.title);
         }
+        if (containsControlChars(title) || containsDangerousMarkup(title)) {
+            return buildValidationError("Job title contains unsupported characters.", fields.title);
+        }
+
         if (!courseCode) {
-            fields.courseCode.focus();
-            return "Course code is required.";
+            return buildValidationError("Course code is required.", fields.courseCode);
+        }
+        if (courseCode.length > 50) {
+            return buildValidationError("Course code must be 50 characters or fewer.", fields.courseCode);
+        }
+        if (!/^[A-Za-z0-9][A-Za-z0-9 _\-/.]{0,49}$/.test(courseCode)) {
+            return buildValidationError("Course code contains unsupported characters.", fields.courseCode);
         }
 
-        var positions = parseInt(positionsText, 10);
-        if (isNaN(positions) || positions < 1) {
-            fields.positions.focus();
-            return "Positions must be at least 1.";
+        if (courseName.length > 120) {
+            return buildValidationError("Course name must be 120 characters or fewer.", fields.courseName);
+        }
+        if (courseName && (containsControlChars(courseName) || containsDangerousMarkup(courseName))) {
+            return buildValidationError("Course name contains unsupported characters.", fields.courseName);
         }
 
-        return "";
+        if (description.length > 4000) {
+            return buildValidationError("Description must be 4000 characters or fewer.", fields.description);
+        }
+        if (description && (containsControlChars(description) || containsDangerousMarkup(description))) {
+            return buildValidationError("Description contains unsupported characters.", fields.description);
+        }
+
+        if (requiredSkills.length > 500) {
+            return buildValidationError("Required skills must be 500 characters or fewer.", fields.requiredSkills);
+        }
+        if (requiredSkills && (containsControlChars(requiredSkills) || containsDangerousMarkup(requiredSkills))) {
+            return buildValidationError("Required skills contain unsupported characters.", fields.requiredSkills);
+        }
+
+        if (requiredSkills) {
+            var normalizedSkills = normalizeSkillsForSubmit(requiredSkills);
+            if (!normalizedSkills) {
+                return buildValidationError("Please remove empty skill items.", fields.requiredSkills);
+            }
+            if (normalizedSkills.split(",").length > 20) {
+                return buildValidationError("Please list up to 20 skills.", fields.requiredSkills);
+            }
+        }
+
+        if (!/^\d+$/.test(positionsText)) {
+            return buildValidationError("Positions must be a whole number.", fields.positions);
+        }
+
+        var positions = Number(positionsText);
+        if (!isFinite(positions) || positions < 1 || positions > 200) {
+            return buildValidationError("Positions must be between 1 and 200.", fields.positions);
+        }
+
+        if (workload.length > 120) {
+            return buildValidationError("Workload must be 120 characters or fewer.", fields.workload);
+        }
+        if (workload && (containsControlChars(workload) || containsDangerousMarkup(workload))) {
+            return buildValidationError("Workload contains unsupported characters.", fields.workload);
+        }
+
+        if (salary.length > 120) {
+            return buildValidationError("Salary must be 120 characters or fewer.", fields.salary);
+        }
+        if (salary && (containsControlChars(salary) || containsDangerousMarkup(salary))) {
+            return buildValidationError("Salary contains unsupported characters.", fields.salary);
+        }
+
+        if (deadlineText) {
+            var parsedDeadline = parseLocalDateTime(deadlineText);
+            if (!parsedDeadline) {
+                return buildValidationError("Invalid deadline format.", fields.deadline);
+            }
+            if (parsedDeadline.getTime() < Date.now() - 60000) {
+                return buildValidationError("Deadline cannot be in the past.", fields.deadline);
+            }
+        }
+
+        return null;
     }
 
     function setSubmitting(submitting) {
@@ -346,6 +428,35 @@
                 return item.length > 0;
             })
             .join(",");
+    }
+
+    function parseLocalDateTime(value) {
+        if (typeof value !== "string" || !value.trim()) {
+            return null;
+        }
+        var date = new Date(value);
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+        return date;
+    }
+
+    function containsControlChars(value) {
+        return /[\u0000-\u001F\u007F]/.test(value || "");
+    }
+
+    function containsDangerousMarkup(value) {
+        if (typeof value !== "string" || !value) {
+            return false;
+        }
+        return /<[^>]*>/.test(value) || /javascript:/i.test(value) || /on\w+\s*=/.test(value);
+    }
+
+    function buildValidationError(message, field) {
+        return {
+            message: message,
+            field: field || null
+        };
     }
 
     function normalizeDeadline(value) {

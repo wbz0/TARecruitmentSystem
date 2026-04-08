@@ -209,8 +209,19 @@
         }
 
         var coverLetter = coverLetterInput.value.trim();
+        if (coverLetter && containsControlChars(coverLetter)) {
+            showApplyStatus("Cover letter contains unsupported control characters.", "error");
+            coverLetterInput.focus();
+            return;
+        }
+        if (coverLetter && containsDangerousMarkup(coverLetter)) {
+            showApplyStatus("Cover letter contains unsupported markup.", "error");
+            coverLetterInput.focus();
+            return;
+        }
         if (coverLetter.length > 2000) {
             showApplyStatus("Cover letter must be 2000 characters or fewer.", "error");
+            coverLetterInput.focus();
             return;
         }
 
@@ -246,11 +257,14 @@
                     return;
                 }
 
-                showApplyStatus("Application submitted successfully.", "success");
+                showApplyStatus("Application submitted successfully. Redirecting to application status...", "success");
                 coverLetterInput.value = "";
                 state.hasApplied = true;
                 setApplyDisabled(true, "Application has been submitted.");
-                return refreshMyApplicationStatus();
+                window.setTimeout(function () {
+                    window.location.href = contextPath + "/jsp/ta/application-status.jsp";
+                }, 900);
+                return;
             })
             .catch(function () {
                 showApplyStatus("Network error while submitting application.", "error");
@@ -419,6 +433,17 @@
             return String(value);
         }
         return typeof fallback === "string" ? fallback : "";
+    }
+
+    function containsControlChars(value) {
+        return /[\u0000-\u001F\u007F]/.test(value || "");
+    }
+
+    function containsDangerousMarkup(value) {
+        if (typeof value !== "string" || !value) {
+            return false;
+        }
+        return /<[^>]*>/.test(value) || /javascript:/i.test(value) || /on\w+\s*=/.test(value);
     }
 
     function getJobIdFromLocation() {

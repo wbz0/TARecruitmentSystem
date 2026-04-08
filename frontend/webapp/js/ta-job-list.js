@@ -19,7 +19,8 @@
 
     var state = {
         loading: false,
-        jobs: []
+        jobs: [],
+        loadError: false
     };
 
     filterForm.addEventListener("submit", function (event) {
@@ -51,6 +52,7 @@
         }
 
         setLoading(true);
+        state.loadError = false;
         hideMessage();
 
         request(buildJobsUrl(), {
@@ -74,6 +76,7 @@
                         errorMessage = payload.message.trim();
                     }
                     showMessage(errorMessage, "error");
+                    state.loadError = true;
                     renderJobs([]);
                     return;
                 }
@@ -84,6 +87,7 @@
             })
             .catch(function () {
                 showMessage("Network error. Please try again in a moment.", "error");
+                state.loadError = true;
                 renderJobs([]);
             })
             .finally(function () {
@@ -114,9 +118,21 @@
     function renderJobs(jobs) {
         jobList.innerHTML = "";
 
+        if (state.loadError) {
+            listSummary.textContent = "Unable to load jobs right now.";
+            jobList.appendChild(createEmptyState("load-error"));
+            return;
+        }
+
         if (!Array.isArray(jobs) || jobs.length === 0) {
-            listSummary.textContent = "No jobs found for the current filters.";
-            jobList.appendChild(createEmptyState());
+            var hasFilters = !!keywordInput.value.trim() || !!statusSelect.value.trim() || !!courseCodeInput.value.trim();
+            if (hasFilters) {
+                listSummary.textContent = "No jobs found for the current filters.";
+                jobList.appendChild(createEmptyState("no-match"));
+                return;
+            }
+            listSummary.textContent = "No jobs available right now.";
+            jobList.appendChild(createEmptyState("no-jobs"));
             return;
         }
 
@@ -181,9 +197,24 @@
         }).join("");
     }
 
-    function createEmptyState() {
+    function createEmptyState(mode) {
         var empty = document.createElement("div");
         empty.className = "empty-state";
+
+        if (mode === "load-error") {
+            empty.innerHTML =
+                "<p class=\"empty-title\">Unable to load positions</p>" +
+                "<p class=\"empty-copy\">Please refresh the list after checking your network connection.</p>";
+            return empty;
+        }
+
+        if (mode === "no-jobs") {
+            empty.innerHTML =
+                "<p class=\"empty-title\">No positions published yet</p>" +
+                "<p class=\"empty-copy\">When MO publishes new jobs, they will appear here.</p>";
+            return empty;
+        }
+
         empty.innerHTML =
             "<p class=\"empty-title\">No matching positions</p>" +
             "<p class=\"empty-copy\">Try broadening your keyword or clearing one filter.</p>";
@@ -192,7 +223,7 @@
 
     function setLoading(loading) {
         state.loading = loading;
-        var loadingText = loading ? "Loading..." : "Search jobs";
+        var loadingText = loading ? "Loading..." : "Apply filters";
         if (searchButton) {
             searchButton.disabled = loading;
             searchButton.textContent = loadingText;

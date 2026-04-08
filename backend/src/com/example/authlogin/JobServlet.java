@@ -35,6 +35,14 @@ import java.util.stream.Collectors;
 public class JobServlet extends HttpServlet {
 
     private JobDao jobDao;
+    private static final int MAX_TITLE_LENGTH = 200;
+    private static final int MAX_COURSE_CODE_LENGTH = 50;
+    private static final int MAX_COURSE_NAME_LENGTH = 120;
+    private static final int MAX_DESCRIPTION_LENGTH = 4000;
+    private static final int MAX_SKILLS_LENGTH = 500;
+    private static final int MAX_WORKLOAD_LENGTH = 120;
+    private static final int MAX_SALARY_LENGTH = 120;
+    private static final int MAX_POSITIONS = 200;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -163,7 +171,17 @@ public class JobServlet extends HttpServlet {
             String deadlineStr = request.getParameter("deadline");
 
             // 输入验证
-            String error = validateInput(title, courseCode, positionsStr);
+            String error = validateInput(
+                    title,
+                    courseCode,
+                    courseName,
+                    description,
+                    skills,
+                    positionsStr,
+                    workload,
+                    salary,
+                    deadlineStr
+            );
             if (error != null) {
                 logInfo("Validation failed: " + error);
                 writeJsonResponse(response, 400, false, error, null);
@@ -189,32 +207,19 @@ public class JobServlet extends HttpServlet {
             }
 
             // 处理职位数量
-            try {
-                int positions = Integer.parseInt(positionsStr.trim());
-                job.setPositions(Math.max(1, positions));
-            } catch (NumberFormatException e) {
-                job.setPositions(1);
+            int positions = 1;
+            if (positionsStr != null && !positionsStr.trim().isEmpty()) {
+                positions = Integer.parseInt(positionsStr.trim());
             }
+            job.setPositions(positions);
 
             job.setWorkload(workload != null ? workload.trim() : null);
             job.setSalary(salary != null ? salary.trim() : null);
 
             // 处理截止日期
-            if (deadlineStr != null && !deadlineStr.trim().isEmpty()) {
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-                    LocalDateTime deadline = LocalDateTime.parse(deadlineStr.trim(), formatter);
-                    job.setDeadline(deadline);
-                } catch (Exception e) {
-                    // 尝试其他日期格式
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-                        LocalDateTime deadline = LocalDateTime.parse(deadlineStr.trim(), formatter);
-                        job.setDeadline(deadline);
-                    } catch (Exception e2) {
-                        logInfo("Invalid deadline format: " + deadlineStr);
-                    }
-                }
+            LocalDateTime deadline = parseDeadline(deadlineStr);
+            if (deadline != null) {
+                job.setDeadline(deadline);
             }
 
             // 保存职位
@@ -428,33 +433,156 @@ public class JobServlet extends HttpServlet {
     /**
      * 验证必填字段
      */
-    private String validateInput(String title, String courseCode, String positions) {
-        if (title == null || title.trim().isEmpty()) {
+    private String validateInput(String title,
+                                 String courseCode,
+                                 String courseName,
+                                 String description,
+                                 String skills,
+                                 String positions,
+                                 String workload,
+                                 String salary,
+                                 String deadlineStr) {
+        String titleText = title != null ? title.trim() : "";
+        String courseCodeText = courseCode != null ? courseCode.trim() : "";
+        String courseNameText = courseName != null ? courseName.trim() : "";
+        String descriptionText = description != null ? description.trim() : "";
+        String skillsText = skills != null ? skills.trim() : "";
+        String positionsText = positions != null ? positions.trim() : "";
+        String workloadText = workload != null ? workload.trim() : "";
+        String salaryText = salary != null ? salary.trim() : "";
+        String deadlineText = deadlineStr != null ? deadlineStr.trim() : "";
+
+        if (titleText.isEmpty()) {
             return "Job title is required";
         }
-        if (title.trim().length() > 200) {
+        if (titleText.length() > MAX_TITLE_LENGTH) {
             return "Job title is too long";
         }
+        if (hasControlChars(title) || containsDangerousMarkup(title)) {
+            return "Job title contains unsupported characters";
+        }
 
-        if (courseCode == null || courseCode.trim().isEmpty()) {
+        if (courseCodeText.isEmpty()) {
             return "Course code is required";
         }
-        if (courseCode.trim().length() > 50) {
+        if (courseCodeText.length() > MAX_COURSE_CODE_LENGTH) {
             return "Course code is too long";
         }
+        if (!courseCodeText.matches("^[A-Za-z0-9][A-Za-z0-9 _\\-/.]{0,49}$")) {
+            return "Course code contains unsupported characters";
+        }
 
-        if (positions != null && !positions.trim().isEmpty()) {
+        if (!courseNameText.isEmpty()) {
+            if (courseNameText.length() > MAX_COURSE_NAME_LENGTH) {
+                return "Course name is too long";
+            }
+            if (hasControlChars(courseName) || containsDangerousMarkup(courseName)) {
+                return "Course name contains unsupported characters";
+            }
+        }
+
+        if (!descriptionText.isEmpty()) {
+            if (descriptionText.length() > MAX_DESCRIPTION_LENGTH) {
+                return "Description is too long";
+            }
+            if (hasControlChars(description) || containsDangerousMarkup(description)) {
+                return "Description contains unsupported characters";
+            }
+        }
+
+        if (!skillsText.isEmpty()) {
+            if (skillsText.length() > MAX_SKILLS_LENGTH) {
+                return "Required skills are too long";
+            }
+            if (hasControlChars(skills) || containsDangerousMarkup(skills)) {
+                return "Required skills contain unsupported characters";
+            }
+        }
+
+        if (!positionsText.isEmpty()) {
+            if (!positionsText.matches("^\\d+$")) {
+                return "Positions must be a whole number";
+            }
             try {
-                int pos = Integer.parseInt(positions.trim());
-                if (pos < 1) {
-                    return "Positions must be at least 1";
+                int pos = Integer.parseInt(positionsText);
+                if (pos < 1 || pos > MAX_POSITIONS) {
+                    return "Positions must be between 1 and " + MAX_POSITIONS;
                 }
             } catch (NumberFormatException e) {
                 return "Invalid positions number";
             }
         }
 
+        if (!workloadText.isEmpty()) {
+            if (workloadText.length() > MAX_WORKLOAD_LENGTH) {
+                return "Workload is too long";
+            }
+            if (hasControlChars(workload) || containsDangerousMarkup(workload)) {
+                return "Workload contains unsupported characters";
+            }
+        }
+
+        if (!salaryText.isEmpty()) {
+            if (salaryText.length() > MAX_SALARY_LENGTH) {
+                return "Salary is too long";
+            }
+            if (hasControlChars(salary) || containsDangerousMarkup(salary)) {
+                return "Salary contains unsupported characters";
+            }
+        }
+
+        if (!deadlineText.isEmpty()) {
+            LocalDateTime deadline = parseDeadline(deadlineText);
+            if (deadline == null) {
+                return "Invalid deadline format";
+            }
+            if (deadline.isBefore(LocalDateTime.now().minusMinutes(1))) {
+                return "Deadline cannot be in the past";
+            }
+        }
+
         return null;
+    }
+
+    private LocalDateTime parseDeadline(String deadlineStr) {
+        if (deadlineStr == null || deadlineStr.trim().isEmpty()) {
+            return null;
+        }
+
+        String text = deadlineStr.trim();
+        try {
+            return LocalDateTime.parse(text, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception ignored) {
+            // fallback
+        }
+
+        try {
+            return LocalDateTime.parse(text, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (Exception ignored) {
+            // fallback
+        }
+
+        try {
+            return LocalDateTime.parse(text, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+        } catch (Exception ignored) {
+            // keep null
+        }
+
+        return null;
+    }
+
+    private boolean hasControlChars(String value) {
+        return value != null && value.matches(".*[\\x00-\\x1F\\x7F].*");
+    }
+
+    private boolean containsDangerousMarkup(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        String text = value.toLowerCase();
+        return text.matches(".*<[^>]*>.*")
+            || text.contains("javascript:")
+            || text.matches(".*on\\w+\\s*=.*");
     }
 
     /**

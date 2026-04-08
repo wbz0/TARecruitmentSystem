@@ -1,61 +1,63 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     String contextPath = request.getContextPath();
+    String userId = "";
+    Object userIdObj = session.getAttribute("userId");
+    if (userIdObj != null) {
+        userId = userIdObj.toString();
+    }
     String username = "";
     Object usernameObj = session.getAttribute("username");
     if (usernameObj != null) {
         username = usernameObj.toString();
     }
-    String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application status - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/ta-application-status.css">
+    <title>Applicant review - TA Hiring System</title>
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo-applicant-selection.css">
 </head>
 <body>
-    <div class="portal-shell portal-shell-ta">
-        <aside class="portal-sidebar" aria-label="TA portal navigation">
-            <p class="portal-brand">TA Portal</p>
+    <div class="portal-shell portal-shell-mo">
+        <aside class="portal-sidebar" aria-label="MO portal navigation">
+            <p class="portal-brand">MO Portal</p>
             <nav class="portal-nav">
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/job-list.jsp">
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M3 7.5h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
-                        <path d="M3 12h18" />
+                        <path d="M4 12h7V4H4z"></path>
+                        <path d="M13 20h7v-8h-7z"></path>
+                        <path d="M13 11h7V4h-7z"></path>
+                        <path d="M4 20h7v-6H4z"></path>
                     </svg>
-                    <span>Jobs</span>
+                    <span>Overview</span>
                 </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/ta/application-status.jsp">
+                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="12" cy="12" r="8"></circle>
-                        <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
+                        <path d="M7 18c.2-2.6 2.4-4.5 5-4.5s4.8 1.9 5 4.5"></path>
+                        <circle cx="12" cy="8.5" r="3"></circle>
+                        <path d="M3.5 18c.1-1.6 1.3-2.8 2.9-3.1"></path>
+                        <path d="M20.5 18c-.1-1.6-1.3-2.8-2.9-3.1"></path>
                     </svg>
-                    <span>Status</span>
+                    <span>Applicants</span>
+                </a>
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/dashboard.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M12 5v14"></path>
+                        <path d="M5 12h14"></path>
+                    </svg>
+                    <span>Post Job</span>
                 </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 3v3"></path>
-                        <path d="M12 18v3"></path>
-                        <path d="M3 12h3"></path>
-                        <path d="M18 12h3"></path>
-                        <path d="m6 6 2 2"></path>
-                        <path d="m16 16 2 2"></path>
-                        <path d="m6 18 2-2"></path>
-                        <path d="m16 8 2-2"></path>
+                        <path d="M12 8v8"></path>
+                        <path d="M8 12h8"></path>
+                        <circle cx="12" cy="12" r="8"></circle>
                     </svg>
-                    <span>AI Match</span>
+                    <span>Settings</span>
                 </span>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="12" cy="8" r="3"></circle>
-                        <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
-                    </svg>
-                    <span>Profile</span>
-                </a>
             </nav>
             <div class="portal-sidebar-bottom">
                 <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
@@ -73,21 +75,28 @@
         <section class="portal-main">
             <header class="portal-topbar">
                 <div class="portal-user">
-                    <span class="portal-user-avatar"><%= userInitial %></span>
-                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "TA User" : username %></span>
+                    <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "M" %></span>
+                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "MO User" : username %></span>
                 </div>
                 <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
             </header>
 
             <div class="portal-content">
-                <main class="status-page">
-                    <section class="status-hero" aria-labelledby="status-title">
-                        <h1 id="status-title">My Applications</h1>
-                        <p class="subtitle">Track the status of your submitted applications.</p>
+                <main class="mo-selection-page">
+                    <section class="selection-hero" aria-labelledby="selection-title">
+                        <h1 id="selection-title">Applicants</h1>
+                        <p class="subtitle">Review and manage all candidate applications.</p>
                     </section>
 
-                    <section class="status-panel" aria-label="申请状态列表">
-                        <form id="status-filter-form" class="filter-form" novalidate>
+                    <section class="selection-panel" aria-label="申请人筛选与审核列表">
+                        <form id="selection-filter-form" class="filter-form" novalidate>
+                            <div class="field-group">
+                                <label for="job-filter">Job</label>
+                                <select id="job-filter" name="jobId">
+                                    <option value="">All jobs</option>
+                                </select>
+                            </div>
+
                             <div class="field-group">
                                 <label for="status-filter">Status</label>
                                 <select id="status-filter" name="status">
@@ -98,24 +107,15 @@
                                     <option value="WITHDRAWN">Withdrawn</option>
                                 </select>
                             </div>
-                            <div class="field-group field-wide">
-                                <label for="keyword-filter">Keyword</label>
-                                <input
-                                    id="keyword-filter"
-                                    name="keyword"
-                                    type="text"
-                                    maxlength="120"
-                                    placeholder="Search by job title, course code, or MO"
-                                >
-                            </div>
+
                             <div class="filter-actions">
-                                <button class="primary-btn" id="search-btn" type="submit">Apply filters</button>
-                                <button class="ghost-btn" id="reset-btn" type="button">Clear</button>
-                                <button class="inline-btn" id="refresh-btn" type="button">Refresh</button>
+                                <button id="search-btn" class="primary-btn" type="submit">Apply filters</button>
+                                <button id="clear-btn" class="ghost-btn" type="button">Clear</button>
+                                <button id="refresh-btn" class="inline-btn" type="button">Refresh</button>
                             </div>
                         </form>
 
-                        <div id="status-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                        <div id="selection-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
                         <section class="summary-grid" aria-label="申请统计">
                             <article class="summary-card">
@@ -134,13 +134,9 @@
                                 <p>Rejected</p>
                                 <strong id="summary-rejected">0</strong>
                             </article>
-                            <article class="summary-card withdrawn">
-                                <p>Withdrawn</p>
-                                <strong id="summary-withdrawn">0</strong>
-                            </article>
                         </section>
 
-                        <p id="list-summary" class="list-summary">Loading applications...</p>
+                        <p id="selection-list-summary" class="list-summary">Loading applications...</p>
                         <div id="applications-list" class="applications-list" aria-live="polite"></div>
                     </section>
                 </main>
@@ -150,7 +146,8 @@
 
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
+        window.APP_CURRENT_USER_ID = "<%= userId %>";
     </script>
-    <script src="<%= contextPath %>/js/ta-application-status.js" defer></script>
+    <script src="<%= contextPath %>/js/mo-applicant-selection.js" defer></script>
 </body>
 </html>

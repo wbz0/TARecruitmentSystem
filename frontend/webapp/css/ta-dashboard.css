@@ -1,30 +1,36 @@
 @import url("./register.css");
+@import url("./portal-shell.css");
 
 .profile-page {
-    min-height: 100vh;
-    padding: 36px 20px 48px;
+    min-height: auto;
+    padding: 28px 28px 36px;
 }
 
 .profile-hero {
-    width: min(1120px, 100%);
-    margin: 0 auto 24px;
-    min-height: 208px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-auto-rows: min-content;
-    align-content: center;
-    column-gap: 20px;
-    row-gap: 12px;
+    width: 100%;
+    margin: 0 0 20px;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .profile-hero-aside {
     grid-column: 2;
     grid-row: 1 / span 3;
     display: inline-flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-end;
     align-self: start;
     gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hero-nav-links {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .profile-hero .hero-icon {
@@ -80,8 +86,8 @@
 }
 
 .profile-layout {
-    width: min(1120px, 100%);
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(280px, 360px);
     gap: 24px;
@@ -90,9 +96,10 @@
 
 .profile-card,
 .side-card {
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.08);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
 }
 
 .profile-card {
@@ -154,14 +161,62 @@
     min-height: 42px;
     padding: 0 16px;
     border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    color: #1d1d1f;
-    background: #fff;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--ui-border);
+    color: var(--ui-text-primary);
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow-card);
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.nav-link {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid var(--ui-border-strong);
+    color: var(--ui-text-primary);
+    background: var(--ui-surface);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+    border-color: #0071e3;
+    color: #0071e3;
+}
+
+.nav-link.is-active {
+    border-color: #0071e3;
+    background: #0071e3;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 113, 227, 0.25);
+}
+
+.nav-link.is-active:hover {
+    border-color: #0067d1;
+    background: #0067d1;
+    color: #fff;
+}
+
+.nav-link:focus-visible {
+    outline: none;
+    border-color: #0071e3;
+    color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+}
+
+.nav-link.is-active:focus-visible {
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16), 0 2px 10px rgba(0, 113, 227, 0.25);
 }
 
 .logout-link:hover {
@@ -324,8 +379,8 @@
     width: 100%;
     min-height: 50px;
     border: 1px solid transparent;
-    border-radius: 14px;
-    background: #0071e3;
+    border-radius: 999px;
+    background: var(--ui-brand);
     color: #fff;
     font-size: 15px;
     line-height: 1;
@@ -338,7 +393,7 @@
 
 .profile-submit-btn:hover {
     transform: translateY(-1px);
-    background: #0067d1;
+    background: var(--ui-brand-press);
 }
 
 .profile-submit-btn:active {
