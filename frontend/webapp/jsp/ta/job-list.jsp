@@ -20,6 +20,7 @@
         <section class="jobs-hero" aria-labelledby="jobs-page-title">
             <div class="hero-actions">
                 <a class="nav-link" href="<%= contextPath %>/jsp/ta/dashboard.jsp">Back to profile</a>
+                <a class="nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">Application status</a>
                 <a class="logout-link" href="<%= contextPath %>/logout">Log out</a>
             </div>
             <span class="jobs-badge">TA Workspace</span>

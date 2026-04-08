@@ -20,6 +20,7 @@
         <section class="detail-hero" aria-labelledby="job-detail-title">
             <div class="hero-actions">
                 <a class="nav-link" href="<%= contextPath %>/jsp/ta/job-list.jsp">Back to job list</a>
+                <a class="nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">Application status</a>
                 <a class="logout-link" href="<%= contextPath %>/logout">Log out</a>
             </div>
             <span class="detail-badge">Position detail</span>
