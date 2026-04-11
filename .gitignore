@@ -1,62 +1,88 @@
-# Java build output
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-*.zip
-*.tar.gz
+# =========================
+# Project Specific
+# =========================
+build/
+scripts/config.bat
+scripts/config.sh
+author.md
+/nul
+.cursor/rules/
+data/logs/
+/shelf/
+docs/proto/TADesign/
 
-# Logs
+# =========================
+# Java / Compiled Class
+# =========================
+*.class
 *.log
 
-# JVM crash logs
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
-# Maven
-target/
-.mvn/
-
-# Gradle
-.gradle/
-build/
-out/
-
-# Eclipse
-.classpath
-.project
-.settings/
-bin/
-
+# =========================
 # IntelliJ IDEA
+# =========================
 .idea/
 *.iml
+*.iws
+*.ipr
+/out/
+/workspace.xml
+/shelf/
 
-# VS Code / Cursor
+# =========================
+# Eclipse
+# =========================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache/
+bin/
+!bin/
+
+# =========================
+# Maven / Gradle (Just in case)
+# =========================
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+.gradle/
+/build/
+
+# =========================
+# VS Code
+# =========================
 .vscode/
-.cursor/
 
-# OS files
+# =========================
+# OS generated files
+# =========================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
-*~
-
-# Local environment files
-.env
-.env.*
-
-# Test and coverage outputs
-coverage/
-reports/
-
-# Local data snapshots and backups
-*.bak
-*.orig
