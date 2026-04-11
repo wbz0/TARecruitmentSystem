@@ -67,6 +67,43 @@ public class UserDao {
         initUserFile(USER_FILE_TA);
         initUserFile(USER_FILE_MO);
         initUserFile(USER_FILE_ADMIN);
+        initDefaultUsersIfEmpty();
+    }
+
+    /**
+     * 如果用户数据为空，初始化默认测试账号
+     */
+    private void initDefaultUsersIfEmpty() {
+        List<User> existingUsers = new ArrayList<>();
+        existingUsers.addAll(readUsersFromFile(USER_FILE_TA));
+        existingUsers.addAll(readUsersFromFile(USER_FILE_MO));
+        existingUsers.addAll(readUsersFromFile(USER_FILE_ADMIN));
+
+        if (!existingUsers.isEmpty()) {
+            return; // 已有数据，无需初始化
+        }
+
+        // 初始化 README 中定义的测试账号
+        List<User> taUsers = new ArrayList<>();
+        List<User> moUsers = new ArrayList<>();
+        List<User> adminUsers = new ArrayList<>();
+
+        User ta = new User("ta_demo", "Pass1234", "ta_demo@example.com", User.Role.TA);
+        ta.setUserId("ta_demo");
+        taUsers.add(ta);
+
+        User mo = new User("mo_demo", "Pass1234", "mo_demo@example.com", User.Role.MO);
+        mo.setUserId("mo_demo");
+        moUsers.add(mo);
+
+        User admin = new User("admin_demo", "Pass1234", "admin_demo@example.com", User.Role.ADMIN);
+        admin.setUserId("admin_demo");
+        adminUsers.add(admin);
+
+        // 直接写入文件，避免调用 save() 引起递归
+        writeUsersToFile(USER_FILE_TA, taUsers);
+        writeUsersToFile(USER_FILE_MO, moUsers);
+        writeUsersToFile(USER_FILE_ADMIN, adminUsers);
     }
 
     /**
@@ -303,6 +340,7 @@ public class UserDao {
     /**
      * 验证用户登录
      * 返回用户对象（密码已验证）
+     * 支持明文密码和SHA-256哈希密码（向后兼容）
      */
     public Optional<User> verifyLogin(String usernameOrEmail, String password) {
         Optional<User> userOpt = findByUsername(usernameOrEmail);
@@ -312,9 +350,21 @@ public class UserDao {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            String hashedInput = hashPassword(password);
+            String storedPassword = user.getPassword();
 
-            if (hashedInput.equals(user.getPassword())) {
+            boolean matched = false;
+            // 支持明文密码比较
+            if (password.equals(storedPassword)) {
+                matched = true;
+            } else {
+                // 兼容旧哈希密码
+                String hashedInput = hashPassword(password);
+                if (hashedInput.equals(storedPassword)) {
+                    matched = true;
+                }
+            }
+
+            if (matched) {
                 // 更新最后登录时间
                 user.setLastLoginAt(java.time.LocalDateTime.now());
                 save(user);
