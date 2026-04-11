@@ -51,24 +51,32 @@ mkdir -p "${CLASSES_DIR}"
 echo "[2/3] Compiling Java source files..."
 cp_with_classes="${SERVLET_API_JAR}:${CLASSES_DIR}"
 
-# First pass: model and dao
+# First pass: StoragePaths (no dependencies) and all models
+echo "First pass: compiling StoragePaths and models..."
+javac -encoding UTF-8 -d "${CLASSES_DIR}" "${SRC_DIR}/com/example/authlogin/util/StoragePaths.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/User.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Applicant.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}:${CLASSES_DIR}" "${SRC_DIR}/com/example/authlogin/util/StoragePaths.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Job.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Application.java"
+
+# Second pass: DAO classes
+echo "Second pass: compiling DAO classes..."
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/UserDao.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/ApplicantDao.java"
-
-# util, model/dao
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/SessionUtil.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Job.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/JobDao.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${SERVLET_API_JAR}" "${SRC_DIR}/com/example/authlogin/model/Application.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/dao/ApplicationDao.java"
 
-# filter
+# Third pass: utility classes (SessionUtil before PermissionUtil)
+echo "Third pass: compiling utility classes..."
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/SessionUtil.java"
+javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/PermissionUtil.java"
+
+# Fourth pass: filter
+echo "Fourth pass: compiling filter..."
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/filter/AuthFilter.java"
 
-# servlets
+# Fifth pass: servlets
+echo "Fifth pass: compiling servlets..."
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LoginServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/RegisterServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/LogoutServlet.java"
@@ -76,7 +84,6 @@ javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/c
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplicantServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/JobServlet.java"
 javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/ApplyServlet.java"
-javac -encoding UTF-8 -d "${CLASSES_DIR}" -cp "${cp_with_classes}" "${SRC_DIR}/com/example/authlogin/util/PermissionUtil.java"
 
 echo "[3/3] Copying resource files..."
 cp -R "${WEBAPP_DIR}/." "${BUILD_DIR}/"

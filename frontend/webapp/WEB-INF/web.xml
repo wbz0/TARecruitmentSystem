@@ -13,4 +13,13 @@
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
+    <servlet>
+        <servlet-name>ApplicantServlet</servlet-name>
+        <servlet-class>com.example.authlogin.ApplicantServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApplicantServlet</servlet-name>
+        <url-pattern>/applicant</url-pattern>
+    </servlet-mapping>
+
 </web-app>
