@@ -3,8 +3,10 @@ package com.example.authlogin.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -76,6 +78,46 @@ public class MissingSkillsService {
         }
     }
 
+    public static class MissingSkillsVisualizationData {
+        private final int requiredCount;
+        private final int matchedCount;
+        private final int missingCount;
+        private final double matchScore;
+        private final Map<String, Integer> gapFrequency;
+
+        public MissingSkillsVisualizationData(int requiredCount,
+                                              int matchedCount,
+                                              int missingCount,
+                                              double matchScore,
+                                              Map<String, Integer> gapFrequency) {
+            this.requiredCount = requiredCount;
+            this.matchedCount = matchedCount;
+            this.missingCount = missingCount;
+            this.matchScore = matchScore;
+            this.gapFrequency = gapFrequency;
+        }
+
+        public int getRequiredCount() {
+            return requiredCount;
+        }
+
+        public int getMatchedCount() {
+            return matchedCount;
+        }
+
+        public int getMissingCount() {
+            return missingCount;
+        }
+
+        public double getMatchScore() {
+            return matchScore;
+        }
+
+        public Map<String, Integer> getGapFrequency() {
+            return gapFrequency;
+        }
+    }
+
     /**
      * 阶段2：实现职位要求与申请人技能对比逻辑。
      */
@@ -118,6 +160,37 @@ public class MissingSkillsService {
         );
     }
 
+    /**
+     * 阶段5：生成可视化数据（用于图表展示）。
+     */
+    public MissingSkillsVisualizationData generateVisualizationData(List<String> requiredSkills, List<String> applicantSkills) {
+        MissingSkillsAnalysis analysis = analyzeMissingSkills(requiredSkills, applicantSkills);
+        Map<String, Integer> gapFrequency = new LinkedHashMap<>();
+        for (String missingSkill : analysis.getMissingSkills()) {
+            gapFrequency.put(missingSkill, gapFrequency.getOrDefault(missingSkill, 0) + 1);
+        }
+        return new MissingSkillsVisualizationData(
+                analysis.getRequiredSkills().size(),
+                analysis.getMatchedSkills().size(),
+                analysis.getMissingSkills().size(),
+                analysis.getMatchScore(),
+                Collections.unmodifiableMap(gapFrequency)
+        );
+    }
+
+    public Map<String, Integer> aggregateMissingSkillFrequency(List<String> requiredSkills,
+                                                               List<List<String>> applicantSkillLists) {
+        List<List<String>> safeLists = applicantSkillLists != null ? applicantSkillLists : Collections.emptyList();
+        Map<String, Integer> frequency = new LinkedHashMap<>();
+        for (List<String> applicantSkills : safeLists) {
+            MissingSkillsAnalysis analysis = analyzeMissingSkills(requiredSkills, applicantSkills);
+            for (String missingSkill : analysis.getMissingSkills()) {
+                frequency.put(missingSkill, frequency.getOrDefault(missingSkill, 0) + 1);
+            }
+        }
+        return Collections.unmodifiableMap(frequency);
+    }
+
     private Set<String> normalizeSkillSet(List<String> rawSkills) {
         List<String> safeSkills = rawSkills != null ? rawSkills : Collections.emptyList();
         Set<String> result = new LinkedHashSet<>();
@@ -136,7 +209,12 @@ public class MissingSkillsService {
         if (rawSkill == null || rawSkill.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        String[] tokens = rawSkill.split("[,;，；/|]+");
+        String normalizedRaw = normalizeSkill(rawSkill);
+        if (isIgnoredPlaceholder(normalizedRaw)) {
+            return Collections.emptyList();
+        }
+
+        String[] tokens = rawSkill.split("[,;，；|]+");
         List<String> result = new ArrayList<>();
         for (String token : tokens) {
             if (token != null && !token.trim().isEmpty()) {

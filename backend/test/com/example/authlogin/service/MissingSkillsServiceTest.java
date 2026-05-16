@@ -1,6 +1,8 @@
 package com.example.authlogin.service;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * MissingSkillsService 自动化测试
@@ -85,6 +87,31 @@ public class MissingSkillsServiceTest {
             assert analysis.getRequiredSkills().size() == 1 : "placeholder tokens should be ignored";
             assert analysis.getMissingSkills().isEmpty() : "no missing skills after placeholder filtering";
             assert analysis.getMatchScore() == 100.0 : "score should be 100";
+        });
+
+        test("Visualization data should contain gap frequencies", () -> {
+            MissingSkillsService.MissingSkillsVisualizationData data = service.generateVisualizationData(
+                    Arrays.asList("Java", "SQL", "Linux"),
+                    Arrays.asList("Java")
+            );
+            assert data.getRequiredCount() == 3 : "required count should be 3";
+            assert data.getMatchedCount() == 1 : "matched count should be 1";
+            assert data.getMissingCount() == 2 : "missing count should be 2";
+            assert data.getGapFrequency().get("sql") == 1 : "sql gap frequency should be 1";
+            assert data.getGapFrequency().get("linux") == 1 : "linux gap frequency should be 1";
+        });
+
+        test("Aggregate frequency should summarize multiple applicants", () -> {
+            Map<String, Integer> frequency = service.aggregateMissingSkillFrequency(
+                    Arrays.asList("Java", "SQL", "Linux"),
+                    List.of(
+                            Arrays.asList("Java"),
+                            Arrays.asList("Java", "SQL"),
+                            Arrays.asList("Java", "Linux")
+                    )
+            );
+            assert frequency.get("sql") == 2 : "sql should be missing for 2 applicants";
+            assert frequency.get("linux") == 2 : "linux should be missing for 2 applicants";
         });
 
         System.out.println("========================================");
