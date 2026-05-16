@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,6 +22,18 @@ public class SkillMatchService {
 
     private static final double SKILL_WEIGHT = 0.7;
     private static final double KEYWORD_WEIGHT = 0.3;
+    private static final double NON_AI_WEIGHT = 0.6;
+    private static final double AI_WEIGHT = 0.4;
+
+    private final AiSkillMatchClient aiSkillMatchClient;
+
+    public SkillMatchService() {
+        this(new HttpAiSkillMatchClient());
+    }
+
+    public SkillMatchService(AiSkillMatchClient aiSkillMatchClient) {
+        this.aiSkillMatchClient = aiSkillMatchClient != null ? aiSkillMatchClient : new HttpAiSkillMatchClient();
+    }
 
     public enum MatchLevel {
         HIGH, MEDIUM, LOW, NONE
@@ -37,6 +50,9 @@ public class SkillMatchService {
         private final double keywordScore;
         private final List<String> matchedKeywords;
         private final List<String> missingKeywords;
+        private final boolean aiEnhanced;
+        private final double aiScore;
+        private final String aiReason;
 
         public SkillMatchResult(double score,
                                 MatchLevel level,
@@ -54,7 +70,10 @@ public class SkillMatchService {
                     score,
                     0.0,
                     Collections.emptyList(),
-                    Collections.emptyList()
+                    Collections.emptyList(),
+                    false,
+                    0.0,
+                    ""
             );
         }
 
@@ -68,6 +87,36 @@ public class SkillMatchService {
                                 double keywordScore,
                                 List<String> matchedKeywords,
                                 List<String> missingKeywords) {
+            this(
+                    score,
+                    level,
+                    matchedSkills,
+                    missingSkills,
+                    requiredSkillCount,
+                    applicantSkillCount,
+                    skillScore,
+                    keywordScore,
+                    matchedKeywords,
+                    missingKeywords,
+                    false,
+                    0.0,
+                    ""
+            );
+        }
+
+        public SkillMatchResult(double score,
+                                MatchLevel level,
+                                List<String> matchedSkills,
+                                List<String> missingSkills,
+                                int requiredSkillCount,
+                                int applicantSkillCount,
+                                double skillScore,
+                                double keywordScore,
+                                List<String> matchedKeywords,
+                                List<String> missingKeywords,
+                                boolean aiEnhanced,
+                                double aiScore,
+                                String aiReason) {
             this.score = score;
             this.level = level;
             this.matchedSkills = matchedSkills;
@@ -78,6 +127,9 @@ public class SkillMatchService {
             this.keywordScore = keywordScore;
             this.matchedKeywords = matchedKeywords;
             this.missingKeywords = missingKeywords;
+            this.aiEnhanced = aiEnhanced;
+            this.aiScore = aiScore;
+            this.aiReason = aiReason;
         }
 
         public double getScore() {
@@ -118,6 +170,18 @@ public class SkillMatchService {
 
         public List<String> getMissingKeywords() {
             return missingKeywords;
+        }
+
+        public boolean isAiEnhanced() {
+            return aiEnhanced;
+        }
+
+        public double getAiScore() {
+            return aiScore;
+        }
+
+        public String getAiReason() {
+            return aiReason;
         }
     }
 
@@ -216,6 +280,51 @@ public class SkillMatchService {
         );
     }
 
+    /**
+     * AI 增强匹配：
+     * - 先执行本地关键词匹配
+     * - 若 AI 客户端可用，则获取 AI 评分并做加权融合
+     * - AI 不可用时自动回退本地结果
+     */
+    public SkillMatchResult matchWithAi(List<String> requiredSkills,
+                                        String jobContext,
+                                        List<String> applicantSkills,
+                                        String applicantContext) {
+        SkillMatchResult keywordResult = matchByKeywords(requiredSkills, jobContext, applicantSkills, applicantContext);
+
+        Set<String> requiredKeywordSet = buildKeywordSet(requiredSkills, jobContext);
+        Set<String> applicantKeywordSet = buildKeywordSet(applicantSkills, applicantContext);
+
+        Optional<AiSkillMatchClient.AiScoreResult> aiResultOpt = aiSkillMatchClient.score(
+                new ArrayList<>(requiredKeywordSet),
+                new ArrayList<>(applicantKeywordSet)
+        );
+        if (aiResultOpt.isEmpty()) {
+            return keywordResult;
+        }
+
+        AiSkillMatchClient.AiScoreResult aiResult = aiResultOpt.get();
+        double boundedAiScore = clampScore(aiResult.getScore());
+        double finalScore = roundTo2(keywordResult.getScore() * NON_AI_WEIGHT + boundedAiScore * AI_WEIGHT);
+        MatchLevel level = resolveLevel(finalScore);
+
+        return new SkillMatchResult(
+                finalScore,
+                level,
+                keywordResult.getMatchedSkills(),
+                keywordResult.getMissingSkills(),
+                keywordResult.getRequiredSkillCount(),
+                keywordResult.getApplicantSkillCount(),
+                keywordResult.getSkillScore(),
+                keywordResult.getKeywordScore(),
+                keywordResult.getMatchedKeywords(),
+                keywordResult.getMissingKeywords(),
+                true,
+                boundedAiScore,
+                aiResult.getReason()
+        );
+    }
+
     private List<String> normalizeSkillList(List<String> rawSkills) {
         List<String> normalized = new ArrayList<>();
         for (String rawSkill : rawSkills) {
@@ -298,5 +407,15 @@ public class SkillMatchService {
 
     private double roundTo2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private double clampScore(double value) {
+        if (value < 0.0) {
+            return 0.0;
+        }
+        if (value > 100.0) {
+            return 100.0;
+        }
+        return value;
     }
 }

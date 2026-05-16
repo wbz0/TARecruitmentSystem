@@ -2,6 +2,7 @@ package com.example.authlogin.service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * SkillMatchService 自动化测试
@@ -93,6 +94,51 @@ public class SkillMatchServiceTest {
             assert !result.getMatchedKeywords().contains("the") : "stop words should not appear in matched keywords";
         });
 
+        test("AI integration should blend AI score", () -> {
+            SkillMatchService aiService = new SkillMatchService((required, applicant) ->
+                    Optional.of(new AiSkillMatchClient.AiScoreResult(90.0, "mock-ai"))
+            );
+
+            SkillMatchService.SkillMatchResult baseline = aiService.matchByKeywords(
+                    Arrays.asList("Java", "Machine Learning"),
+                    "Need neural network and python data analysis.",
+                    Arrays.asList("Java", "Python"),
+                    "Neural network data analysis projects."
+            );
+
+            SkillMatchService.SkillMatchResult aiResult = aiService.matchWithAi(
+                    Arrays.asList("Java", "Machine Learning"),
+                    "Need neural network and python data analysis.",
+                    Arrays.asList("Java", "Python"),
+                    "Neural network data analysis projects."
+            );
+
+            double expected = roundTo2(baseline.getScore() * 0.6 + 90.0 * 0.4);
+            assert aiResult.isAiEnhanced() : "result should mark ai enhanced";
+            assert aiResult.getAiScore() == 90.0 : "ai score should be 90";
+            assert expected == aiResult.getScore() : "final score should follow blend formula";
+        });
+
+        test("AI integration should fallback when AI unavailable", () -> {
+            SkillMatchService fallbackService = new SkillMatchService((required, applicant) -> Optional.empty());
+
+            SkillMatchService.SkillMatchResult baseline = fallbackService.matchByKeywords(
+                    Arrays.asList("Java", "Spring"),
+                    "Need restful api and backend development.",
+                    Arrays.asList("Java"),
+                    "backend api experience."
+            );
+            SkillMatchService.SkillMatchResult aiResult = fallbackService.matchWithAi(
+                    Arrays.asList("Java", "Spring"),
+                    "Need restful api and backend development.",
+                    Arrays.asList("Java"),
+                    "backend api experience."
+            );
+
+            assert !aiResult.isAiEnhanced() : "ai flag should be false when unavailable";
+            assert baseline.getScore() == aiResult.getScore() : "fallback score should equal baseline";
+        });
+
         System.out.println("========================================");
         System.out.println("SkillMatchServiceTest Summary");
         System.out.println("========================================");
@@ -115,5 +161,9 @@ public class SkillMatchServiceTest {
             failed++;
             System.out.println("[FAIL] " + name + " - " + t.getMessage());
         }
+    }
+
+    private static double roundTo2(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }
