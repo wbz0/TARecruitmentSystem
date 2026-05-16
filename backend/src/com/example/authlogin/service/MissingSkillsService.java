@@ -122,9 +122,25 @@ public class MissingSkillsService {
         List<String> safeSkills = rawSkills != null ? rawSkills : Collections.emptyList();
         Set<String> result = new LinkedHashSet<>();
         for (String rawSkill : safeSkills) {
-            String normalized = normalizeSkill(rawSkill);
-            if (!normalized.isEmpty()) {
-                result.add(normalized);
+            for (String token : splitSkillTokens(rawSkill)) {
+                String normalized = normalizeSkill(token);
+                if (!normalized.isEmpty() && !isIgnoredPlaceholder(normalized)) {
+                    result.add(normalized);
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<String> splitSkillTokens(String rawSkill) {
+        if (rawSkill == null || rawSkill.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String[] tokens = rawSkill.split("[,;，；/|]+");
+        List<String> result = new ArrayList<>();
+        for (String token : tokens) {
+            if (token != null && !token.trim().isEmpty()) {
+                result.add(token);
             }
         }
         return result;
@@ -135,6 +151,13 @@ public class MissingSkillsService {
             return "";
         }
         return rawSkill.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isIgnoredPlaceholder(String normalizedSkill) {
+        return "n/a".equals(normalizedSkill)
+                || "na".equals(normalizedSkill)
+                || "none".equals(normalizedSkill)
+                || "-".equals(normalizedSkill);
     }
 
     private double roundTo2(double value) {

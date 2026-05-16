@@ -66,6 +66,27 @@ public class MissingSkillsServiceTest {
                     : "first recommendation should indicate full coverage";
         });
 
+        test("Boundary fix: split combined skills by separators", () -> {
+            MissingSkillsService.MissingSkillsAnalysis analysis = service.analyzeMissingSkills(
+                    Arrays.asList("Java, SQL", "Python；Linux"),
+                    Arrays.asList("java", "sql", "linux")
+            );
+            assert analysis.getRequiredSkills().size() == 4 : "required skills should split into 4 items";
+            assert analysis.getMatchedSkills().size() == 3 : "three skills should match";
+            assert analysis.getMissingSkills().size() == 1 : "python should be missing";
+            assert analysis.getMissingSkills().contains("python") : "missing skills should include python";
+        });
+
+        test("Boundary fix: ignore placeholder skill tokens", () -> {
+            MissingSkillsService.MissingSkillsAnalysis analysis = service.analyzeMissingSkills(
+                    Arrays.asList("Java", "N/A", "-", "none"),
+                    Arrays.asList("Java")
+            );
+            assert analysis.getRequiredSkills().size() == 1 : "placeholder tokens should be ignored";
+            assert analysis.getMissingSkills().isEmpty() : "no missing skills after placeholder filtering";
+            assert analysis.getMatchScore() == 100.0 : "score should be 100";
+        });
+
         System.out.println("========================================");
         System.out.println("MissingSkillsServiceTest Summary");
         System.out.println("========================================");
