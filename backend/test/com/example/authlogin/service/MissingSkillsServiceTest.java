@@ -21,6 +21,28 @@ public class MissingSkillsServiceTest {
             assert analysis != null : "analysis should not be null";
             assert analysis.getRequiredSkills().size() == 2 : "required skills should keep input size";
             assert analysis.getApplicantSkills().size() == 1 : "applicant skills should keep input size";
+            assert analysis.getMatchedSkills().size() == 1 : "matched skills should contain Java";
+            assert analysis.getMissingSkills().size() == 1 : "missing skills should contain SQL";
+            assert analysis.getMatchScore() == 50.0 : "match score should be 50";
+        });
+
+        test("Comparison should be case-insensitive and deduplicated", () -> {
+            MissingSkillsService.MissingSkillsAnalysis analysis = service.analyzeMissingSkills(
+                    Arrays.asList("Java", " java ", "Machine Learning"),
+                    Arrays.asList("JAVA", "Python")
+            );
+            assert analysis.getRequiredSkills().size() == 2 : "required skills should be deduplicated";
+            assert analysis.getMatchedSkills().size() == 1 : "Java should match";
+            assert analysis.getMissingSkills().size() == 1 : "Machine Learning should be missing";
+            assert analysis.getMatchScore() == 50.0 : "score should be 50";
+        });
+
+        test("Empty required skills should return 100 score", () -> {
+            MissingSkillsService.MissingSkillsAnalysis analysis = service.analyzeMissingSkills(
+                    Arrays.asList(),
+                    Arrays.asList("Java")
+            );
+            assert analysis.getMatchScore() == 100.0 : "score should be 100 when no required skills";
         });
 
         System.out.println("========================================");
