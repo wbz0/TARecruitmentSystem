@@ -139,6 +139,18 @@ public class SkillMatchServiceTest {
             assert baseline.getScore() == aiResult.getScore() : "fallback score should equal baseline";
         });
 
+        test("Whitespace and punctuation normalization should remain stable", () -> {
+            SkillMatchService.SkillMatchResult result = service.matchByKeywords(
+                    Arrays.asList("  C++  ", "Java"),
+                    "Need REST-API, backend.",
+                    Arrays.asList("c++", " java "),
+                    "Experience in rest api and backend development."
+            );
+            assert result.getSkillScore() == 100.0 : "skill normalization should keep exact score";
+            assert result.getMatchedKeywords().contains("rest") : "rest keyword should be captured";
+            assert result.getMatchedKeywords().contains("backend") : "backend keyword should be captured";
+        });
+
         System.out.println("========================================");
         System.out.println("SkillMatchServiceTest Summary");
         System.out.println("========================================");

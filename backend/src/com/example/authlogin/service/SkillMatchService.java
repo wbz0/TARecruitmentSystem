@@ -39,6 +39,29 @@ public class SkillMatchService {
         HIGH, MEDIUM, LOW, NONE
     }
 
+    private static class KeywordMatchSnapshot {
+        private final List<String> requiredKeywords;
+        private final List<String> applicantKeywords;
+        private final List<String> matchedKeywords;
+        private final List<String> missingKeywords;
+        private final double keywordScore;
+        private final double blendedScore;
+
+        private KeywordMatchSnapshot(List<String> requiredKeywords,
+                                     List<String> applicantKeywords,
+                                     List<String> matchedKeywords,
+                                     List<String> missingKeywords,
+                                     double keywordScore,
+                                     double blendedScore) {
+            this.requiredKeywords = requiredKeywords;
+            this.applicantKeywords = applicantKeywords;
+            this.matchedKeywords = matchedKeywords;
+            this.missingKeywords = missingKeywords;
+            this.keywordScore = keywordScore;
+            this.blendedScore = blendedScore;
+        }
+    }
+
     public static class SkillMatchResult {
         private final double score;
         private final MatchLevel level;
@@ -241,42 +264,26 @@ public class SkillMatchService {
                                             List<String> applicantSkills,
                                             String applicantContext) {
         SkillMatchResult baseResult = matchSkills(requiredSkills, applicantSkills);
-
-        Set<String> requiredKeywordSet = buildKeywordSet(requiredSkills, jobContext);
-        Set<String> applicantKeywordSet = buildKeywordSet(applicantSkills, applicantContext);
-
-        List<String> matchedKeywords = new ArrayList<>();
-        List<String> missingKeywords = new ArrayList<>();
-
-        for (String keyword : requiredKeywordSet) {
-            if (applicantKeywordSet.contains(keyword)) {
-                matchedKeywords.add(keyword);
-            } else {
-                missingKeywords.add(keyword);
-            }
-        }
-
-        double keywordScore;
-        if (requiredKeywordSet.isEmpty()) {
-            keywordScore = baseResult.getSkillScore();
-        } else {
-            keywordScore = roundTo2((matchedKeywords.size() * 100.0) / requiredKeywordSet.size());
-        }
-
-        double finalScore = roundTo2(baseResult.getSkillScore() * SKILL_WEIGHT + keywordScore * KEYWORD_WEIGHT);
-        MatchLevel finalLevel = resolveLevel(finalScore);
+        KeywordMatchSnapshot snapshot = computeKeywordSnapshot(
+                requiredSkills,
+                jobContext,
+                applicantSkills,
+                applicantContext,
+                baseResult.getSkillScore()
+        );
+        MatchLevel finalLevel = resolveLevel(snapshot.blendedScore);
 
         return new SkillMatchResult(
-                finalScore,
+                snapshot.blendedScore,
                 finalLevel,
                 baseResult.getMatchedSkills(),
                 baseResult.getMissingSkills(),
                 baseResult.getRequiredSkillCount(),
                 baseResult.getApplicantSkillCount(),
                 baseResult.getSkillScore(),
-                keywordScore,
-                Collections.unmodifiableList(matchedKeywords),
-                Collections.unmodifiableList(missingKeywords)
+                snapshot.keywordScore,
+                Collections.unmodifiableList(snapshot.matchedKeywords),
+                Collections.unmodifiableList(snapshot.missingKeywords)
         );
     }
 
@@ -290,14 +297,30 @@ public class SkillMatchService {
                                         String jobContext,
                                         List<String> applicantSkills,
                                         String applicantContext) {
-        SkillMatchResult keywordResult = matchByKeywords(requiredSkills, jobContext, applicantSkills, applicantContext);
-
-        Set<String> requiredKeywordSet = buildKeywordSet(requiredSkills, jobContext);
-        Set<String> applicantKeywordSet = buildKeywordSet(applicantSkills, applicantContext);
+        SkillMatchResult baseResult = matchSkills(requiredSkills, applicantSkills);
+        KeywordMatchSnapshot snapshot = computeKeywordSnapshot(
+                requiredSkills,
+                jobContext,
+                applicantSkills,
+                applicantContext,
+                baseResult.getSkillScore()
+        );
+        SkillMatchResult keywordResult = new SkillMatchResult(
+                snapshot.blendedScore,
+                resolveLevel(snapshot.blendedScore),
+                baseResult.getMatchedSkills(),
+                baseResult.getMissingSkills(),
+                baseResult.getRequiredSkillCount(),
+                baseResult.getApplicantSkillCount(),
+                baseResult.getSkillScore(),
+                snapshot.keywordScore,
+                Collections.unmodifiableList(snapshot.matchedKeywords),
+                Collections.unmodifiableList(snapshot.missingKeywords)
+        );
 
         Optional<AiSkillMatchClient.AiScoreResult> aiResultOpt = aiSkillMatchClient.score(
-                new ArrayList<>(requiredKeywordSet),
-                new ArrayList<>(applicantKeywordSet)
+                snapshot.requiredKeywords,
+                snapshot.applicantKeywords
         );
         if (aiResultOpt.isEmpty()) {
             return keywordResult;
@@ -340,8 +363,44 @@ public class SkillMatchService {
         if (rawSkill == null) {
             return "";
         }
-        String compact = rawSkill.trim().replaceAll("\\s+", " ");
-        return compact.toLowerCase(Locale.ROOT);
+        return normalizeWhitespaceAndLower(rawSkill);
+    }
+
+    private KeywordMatchSnapshot computeKeywordSnapshot(List<String> requiredSkills,
+                                                        String jobContext,
+                                                        List<String> applicantSkills,
+                                                        String applicantContext,
+                                                        double baseSkillScore) {
+        Set<String> requiredKeywordSet = buildKeywordSet(requiredSkills, jobContext);
+        Set<String> applicantKeywordSet = buildKeywordSet(applicantSkills, applicantContext);
+
+        List<String> matchedKeywords = new ArrayList<>();
+        List<String> missingKeywords = new ArrayList<>();
+
+        for (String keyword : requiredKeywordSet) {
+            if (applicantKeywordSet.contains(keyword)) {
+                matchedKeywords.add(keyword);
+            } else {
+                missingKeywords.add(keyword);
+            }
+        }
+
+        double keywordScore;
+        if (requiredKeywordSet.isEmpty()) {
+            keywordScore = baseSkillScore;
+        } else {
+            keywordScore = roundTo2((matchedKeywords.size() * 100.0) / requiredKeywordSet.size());
+        }
+
+        double blendedScore = roundTo2(baseSkillScore * SKILL_WEIGHT + keywordScore * KEYWORD_WEIGHT);
+        return new KeywordMatchSnapshot(
+                new ArrayList<>(requiredKeywordSet),
+                new ArrayList<>(applicantKeywordSet),
+                matchedKeywords,
+                missingKeywords,
+                keywordScore,
+                blendedScore
+        );
     }
 
     private Set<String> buildKeywordSet(List<String> skills, String freeText) {
@@ -360,14 +419,30 @@ public class SkillMatchService {
         if (rawText == null || rawText.trim().isEmpty()) {
             return;
         }
-        String[] tokens = rawText.toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}+#]+");
-        for (String token : tokens) {
-            if (token == null || token.isEmpty()) {
-                continue;
+        String lower = rawText.toLowerCase(Locale.ROOT);
+        StringBuilder tokenBuilder = new StringBuilder();
+        for (int i = 0; i < lower.length(); i++) {
+            char c = lower.charAt(i);
+            if (isKeywordChar(c)) {
+                tokenBuilder.append(c);
+            } else {
+                appendKeywordToken(collector, tokenBuilder);
             }
-            if (!isValidKeyword(token)) {
-                continue;
-            }
+        }
+        appendKeywordToken(collector, tokenBuilder);
+    }
+
+    private boolean isKeywordChar(char c) {
+        return Character.isLetterOrDigit(c) || c == '+' || c == '#';
+    }
+
+    private void appendKeywordToken(Set<String> collector, StringBuilder tokenBuilder) {
+        if (tokenBuilder.length() == 0) {
+            return;
+        }
+        String token = tokenBuilder.toString();
+        tokenBuilder.setLength(0);
+        if (isValidKeyword(token)) {
             collector.add(token);
         }
     }
@@ -407,6 +482,28 @@ public class SkillMatchService {
 
     private double roundTo2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private String normalizeWhitespaceAndLower(String input) {
+        StringBuilder sb = new StringBuilder();
+        boolean previousWhitespace = true;
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (Character.isWhitespace(c)) {
+                if (!previousWhitespace) {
+                    sb.append(' ');
+                    previousWhitespace = true;
+                }
+            } else {
+                sb.append(Character.toLowerCase(c));
+                previousWhitespace = false;
+            }
+        }
+        int length = sb.length();
+        if (length > 0 && sb.charAt(length - 1) == ' ') {
+            sb.setLength(length - 1);
+        }
+        return sb.toString();
     }
 
     private double clampScore(double value) {
