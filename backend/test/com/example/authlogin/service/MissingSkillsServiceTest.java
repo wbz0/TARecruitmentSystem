@@ -45,6 +45,27 @@ public class MissingSkillsServiceTest {
             assert analysis.getMatchScore() == 100.0 : "score should be 100 when no required skills";
         });
 
+        test("Report should include summary and recommendations", () -> {
+            MissingSkillsService.MissingSkillsReport report = service.generateMissingSkillsReport(
+                    Arrays.asList("Java", "SQL", "Linux"),
+                    Arrays.asList("Java")
+            );
+            assert report != null : "report should not be null";
+            assert report.getAnalysis().getMissingSkills().size() == 2 : "missing size should be 2";
+            assert report.getSummary().contains("Missing: 2") : "summary should contain missing count";
+            assert !report.getRecommendations().isEmpty() : "recommendations should not be empty";
+        });
+
+        test("Report should suggest interview when no missing skills", () -> {
+            MissingSkillsService.MissingSkillsReport report = service.generateMissingSkillsReport(
+                    Arrays.asList("Java", "SQL"),
+                    Arrays.asList("Java", "SQL")
+            );
+            assert report.getAnalysis().getMissingSkills().isEmpty() : "there should be no missing skills";
+            assert report.getRecommendations().get(0).contains("covers all required skills")
+                    : "first recommendation should indicate full coverage";
+        });
+
         System.out.println("========================================");
         System.out.println("MissingSkillsServiceTest Summary");
         System.out.println("========================================");

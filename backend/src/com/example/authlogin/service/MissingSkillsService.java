@@ -52,6 +52,30 @@ public class MissingSkillsService {
         }
     }
 
+    public static class MissingSkillsReport {
+        private final MissingSkillsAnalysis analysis;
+        private final String summary;
+        private final List<String> recommendations;
+
+        public MissingSkillsReport(MissingSkillsAnalysis analysis, String summary, List<String> recommendations) {
+            this.analysis = analysis;
+            this.summary = summary;
+            this.recommendations = recommendations;
+        }
+
+        public MissingSkillsAnalysis getAnalysis() {
+            return analysis;
+        }
+
+        public String getSummary() {
+            return summary;
+        }
+
+        public List<String> getRecommendations() {
+            return recommendations;
+        }
+    }
+
     /**
      * 阶段2：实现职位要求与申请人技能对比逻辑。
      */
@@ -80,6 +104,20 @@ public class MissingSkillsService {
         );
     }
 
+    /**
+     * 阶段3：生成缺失技能报告和建议。
+     */
+    public MissingSkillsReport generateMissingSkillsReport(List<String> requiredSkills, List<String> applicantSkills) {
+        MissingSkillsAnalysis analysis = analyzeMissingSkills(requiredSkills, applicantSkills);
+        String summary = buildSummary(analysis);
+        List<String> recommendations = buildRecommendations(analysis);
+        return new MissingSkillsReport(
+                analysis,
+                summary,
+                Collections.unmodifiableList(recommendations)
+        );
+    }
+
     private Set<String> normalizeSkillSet(List<String> rawSkills) {
         List<String> safeSkills = rawSkills != null ? rawSkills : Collections.emptyList();
         Set<String> result = new LinkedHashSet<>();
@@ -101,5 +139,39 @@ public class MissingSkillsService {
 
     private double roundTo2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private String buildSummary(MissingSkillsAnalysis analysis) {
+        int requiredCount = analysis.getRequiredSkills().size();
+        int missingCount = analysis.getMissingSkills().size();
+        int matchedCount = analysis.getMatchedSkills().size();
+        return "Required: " + requiredCount
+                + ", Matched: " + matchedCount
+                + ", Missing: " + missingCount
+                + ", Score: " + analysis.getMatchScore() + "%";
+    }
+
+    private List<String> buildRecommendations(MissingSkillsAnalysis analysis) {
+        List<String> recommendations = new ArrayList<>();
+
+        if (analysis.getMissingSkills().isEmpty()) {
+            recommendations.add("Current applicant already covers all required skills.");
+            recommendations.add("Recommend proceeding to interview or practical evaluation.");
+            return recommendations;
+        }
+
+        recommendations.add("Prioritize closing these skill gaps: " + String.join(", ", analysis.getMissingSkills()) + ".");
+
+        if (analysis.getMatchScore() < 50.0) {
+            recommendations.add("Recommend foundational training before advanced TA tasks.");
+        } else {
+            recommendations.add("Recommend short-term targeted training for missing areas.");
+        }
+
+        for (String missingSkill : analysis.getMissingSkills()) {
+            recommendations.add("Add a learning task for \"" + missingSkill + "\" and verify by mini-assignment.");
+        }
+
+        return recommendations;
     }
 }
