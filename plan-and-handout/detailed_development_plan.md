@@ -148,13 +148,13 @@
 负责：AI识别缺失技能
 
 
-| 周次  | Commit | Message                      | Git Command                                                                       |
-| --- | ------ | ---------------------------- | --------------------------------------------------------------------------------- |
-| 周7  | #1     | `feat: 创建MissingSkills分析服务类` | `git commit -m "feat: 创建MissingSkills分析服务类" --author="member2 <member2@edu.com>"` |
-| 周7  | #2     | `feat: 实现职位要求与申请人技能对比逻辑`     | `git commit -m "feat: 实现职位要求与申请人技能对比逻辑" --author="member2 <member2@edu.com>"`     |
-| 周8  | #3     | `feat: 生成缺失技能报告和建议`          | `git commit -m "feat: 生成缺失技能报告和建议" --author="member2 <member2@edu.com>"`          |
-| 周9  | #4     | `fix: 修复技能对比边界条件错误`          | `git commit -m "fix: 修复技能对比边界条件错误" --author="member2 <member2@edu.com>"`          |
-| 周10 | #5     | `feat: 添加缺失技能可视化数据接口`        | `git commit -m "feat: 添加缺失技能可视化数据接口" --author="member2 <member2@edu.com>"`        |
+| 周次  | Commit | Message                      | 状态  | Git Command                                                                       |
+| --- | ------ | ---------------------------- | --- | --------------------------------------------------------------------------------- |
+| 周7  | #1     | `feat: 创建MissingSkills分析服务类` | ✅   | `git commit -m "feat: 创建MissingSkills分析服务类" --author="member2 <member2@edu.com>"` |
+| 周7  | #2     | `feat: 实现职位要求与申请人技能对比逻辑`     | ⏳   | `git commit -m "feat: 实现职位要求与申请人技能对比逻辑" --author="member2 <member2@edu.com>"`     |
+| 周8  | #3     | `feat: 生成缺失技能报告和建议`          | ⏳   | `git commit -m "feat: 生成缺失技能报告和建议" --author="member2 <member2@edu.com>"`          |
+| 周9  | #4     | `fix: 修复技能对比边界条件错误`          | ⏳   | `git commit -m "fix: 修复技能对比边界条件错误" --author="member2 <member2@edu.com>"`          |
+| 周10 | #5     | `feat: 添加缺失技能可视化数据接口`        | ⏳   | `git commit -m "feat: 添加缺失技能可视化数据接口" --author="member2 <member2@edu.com>"`        |
 
 
 ---
