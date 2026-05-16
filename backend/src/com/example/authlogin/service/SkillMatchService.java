@@ -13,6 +13,15 @@ import java.util.Set;
  */
 public class SkillMatchService {
 
+    private static final Set<String> KEYWORD_STOP_WORDS = Set.of(
+            "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+            "in", "into", "is", "it", "of", "on", "or", "that", "the", "to",
+            "with", "we", "you", "your", "our", "this", "these", "those"
+    );
+
+    private static final double SKILL_WEIGHT = 0.7;
+    private static final double KEYWORD_WEIGHT = 0.3;
+
     public enum MatchLevel {
         HIGH, MEDIUM, LOW, NONE
     }
@@ -24,6 +33,10 @@ public class SkillMatchService {
         private final List<String> missingSkills;
         private final int requiredSkillCount;
         private final int applicantSkillCount;
+        private final double skillScore;
+        private final double keywordScore;
+        private final List<String> matchedKeywords;
+        private final List<String> missingKeywords;
 
         public SkillMatchResult(double score,
                                 MatchLevel level,
@@ -31,12 +44,40 @@ public class SkillMatchService {
                                 List<String> missingSkills,
                                 int requiredSkillCount,
                                 int applicantSkillCount) {
+            this(
+                    score,
+                    level,
+                    matchedSkills,
+                    missingSkills,
+                    requiredSkillCount,
+                    applicantSkillCount,
+                    score,
+                    0.0,
+                    Collections.emptyList(),
+                    Collections.emptyList()
+            );
+        }
+
+        public SkillMatchResult(double score,
+                                MatchLevel level,
+                                List<String> matchedSkills,
+                                List<String> missingSkills,
+                                int requiredSkillCount,
+                                int applicantSkillCount,
+                                double skillScore,
+                                double keywordScore,
+                                List<String> matchedKeywords,
+                                List<String> missingKeywords) {
             this.score = score;
             this.level = level;
             this.matchedSkills = matchedSkills;
             this.missingSkills = missingSkills;
             this.requiredSkillCount = requiredSkillCount;
             this.applicantSkillCount = applicantSkillCount;
+            this.skillScore = skillScore;
+            this.keywordScore = keywordScore;
+            this.matchedKeywords = matchedKeywords;
+            this.missingKeywords = missingKeywords;
         }
 
         public double getScore() {
@@ -61,6 +102,22 @@ public class SkillMatchService {
 
         public int getApplicantSkillCount() {
             return applicantSkillCount;
+        }
+
+        public double getSkillScore() {
+            return skillScore;
+        }
+
+        public double getKeywordScore() {
+            return keywordScore;
+        }
+
+        public List<String> getMatchedKeywords() {
+            return matchedKeywords;
+        }
+
+        public List<String> getMissingKeywords() {
+            return missingKeywords;
         }
     }
 
@@ -109,6 +166,56 @@ public class SkillMatchService {
         );
     }
 
+    /**
+     * 关键词匹配算法：
+     * - 从 requiredSkills + jobContext 提取岗位关键词
+     * - 从 applicantSkills + applicantContext 提取候选人关键词
+     * - 计算关键词匹配分，并与技能分加权得到总分
+     */
+    public SkillMatchResult matchByKeywords(List<String> requiredSkills,
+                                            String jobContext,
+                                            List<String> applicantSkills,
+                                            String applicantContext) {
+        SkillMatchResult baseResult = matchSkills(requiredSkills, applicantSkills);
+
+        Set<String> requiredKeywordSet = buildKeywordSet(requiredSkills, jobContext);
+        Set<String> applicantKeywordSet = buildKeywordSet(applicantSkills, applicantContext);
+
+        List<String> matchedKeywords = new ArrayList<>();
+        List<String> missingKeywords = new ArrayList<>();
+
+        for (String keyword : requiredKeywordSet) {
+            if (applicantKeywordSet.contains(keyword)) {
+                matchedKeywords.add(keyword);
+            } else {
+                missingKeywords.add(keyword);
+            }
+        }
+
+        double keywordScore;
+        if (requiredKeywordSet.isEmpty()) {
+            keywordScore = baseResult.getSkillScore();
+        } else {
+            keywordScore = roundTo2((matchedKeywords.size() * 100.0) / requiredKeywordSet.size());
+        }
+
+        double finalScore = roundTo2(baseResult.getSkillScore() * SKILL_WEIGHT + keywordScore * KEYWORD_WEIGHT);
+        MatchLevel finalLevel = resolveLevel(finalScore);
+
+        return new SkillMatchResult(
+                finalScore,
+                finalLevel,
+                baseResult.getMatchedSkills(),
+                baseResult.getMissingSkills(),
+                baseResult.getRequiredSkillCount(),
+                baseResult.getApplicantSkillCount(),
+                baseResult.getSkillScore(),
+                keywordScore,
+                Collections.unmodifiableList(matchedKeywords),
+                Collections.unmodifiableList(missingKeywords)
+        );
+    }
+
     private List<String> normalizeSkillList(List<String> rawSkills) {
         List<String> normalized = new ArrayList<>();
         for (String rawSkill : rawSkills) {
@@ -126,6 +233,54 @@ public class SkillMatchService {
         }
         String compact = rawSkill.trim().replaceAll("\\s+", " ");
         return compact.toLowerCase(Locale.ROOT);
+    }
+
+    private Set<String> buildKeywordSet(List<String> skills, String freeText) {
+        Set<String> keywords = new LinkedHashSet<>();
+        List<String> safeSkills = skills != null ? skills : Collections.emptyList();
+
+        for (String skill : safeSkills) {
+            appendKeywords(keywords, skill);
+        }
+        appendKeywords(keywords, freeText);
+
+        return keywords;
+    }
+
+    private void appendKeywords(Set<String> collector, String rawText) {
+        if (rawText == null || rawText.trim().isEmpty()) {
+            return;
+        }
+        String[] tokens = rawText.toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}+#]+");
+        for (String token : tokens) {
+            if (token == null || token.isEmpty()) {
+                continue;
+            }
+            if (!isValidKeyword(token)) {
+                continue;
+            }
+            collector.add(token);
+        }
+    }
+
+    private boolean isValidKeyword(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+        if (token.length() == 1 && !containsCjk(token)) {
+            return false;
+        }
+        return !KEYWORD_STOP_WORDS.contains(token);
+    }
+
+    private boolean containsCjk(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= '\u4e00' && c <= '\u9fff') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private MatchLevel resolveLevel(double score) {

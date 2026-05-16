@@ -69,6 +69,30 @@ public class SkillMatchServiceTest {
             assert result.getMissingSkills().size() == 2 : "missing size should be 2";
         });
 
+        test("Keyword match should include contextual overlap", () -> {
+            SkillMatchService.SkillMatchResult result = service.matchByKeywords(
+                    Arrays.asList("Java", "Machine Learning"),
+                    "Need neural network modeling and python data analysis experience.",
+                    Arrays.asList("Java", "Python"),
+                    "Built neural network projects for data analysis and learning systems."
+            );
+            assert result.getSkillScore() == 50.0 : "skill score should be 50";
+            assert result.getKeywordScore() > result.getSkillScore() : "keyword score should be higher than skill score";
+            assert result.getMatchedKeywords().contains("neural") : "matched keywords should include neural";
+            assert result.getMatchedKeywords().contains("analysis") : "matched keywords should include analysis";
+        });
+
+        test("Keyword extraction should ignore stop words", () -> {
+            SkillMatchService.SkillMatchResult result = service.matchByKeywords(
+                    Arrays.asList("Java"),
+                    "the and of with",
+                    Arrays.asList("Java"),
+                    "the with and"
+            );
+            assert result.getKeywordScore() == 100.0 : "keyword score should rely on real keywords only";
+            assert !result.getMatchedKeywords().contains("the") : "stop words should not appear in matched keywords";
+        });
+
         System.out.println("========================================");
         System.out.println("SkillMatchServiceTest Summary");
         System.out.println("========================================");
