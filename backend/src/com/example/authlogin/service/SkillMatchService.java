@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * SkillMatchService - 技能匹配服务
@@ -24,15 +26,25 @@ public class SkillMatchService {
     private static final double KEYWORD_WEIGHT = 0.3;
     private static final double NON_AI_WEIGHT = 0.6;
     private static final double AI_WEIGHT = 0.4;
+    private static final long DEFAULT_CACHE_TTL_MILLIS = 5 * 60 * 1000L;
+    private static final int CACHE_MAX_ENTRIES = 1000;
 
     private final AiSkillMatchClient aiSkillMatchClient;
+    private final ConcurrentMap<String, CacheEntry> resultCache;
+    private final long cacheTtlMillis;
 
     public SkillMatchService() {
         this(new HttpAiSkillMatchClient());
     }
 
     public SkillMatchService(AiSkillMatchClient aiSkillMatchClient) {
+        this(aiSkillMatchClient, DEFAULT_CACHE_TTL_MILLIS);
+    }
+
+    SkillMatchService(AiSkillMatchClient aiSkillMatchClient, long cacheTtlMillis) {
         this.aiSkillMatchClient = aiSkillMatchClient != null ? aiSkillMatchClient : new HttpAiSkillMatchClient();
+        this.resultCache = new ConcurrentHashMap<>();
+        this.cacheTtlMillis = cacheTtlMillis > 0 ? cacheTtlMillis : DEFAULT_CACHE_TTL_MILLIS;
     }
 
     public enum MatchLevel {
@@ -59,6 +71,16 @@ public class SkillMatchService {
             this.missingKeywords = missingKeywords;
             this.keywordScore = keywordScore;
             this.blendedScore = blendedScore;
+        }
+    }
+
+    private static class CacheEntry {
+        private final SkillMatchResult result;
+        private final long expiresAtMillis;
+
+        private CacheEntry(SkillMatchResult result, long expiresAtMillis) {
+            this.result = result;
+            this.expiresAtMillis = expiresAtMillis;
         }
     }
 
@@ -215,6 +237,12 @@ public class SkillMatchService {
      * - 产出匹配分数与等级
      */
     public SkillMatchResult matchSkills(List<String> requiredSkills, List<String> applicantSkills) {
+        String cacheKey = buildCacheKey("skill", requiredSkills, null, applicantSkills, null);
+        SkillMatchResult cached = getCachedResult(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
         List<String> safeRequired = requiredSkills != null ? requiredSkills : Collections.emptyList();
         List<String> safeApplicant = applicantSkills != null ? applicantSkills : Collections.emptyList();
 
@@ -243,7 +271,7 @@ public class SkillMatchService {
         }
 
         MatchLevel level = resolveLevel(score);
-        return new SkillMatchResult(
+        SkillMatchResult result = new SkillMatchResult(
                 score,
                 level,
                 Collections.unmodifiableList(matched),
@@ -251,6 +279,8 @@ public class SkillMatchService {
                 requiredSet.size(),
                 applicantSet.size()
         );
+        cacheResult(cacheKey, result);
+        return result;
     }
 
     /**
@@ -263,6 +293,12 @@ public class SkillMatchService {
                                             String jobContext,
                                             List<String> applicantSkills,
                                             String applicantContext) {
+        String cacheKey = buildCacheKey("keyword", requiredSkills, jobContext, applicantSkills, applicantContext);
+        SkillMatchResult cached = getCachedResult(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
         SkillMatchResult baseResult = matchSkills(requiredSkills, applicantSkills);
         KeywordMatchSnapshot snapshot = computeKeywordSnapshot(
                 requiredSkills,
@@ -273,7 +309,7 @@ public class SkillMatchService {
         );
         MatchLevel finalLevel = resolveLevel(snapshot.blendedScore);
 
-        return new SkillMatchResult(
+        SkillMatchResult result = new SkillMatchResult(
                 snapshot.blendedScore,
                 finalLevel,
                 baseResult.getMatchedSkills(),
@@ -285,6 +321,8 @@ public class SkillMatchService {
                 Collections.unmodifiableList(snapshot.matchedKeywords),
                 Collections.unmodifiableList(snapshot.missingKeywords)
         );
+        cacheResult(cacheKey, result);
+        return result;
     }
 
     /**
@@ -297,6 +335,12 @@ public class SkillMatchService {
                                         String jobContext,
                                         List<String> applicantSkills,
                                         String applicantContext) {
+        String cacheKey = buildCacheKey("ai", requiredSkills, jobContext, applicantSkills, applicantContext);
+        SkillMatchResult cached = getCachedResult(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
         SkillMatchResult baseResult = matchSkills(requiredSkills, applicantSkills);
         KeywordMatchSnapshot snapshot = computeKeywordSnapshot(
                 requiredSkills,
@@ -323,6 +367,7 @@ public class SkillMatchService {
                 snapshot.applicantKeywords
         );
         if (aiResultOpt.isEmpty()) {
+            cacheResult(cacheKey, keywordResult);
             return keywordResult;
         }
 
@@ -331,7 +376,7 @@ public class SkillMatchService {
         double finalScore = roundTo2(keywordResult.getScore() * NON_AI_WEIGHT + boundedAiScore * AI_WEIGHT);
         MatchLevel level = resolveLevel(finalScore);
 
-        return new SkillMatchResult(
+        SkillMatchResult result = new SkillMatchResult(
                 finalScore,
                 level,
                 keywordResult.getMatchedSkills(),
@@ -346,6 +391,12 @@ public class SkillMatchService {
                 boundedAiScore,
                 aiResult.getReason()
         );
+        cacheResult(cacheKey, result);
+        return result;
+    }
+
+    public void clearCache() {
+        resultCache.clear();
     }
 
     private List<String> normalizeSkillList(List<String> rawSkills) {
@@ -514,5 +565,80 @@ public class SkillMatchService {
             return 100.0;
         }
         return value;
+    }
+
+    private SkillMatchResult getCachedResult(String key) {
+        CacheEntry entry = resultCache.get(key);
+        if (entry == null) {
+            return null;
+        }
+        long now = System.currentTimeMillis();
+        if (entry.expiresAtMillis <= now) {
+            resultCache.remove(key, entry);
+            return null;
+        }
+        return entry.result;
+    }
+
+    private void cacheResult(String key, SkillMatchResult result) {
+        if (cacheTtlMillis <= 0) {
+            return;
+        }
+        if (resultCache.size() >= CACHE_MAX_ENTRIES) {
+            evictExpiredEntries();
+            if (resultCache.size() >= CACHE_MAX_ENTRIES) {
+                resultCache.clear();
+            }
+        }
+        long expireAt = System.currentTimeMillis() + cacheTtlMillis;
+        resultCache.put(key, new CacheEntry(result, expireAt));
+    }
+
+    private void evictExpiredEntries() {
+        long now = System.currentTimeMillis();
+        for (String key : resultCache.keySet()) {
+            CacheEntry entry = resultCache.get(key);
+            if (entry != null && entry.expiresAtMillis <= now) {
+                resultCache.remove(key, entry);
+            }
+        }
+    }
+
+    private String buildCacheKey(String mode,
+                                 List<String> requiredSkills,
+                                 String jobContext,
+                                 List<String> applicantSkills,
+                                 String applicantContext) {
+        StringBuilder sb = new StringBuilder(256);
+        sb.append(mode).append("|");
+        appendNormalizedListPart(sb, requiredSkills);
+        sb.append("|");
+        appendNormalizedTextPart(sb, jobContext);
+        sb.append("|");
+        appendNormalizedListPart(sb, applicantSkills);
+        sb.append("|");
+        appendNormalizedTextPart(sb, applicantContext);
+        return sb.toString();
+    }
+
+    private void appendNormalizedListPart(StringBuilder sb, List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+        List<String> normalized = normalizeSkillList(values);
+        Collections.sort(normalized);
+        for (int i = 0; i < normalized.size(); i++) {
+            if (i > 0) {
+                sb.append(';');
+            }
+            sb.append(normalized.get(i));
+        }
+    }
+
+    private void appendNormalizedTextPart(StringBuilder sb, String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        sb.append(normalizeWhitespaceAndLower(text));
     }
 }

@@ -3,6 +3,7 @@ package com.example.authlogin.service;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * SkillMatchService 自动化测试
@@ -137,6 +138,39 @@ public class SkillMatchServiceTest {
 
             assert !aiResult.isAiEnhanced() : "ai flag should be false when unavailable";
             assert baseline.getScore() == aiResult.getScore() : "fallback score should equal baseline";
+        });
+
+        test("Cache should avoid repeated AI calls for same input", () -> {
+            AtomicInteger aiCalls = new AtomicInteger(0);
+            SkillMatchService cachedService = new SkillMatchService((required, applicant) -> {
+                aiCalls.incrementAndGet();
+                return Optional.of(new AiSkillMatchClient.AiScoreResult(88.0, "cache-test"));
+            });
+
+            SkillMatchService.SkillMatchResult first = cachedService.matchWithAi(
+                    Arrays.asList("Java", "Spring"),
+                    "Need backend api and spring boot.",
+                    Arrays.asList("Java", "Spring"),
+                    "backend api development with spring."
+            );
+            SkillMatchService.SkillMatchResult second = cachedService.matchWithAi(
+                    Arrays.asList("Java", "Spring"),
+                    "Need backend api and spring boot.",
+                    Arrays.asList("Java", "Spring"),
+                    "backend api development with spring."
+            );
+
+            assert aiCalls.get() == 1 : "AI client should be called once due to cache hit";
+            assert first.getScore() == second.getScore() : "cached result should match first result";
+
+            cachedService.clearCache();
+            cachedService.matchWithAi(
+                    Arrays.asList("Java", "Spring"),
+                    "Need backend api and spring boot.",
+                    Arrays.asList("Java", "Spring"),
+                    "backend api development with spring."
+            );
+            assert aiCalls.get() == 2 : "AI client should be called again after cache clear";
         });
 
         test("Whitespace and punctuation normalization should remain stable", () -> {

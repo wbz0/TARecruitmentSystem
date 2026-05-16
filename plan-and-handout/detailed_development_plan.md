@@ -138,7 +138,7 @@
 | 周7  | #2     | `feat: 实现基于关键词的技能匹配逻辑`           | ✅   | `git commit -m "feat: 实现基于关键词的技能匹配逻辑" --author="member1 <member1@edu.com>"`           |
 | 周8  | #3     | `feat: 集成AI API进行智能技能匹配`         | ✅   | `git commit -m "feat: 集成AI API进行智能技能匹配" --author="member1 <member1@edu.com>"`         |
 | 周9  | #4     | `fix: 优化匹配算法性能，减少响应时间`           | ✅   | `git commit -m "fix: 优化匹配算法性能，减少响应时间" --author="member1 <member1@edu.com>"`           |
-| 周10 | #5     | `refactor: 添加缓存机制提升匹配效率`         | ⏳   | `git commit -m "refactor: 添加缓存机制提升匹配效率" --author="member1 <member1@edu.com>"`         |
+| 周10 | #5     | `refactor: 添加缓存机制提升匹配效率`         | ✅   | `git commit -m "refactor: 添加缓存机制提升匹配效率" --author="member1 <member1@edu.com>"`         |
 
 
 ---
