@@ -196,13 +196,13 @@
 负责：AI技能匹配界面 + AI缺失技能展示界面
 
 
-| 周次  | Commit | Message                | Git Command                                                                 |
-| --- | ------ | ---------------------- | --------------------------------------------------------------------------- |
-| 周7  | #1     | `feat: 设计技能匹配结果展示页面`   | `git commit -m "feat: 设计技能匹配结果展示页面" --author="member5 <member5@edu.com>"`   |
-| 周8  | #2     | `feat: 添加匹配度可视化组件`     | `git commit -m "feat: 添加匹配度可视化组件" --author="member5 <member5@edu.com>"`     |
-| 周9  | #3     | `feat: 设计缺失技能展示页面`     | `git commit -m "feat: 设计缺失技能展示页面" --author="member5 <member5@edu.com>"`     |
-| 周10 | #4     | `feat: 添加技能对比图表`       | `git commit -m "feat: 添加技能对比图表" --author="member5 <member5@edu.com>"`       |
-| 周11 | #5     | `style: 统一AI功能模块的UI风格` | `git commit -m "style: 统一AI功能模块的UI风格" --author="member5 <member5@edu.com>"` |
+| 周次  | Commit | Message                | 状态  | Git Command                                                                 |
+| --- | ------ | ---------------------- | --- | --------------------------------------------------------------------------- |
+| 周7  | #1     | `feat: 设计技能匹配结果展示页面`   | ✅   | `git commit -m "feat: 设计技能匹配结果展示页面" --author="member5 <member5@edu.com>"`   |
+| 周8  | #2     | `feat: 添加匹配度可视化组件`     | ⏳   | `git commit -m "feat: 添加匹配度可视化组件" --author="member5 <member5@edu.com>"`     |
+| 周9  | #3     | `feat: 设计缺失技能展示页面`     | ⏳   | `git commit -m "feat: 设计缺失技能展示页面" --author="member5 <member5@edu.com>"`     |
+| 周10 | #4     | `feat: 添加技能对比图表`       | ⏳   | `git commit -m "feat: 添加技能对比图表" --author="member5 <member5@edu.com>"`       |
+| 周11 | #5     | `style: 统一AI功能模块的UI风格` | ⏳   | `git commit -m "style: 统一AI功能模块的UI风格" --author="member5 <member5@edu.com>"` |
 
 
 ---

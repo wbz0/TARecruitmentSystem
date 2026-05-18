@@ -17,8 +17,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applicant review - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo-applicant-selection.css">
+    <title>AI Skill Match - TA Hiring System</title>
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-skill-match.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
@@ -34,7 +34,7 @@
                     </svg>
                     <span>Overview</span>
                 </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M7 18c.2-2.6 2.4-4.5 5-4.5s4.8 1.9 5 4.5"></path>
                         <circle cx="12" cy="8.5" r="3"></circle>
@@ -50,7 +50,7 @@
                     </svg>
                     <span>Post Job</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
+                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 19h16"></path>
                         <path d="M7 16V8"></path>
@@ -91,62 +91,49 @@
             </header>
 
             <div class="portal-content">
-                <main class="mo-selection-page">
-                    <section class="selection-hero" aria-labelledby="selection-title">
-                        <h1 id="selection-title">Applicants</h1>
-                        <p class="subtitle">Review and manage all candidate applications.</p>
+                <main class="ai-match-page">
+                    <section class="match-hero" aria-labelledby="match-title">
+                        <h1 id="match-title">AI Skill Match</h1>
+                        <p class="subtitle">Review applicant matching scores aligned with your posted job requirements.</p>
                     </section>
 
-                    <section class="selection-panel" aria-label="申请人筛选与审核列表">
-                        <form id="selection-filter-form" class="filter-form" novalidate>
+                    <section class="match-panel" aria-label="技能匹配结果">
+                        <form id="match-filter-form" class="filter-form" novalidate>
                             <div class="field-group">
                                 <label for="job-filter">Job</label>
                                 <select id="job-filter" name="jobId">
-                                    <option value="">All jobs</option>
+                                    <option value="">Select a job</option>
                                 </select>
                             </div>
-
-                            <div class="field-group">
-                                <label for="status-filter">Status</label>
-                                <select id="status-filter" name="status">
-                                    <option value="">All</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="ACCEPTED">Accepted</option>
-                                    <option value="REJECTED">Rejected</option>
-                                    <option value="WITHDRAWN">Withdrawn</option>
-                                </select>
-                            </div>
-
                             <div class="filter-actions">
-                                <button id="search-btn" class="primary-btn" type="submit">Apply filters</button>
-                                <button id="clear-btn" class="ghost-btn" type="button">Clear</button>
-                                <button id="refresh-btn" class="inline-btn" type="button">Refresh</button>
+                                <button id="load-match-btn" class="primary-btn" type="submit">Load results</button>
+                                <button id="refresh-match-btn" class="ghost-btn" type="button">Refresh</button>
                             </div>
                         </form>
 
-                        <div id="selection-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                        <div id="match-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="summary-grid" aria-label="申请统计">
+                        <section class="summary-grid" aria-label="匹配统计概览">
                             <article class="summary-card">
-                                <p>Total</p>
+                                <p>Total applicants</p>
                                 <strong id="summary-total">0</strong>
                             </article>
-                            <article class="summary-card pending">
-                                <p>Pending</p>
-                                <strong id="summary-pending">0</strong>
+                            <article class="summary-card">
+                                <p>High match (≥85)</p>
+                                <strong id="summary-high">0</strong>
                             </article>
-                            <article class="summary-card accepted">
-                                <p>Accepted</p>
-                                <strong id="summary-accepted">0</strong>
+                            <article class="summary-card">
+                                <p>Medium match (60-84)</p>
+                                <strong id="summary-medium">0</strong>
                             </article>
-                            <article class="summary-card rejected">
-                                <p>Rejected</p>
-                                <strong id="summary-rejected">0</strong>
+                            <article class="summary-card">
+                                <p>Low match (&lt;60)</p>
+                                <strong id="summary-low">0</strong>
                             </article>
                         </section>
 
-                        <p id="selection-list-summary" class="list-summary">Loading applications...</p>
-                        <div id="applications-list" class="applications-list" aria-live="polite"></div>
+                        <p id="match-list-summary" class="list-summary">Choose a job to load skill match results.</p>
+                        <div id="match-list" class="match-list" aria-live="polite"></div>
                     </section>
                 </main>
             </div>
@@ -156,7 +143,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
+        window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/mo-applicant-selection.js" defer></script>
+    <script src="<%= contextPath %>/js/mo-ai-skill-match.js" defer></script>
 </body>
 </html>

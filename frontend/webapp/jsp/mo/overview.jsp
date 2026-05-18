@@ -50,6 +50,15 @@
                     </svg>
                     <span>Post Job</span>
                 </a>
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4 19h16"></path>
+                        <path d="M7 16V8"></path>
+                        <path d="M12 16V5"></path>
+                        <path d="M17 16v-6"></path>
+                    </svg>
+                    <span>AI Match</span>
+                </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M12 8v8"></path>
