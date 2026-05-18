@@ -99,6 +99,23 @@ cd scripts
 
 *(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*
 
+## 集成测试与回归验证
+
+当前仓库采用轻量级 Java 主类测试（`main + assert`）进行集成/回归验证，可直接在命令行执行。
+
+示例：运行登录注册模块集成测试（成员4）
+
+```bash
+cd /path/to/carnegie_software_engineering
+rm -rf /tmp/build-test-login && mkdir /tmp/build-test-login
+javac -encoding UTF-8 -d /tmp/build-test-login \
+  backend/src/com/example/authlogin/util/StoragePaths.java \
+  backend/src/com/example/authlogin/model/User.java \
+  backend/src/com/example/authlogin/dao/UserDao.java \
+  backend/test/com/example/authlogin/integration/LoginRegisterIntegrationTest.java
+java -ea -cp /tmp/build-test-login com.example.authlogin.integration.LoginRegisterIntegrationTest
+```
+
 ## 项目架构与目录说明
 
 为了完全契合《EBU6304 敏捷开发计划》中 **前端/后端分别协作** 的要求，也为了避免将来合代码时产生冲突，本项目的代码被物理隔离为两个顶级目录：
