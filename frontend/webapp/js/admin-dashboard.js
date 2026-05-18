@@ -23,6 +23,19 @@
         statusChart: document.getElementById("status-chart"),
         moChart: document.getElementById("mo-chart")
     };
+    var EMPTY_COUNTS = {
+        total: 0,
+        pending: 0,
+        accepted: 0,
+        rejected: 0,
+        withdrawn: 0
+    };
+    var STATUS_CHART_ROWS = [
+        { key: "pending", label: "Pending", style: "pending" },
+        { key: "accepted", label: "Accepted", style: "accepted" },
+        { key: "rejected", label: "Rejected", style: "rejected" },
+        { key: "withdrawn", label: "Withdrawn", style: "withdrawn" }
+    ];
 
     if (!filterForm || !startInput || !endInput || !moSummaryNode || !moListNode) {
         return;
@@ -91,38 +104,21 @@
 
             if (!countsResult.ok) {
                 showMessage(countsResult.message || "Failed to load application totals.", "error");
-                resetSummary();
-                renderStatusChart({
-                    total: 0,
-                    pending: 0,
-                    accepted: 0,
-                    rejected: 0,
-                    withdrawn: 0
-                });
-            } else {
-                renderSummary(countsResult.payload);
             }
+            renderSummary(countsResult.ok ? countsResult.payload : EMPTY_COUNTS);
 
             if (!moResult.ok) {
                 showMessage(moResult.message || "Failed to load MO workloads.", "error");
-                renderMoList([]);
-                renderMoChart([]);
-            } else {
-                var moWorkloads = Array.isArray(moResult.payload.moWorkloads) ? moResult.payload.moWorkloads : [];
-                renderMoList(moWorkloads);
-                renderMoChart(moWorkloads);
             }
+            var moWorkloads = moResult.ok && Array.isArray(moResult.payload.moWorkloads)
+                ? moResult.payload.moWorkloads
+                : [];
+            renderMoList(moWorkloads);
+            renderMoChart(moWorkloads);
         }).catch(function () {
             showMessage("Network error while loading dashboard.", "error");
-            resetSummary();
+            renderSummary(EMPTY_COUNTS);
             renderMoList([]);
-            renderStatusChart({
-                total: 0,
-                pending: 0,
-                accepted: 0,
-                rejected: 0,
-                withdrawn: 0
-            });
             renderMoChart([]);
         }).finally(function () {
             state.loading = false;
@@ -131,7 +127,7 @@
     }
 
     function fetchCounts() {
-        var url = contextPath + "/api/admin/workload" + buildTimeQuery("");
+        var url = contextPath + "/api/admin/workload" + buildQueryString(null);
         return request(url, {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -141,7 +137,7 @@
     }
 
     function fetchMoWorkloads() {
-        var url = contextPath + "/api/admin/workload?mode=mo" + buildTimeQuery("&");
+        var url = contextPath + "/api/admin/workload" + buildQueryString({ mode: "mo" });
         return request(url, {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -167,7 +163,10 @@
             exportButton.textContent = "Exporting...";
         }
 
-        var url = contextPath + "/api/admin/workload?mode=mo&export=csv" + buildTimeQuery("&");
+        var url = contextPath + "/api/admin/workload" + buildQueryString({
+            mode: "mo",
+            export: "csv"
+        });
         fetch(url, {
             method: "GET",
             headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -216,27 +215,34 @@
     }
 
     function renderSummary(payload) {
-        var counts = {
+        var counts = normalizeCounts(payload);
+        setSummaryCounts(counts);
+        renderStatusChart(counts);
+    }
+
+    function resetSummary() {
+        setSummaryCounts(EMPTY_COUNTS);
+    }
+
+    function normalizeCounts(payload) {
+        if (!payload || typeof payload !== "object") {
+            return EMPTY_COUNTS;
+        }
+        return {
             total: toNumber(payload.total),
             pending: toNumber(payload.pending),
             accepted: toNumber(payload.accepted),
             rejected: toNumber(payload.rejected),
             withdrawn: toNumber(payload.withdrawn)
         };
-        summaryNodes.total.textContent = String(counts.total);
-        summaryNodes.pending.textContent = String(counts.pending);
-        summaryNodes.accepted.textContent = String(counts.accepted);
-        summaryNodes.rejected.textContent = String(counts.rejected);
-        summaryNodes.withdrawn.textContent = String(counts.withdrawn);
-        renderStatusChart(counts);
     }
 
-    function resetSummary() {
-        summaryNodes.total.textContent = "0";
-        summaryNodes.pending.textContent = "0";
-        summaryNodes.accepted.textContent = "0";
-        summaryNodes.rejected.textContent = "0";
-        summaryNodes.withdrawn.textContent = "0";
+    function setSummaryCounts(counts) {
+        summaryNodes.total.textContent = String(toNumber(counts.total));
+        summaryNodes.pending.textContent = String(toNumber(counts.pending));
+        summaryNodes.accepted.textContent = String(toNumber(counts.accepted));
+        summaryNodes.rejected.textContent = String(toNumber(counts.rejected));
+        summaryNodes.withdrawn.textContent = String(toNumber(counts.withdrawn));
     }
 
     function renderMoList(moWorkloads) {
@@ -265,16 +271,10 @@
             return;
         }
 
-        var rows = [
-            { label: "Pending", value: toNumber(counts.pending), style: "pending" },
-            { label: "Accepted", value: toNumber(counts.accepted), style: "accepted" },
-            { label: "Rejected", value: toNumber(counts.rejected), style: "rejected" },
-            { label: "Withdrawn", value: toNumber(counts.withdrawn), style: "withdrawn" }
-        ];
-
-        rows.forEach(function (row) {
-            var percent = Math.round((row.value * 100) / total);
-            chartNodes.statusChart.appendChild(buildChartRow(row.label, percent, row.value, row.style));
+        STATUS_CHART_ROWS.forEach(function (row) {
+            var value = toNumber(counts[row.key]);
+            var percent = Math.round((value * 100) / total);
+            chartNodes.statusChart.appendChild(buildChartRow(row.label, percent, value, row.style));
         });
     }
 
@@ -359,20 +359,26 @@
         }
     }
 
-    function buildTimeQuery(prefix) {
-        var query = typeof prefix === "string" ? prefix : "";
+    function buildQueryString(staticParams) {
+        var params = new URLSearchParams();
+        if (staticParams && typeof staticParams === "object") {
+            Object.keys(staticParams).forEach(function (key) {
+                var value = staticParams[key];
+                if (value !== null && value !== undefined && String(value).trim() !== "") {
+                    params.set(key, String(value));
+                }
+            });
+        }
         var startValue = normalizeDateTime(startInput.value);
         var endValue = normalizeDateTime(endInput.value);
         if (startValue) {
-            query += "start=" + encodeURIComponent(startValue);
-            if (endValue) {
-                query += "&";
-            }
+            params.set("start", startValue);
         }
         if (endValue) {
-            query += "end=" + encodeURIComponent(endValue);
+            params.set("end", endValue);
         }
-        return query;
+        var query = params.toString();
+        return query ? "?" + query : "";
     }
 
     function validateTimeRange() {

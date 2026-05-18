@@ -218,7 +218,7 @@
 | 周8  | #2     | `feat: 实现数据可视化图表`    | ✅   | `git commit -m "feat: 实现数据可视化图表" --author="member6 <member6@edu.com>"`    |
 | 周9  | #3     | `feat: 添加响应式布局适配移动端` | ✅   | `git commit -m "feat: 添加响应式布局适配移动端" --author="member6 <member6@edu.com>"` |
 | 周10 | #4     | `style: 优化响应式样式细节`   | ✅   | `git commit -m "style: 优化响应式样式细节" --author="member6 <member6@edu.com>"`   |
-| 周11 | #5     | `refactor: 整体检查并优化前端代码质量` | ⏳   | `git commit -m "refactor: 整体检查并优化前端代码质量" --author="member6 <member6@edu.com>"` |
+| 周11 | #5     | `refactor: 整体检查并优化前端代码质量` | ✅   | `git commit -m "refactor: 整体检查并优化前端代码质量" --author="member6 <member6@edu.com>"` |
 
 
 ---
