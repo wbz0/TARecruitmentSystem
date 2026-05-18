@@ -17,15 +17,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MO Overview - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo-overview.css">
+    <title>AI Missing Skills - TA Hiring System</title>
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-missing-skills.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
         <aside class="portal-sidebar" aria-label="MO portal navigation">
             <p class="portal-brand">MO Portal</p>
             <nav class="portal-nav">
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/overview.jsp">
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 12h7V4H4z"></path>
                         <path d="M13 20h7v-8h-7z"></path>
@@ -59,7 +59,7 @@
                     </svg>
                     <span>AI Match</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
+                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 18h16"></path>
                         <path d="M6 14h4"></path>
@@ -100,46 +100,62 @@
             </header>
 
             <div class="portal-content">
-                <main class="mo-overview-page">
-                    <section class="overview-hero" aria-labelledby="overview-title">
-                        <h1 id="overview-title">Overview</h1>
-                        <p class="subtitle">Track hiring activity, then jump directly to posting and applicant review workflows.</p>
+                <main class="ai-gap-page ai-module-page">
+                    <section class="gap-hero ai-module-hero" aria-labelledby="gap-title">
+                        <h1 id="gap-title">AI Missing Skills</h1>
+                        <p class="subtitle">Identify the most common capability gaps and plan targeted upskilling actions.</p>
                     </section>
 
-                    <section class="overview-panel" aria-label="MO activity overview">
-                        <div id="overview-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                    <section class="gap-panel ai-module-panel" aria-label="缺失技能展示">
+                        <form id="gap-filter-form" class="filter-form ai-module-filter-form" novalidate>
+                            <div class="field-group ai-module-field-group">
+                                <label for="gap-job-filter">Job</label>
+                                <select id="gap-job-filter" name="jobId">
+                                    <option value="">Select a job</option>
+                                </select>
+                            </div>
+                            <div class="filter-actions ai-module-filter-actions">
+                                <button id="load-gap-btn" class="primary-btn" type="submit">Load gaps</button>
+                                <button id="refresh-gap-btn" class="ghost-btn" type="button">Refresh</button>
+                            </div>
+                        </form>
 
-                        <section class="stats-grid" aria-label="Hiring statistics">
-                            <article class="stat-card">
-                                <span class="stat-icon icon-jobs" aria-hidden="true">J</span>
-                                <p class="stat-value" id="stat-active-jobs">0</p>
-                                <p class="stat-label">Active jobs</p>
+                        <div id="gap-message" class="form-message ai-module-form-message hidden" role="status" aria-live="polite"></div>
+
+                        <section class="summary-grid ai-module-summary-grid" aria-label="缺失技能统计概览">
+                            <article class="summary-card ai-module-summary-card">
+                                <p>Applicants</p>
+                                <strong id="gap-applicant-count">0</strong>
                             </article>
-                            <article class="stat-card">
-                                <span class="stat-icon icon-applicants" aria-hidden="true">A</span>
-                                <p class="stat-value" id="stat-total-applicants">0</p>
-                                <p class="stat-label">Total applicants</p>
+                            <article class="summary-card ai-module-summary-card">
+                                <p>Required skills</p>
+                                <strong id="gap-required-count">0</strong>
                             </article>
-                            <article class="stat-card">
-                                <span class="stat-icon icon-pending" aria-hidden="true">P</span>
-                                <p class="stat-value" id="stat-pending-review">0</p>
-                                <p class="stat-label">Pending review</p>
-                            </article>
-                            <article class="stat-card">
-                                <span class="stat-icon icon-offers" aria-hidden="true">O</span>
-                                <p class="stat-value" id="stat-offers-sent">0</p>
-                                <p class="stat-label">Offers sent</p>
+                            <article class="summary-card ai-module-summary-card">
+                                <p>Unique gap skills</p>
+                                <strong id="gap-unique-count">0</strong>
                             </article>
                         </section>
 
-                        <section class="activity-panel" aria-label="Recent activity">
-                            <header class="activity-header">
-                                <p class="activity-label">Recent activity</p>
-                                <a class="nav-link activity-link" href="<%= contextPath %>/jsp/mo/applicant-selection.jsp">View applicants</a>
-                            </header>
-                            <p id="activity-summary" class="activity-summary">Loading activity...</p>
-                            <div id="activity-list" class="activity-list" aria-live="polite"></div>
+                        <section class="chart-grid" aria-label="技能对比图表">
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h3>Missing Skill Frequency</h3>
+                                    <p>Most frequently missing capabilities</p>
+                                </header>
+                                <div id="gap-frequency-chart" class="bar-chart" aria-live="polite"></div>
+                            </article>
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h3>Match Score Buckets</h3>
+                                    <p>Distribution by high / medium / low / none</p>
+                                </header>
+                                <div id="score-bucket-chart" class="bar-chart" aria-live="polite"></div>
+                            </article>
                         </section>
+
+                        <p id="gap-list-summary" class="list-summary ai-module-list-summary">Choose a job to load missing skills insights.</p>
+                        <div id="gap-list" class="gap-list" aria-live="polite"></div>
                     </section>
                 </main>
             </div>
@@ -149,7 +165,8 @@
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
+        window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/mo-overview.js" defer></script>
+    <script src="<%= contextPath %>/js/mo-ai-missing-skills.js" defer></script>
 </body>
 </html>
