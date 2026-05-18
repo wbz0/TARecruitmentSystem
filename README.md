@@ -39,7 +39,13 @@ export APP_NAME="groupproject"
 
 ### 2. 运行项目
 
-Windows:
+Windows (推荐一键):
+```cmd
+cd scripts
+onekey.bat
+```
+
+或分步执行：
 ```cmd
 cd scripts
 build.bat
@@ -47,7 +53,7 @@ deploy.bat
 startup.bat
 ```
 
-macOS / Linux（推荐一键）:
+macOS / Linux (推荐一键):
 ```bash
 cd scripts
 chmod +x *.sh
@@ -97,6 +103,8 @@ cd scripts
 ./deploy.sh
 ```
 
+*(修改代码后重新执行 build + deploy 即可，startup 不需要重复执行)*
+
 *(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*
 
 ## 项目架构与目录说明
@@ -112,10 +120,11 @@ carnegie_software_engineering/
 │   └── webapp/            # JSP、HTML、CSS、JS 静态资源与 web.xml
 │
 ├── scripts/               # ⚙️ 构建与部署脚本
-│   ├── build.bat          # 核心构建脚本 (将 backend 和 frontend 组装)
-│   ├── deploy.bat         # 核心部署脚本
-│   ├── startup.bat        # Tomcat 启动脚本
-│   └── config.example.bat # 配置文件模板
+│   ├── build.bat / .sh    # 核心构建脚本 (将 backend 和 frontend 组装)
+│   ├── deploy.bat / .sh   # 核心部署脚本
+│   ├── startup.bat / .sh  # Tomcat 启动脚本
+│   ├── onekey.bat / .sh   # 一键执行 (build + deploy + startup)
+│   └── config.example.bat / .sh # 配置文件模板
 │
 ├── data/                  # 💾 纯文本数据存储 (JSON/txt)
 └── build/                 # 📦 脚本自动生成的打包产物 (被 Git 忽略)

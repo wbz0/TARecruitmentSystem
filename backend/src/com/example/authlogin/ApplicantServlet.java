@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * - PUT /applicant - 更新档案
  * - POST /applicant/upload - 上传简历文件
  */
-@WebServlet("/applicant")
+@WebServlet(name = "ApplicantServlet", urlPatterns = {"/applicant"})
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,       // 1 MB - 当文件超过此大小时写入磁盘
     maxFileSize = 1024 * 1024 * 10,       // 10 MB - 单个文件最大大小
