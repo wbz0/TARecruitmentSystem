@@ -122,6 +122,20 @@ public class WorkloadStatsServiceTest {
             assert csv.contains("Dr. Export") : "csv should contain MO name";
         });
 
+        test("Perf optimization should reuse cached snapshot for same query", () -> {
+            Application app = new Application();
+            app.setApplicationId("app-cache-1");
+            app.setMoId("mo-cache");
+            app.setMoName("Dr. Cache");
+            app.setStatus(Application.Status.PENDING);
+            app.setAppliedAt(LocalDateTime.now());
+
+            java.util.List<Application> sameInput = Arrays.asList(app);
+            java.util.List<WorkloadStatsService.MoWorkloadStats> first = service.calculateMoWorkloadStats(sameInput);
+            java.util.List<WorkloadStatsService.MoWorkloadStats> second = service.calculateMoWorkloadStats(sameInput);
+            assert first == second : "same query should reuse cached workload list";
+        });
+
         System.out.println("========================================");
         System.out.println("WorkloadStatsServiceTest Summary");
         System.out.println("========================================");

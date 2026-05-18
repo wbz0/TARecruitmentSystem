@@ -4,6 +4,8 @@ import com.example.authlogin.model.Application;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,10 @@ import java.time.LocalDateTime;
  * WorkloadStatsService - 管理员工作量统计服务（阶段1基础类）
  */
 public class WorkloadStatsService {
+
+    private static final long CACHE_TTL_MS = 30_000L;
+    private static final int CACHE_MAX_ENTRIES = 256;
+    private final ConcurrentMap<String, SnapshotCacheEntry> snapshotCache = new ConcurrentHashMap<>();
 
     public static class ApplicationCounts {
         private final int total;
@@ -124,45 +130,7 @@ public class WorkloadStatsService {
     public ApplicationCounts calculateApplicationCounts(List<Application> applications,
                                                         LocalDateTime start,
                                                         LocalDateTime end) {
-        List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
-        int total = 0;
-        int pending = 0;
-        int accepted = 0;
-        int rejected = 0;
-        int withdrawn = 0;
-
-        for (Application application : safeApplications) {
-            if (application == null) {
-                continue;
-            }
-            if (!isInTimeRange(application, start, end)) {
-                continue;
-            }
-            total++;
-            Application.Status status = application.getStatus();
-            if (status == null) {
-                pending++;
-                continue;
-            }
-            switch (status) {
-                case PENDING:
-                    pending++;
-                    break;
-                case ACCEPTED:
-                    accepted++;
-                    break;
-                case REJECTED:
-                    rejected++;
-                    break;
-                case WITHDRAWN:
-                    withdrawn++;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return new ApplicationCounts(total, pending, accepted, rejected, withdrawn);
+        return getOrBuildSnapshot(applications, start, end).counts;
     }
 
     /**
@@ -175,63 +143,11 @@ public class WorkloadStatsService {
     public List<MoWorkloadStats> calculateMoWorkloadStats(List<Application> applications,
                                                           LocalDateTime start,
                                                           LocalDateTime end) {
-        List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
-        Map<String, MutableMoStats> grouped = new LinkedHashMap<>();
-
-        for (Application application : safeApplications) {
-            if (application == null) {
-                continue;
-            }
-            if (!isInTimeRange(application, start, end)) {
-                continue;
-            }
-            String moId = safeText(application.getMoId(), "UNKNOWN_MO");
-            String moName = safeText(application.getMoName(), "Unknown MO");
-            String key = moId + "|" + moName;
-
-            MutableMoStats stats = grouped.computeIfAbsent(key, ignored -> new MutableMoStats(moId, moName));
-            stats.totalApplications++;
-
-            Application.Status status = application.getStatus();
-            if (status == null || status == Application.Status.PENDING) {
-                stats.pending++;
-                continue;
-            }
-            switch (status) {
-                case ACCEPTED:
-                    stats.accepted++;
-                    stats.processed++;
-                    break;
-                case REJECTED:
-                    stats.rejected++;
-                    stats.processed++;
-                    break;
-                case WITHDRAWN:
-                    stats.withdrawn++;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        List<MoWorkloadStats> results = new ArrayList<>();
-        for (MutableMoStats value : grouped.values()) {
-            results.add(new MoWorkloadStats(
-                    value.moId,
-                    value.moName,
-                    value.totalApplications,
-                    value.pending,
-                    value.processed,
-                    value.accepted,
-                    value.rejected,
-                    value.withdrawn
-            ));
-        }
-        return results;
+        return getOrBuildSnapshot(applications, start, end).moWorkloads;
     }
 
     public String exportMoWorkloadCsv(List<Application> applications, LocalDateTime start, LocalDateTime end) {
-        List<MoWorkloadStats> stats = calculateMoWorkloadStats(applications, start, end);
+        List<MoWorkloadStats> stats = getOrBuildSnapshot(applications, start, end).moWorkloads;
         StringBuilder csv = new StringBuilder();
         csv.append("moId,moName,totalApplications,pending,processed,accepted,rejected,withdrawn\n");
         for (MoWorkloadStats stat : stats) {
@@ -268,6 +184,133 @@ public class WorkloadStatsService {
         private MutableMoStats(String moId, String moName) {
             this.moId = moId;
             this.moName = moName;
+        }
+    }
+
+    private static class StatsSnapshot {
+        private final ApplicationCounts counts;
+        private final List<MoWorkloadStats> moWorkloads;
+
+        private StatsSnapshot(ApplicationCounts counts, List<MoWorkloadStats> moWorkloads) {
+            this.counts = counts;
+            this.moWorkloads = moWorkloads;
+        }
+    }
+
+    private static class SnapshotCacheEntry {
+        private final StatsSnapshot snapshot;
+        private final long expiresAtMillis;
+
+        private SnapshotCacheEntry(StatsSnapshot snapshot, long expiresAtMillis) {
+            this.snapshot = snapshot;
+            this.expiresAtMillis = expiresAtMillis;
+        }
+    }
+
+    private StatsSnapshot getOrBuildSnapshot(List<Application> applications, LocalDateTime start, LocalDateTime end) {
+        List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
+        String key = buildSnapshotKey(safeApplications, start, end);
+
+        SnapshotCacheEntry cached = snapshotCache.get(key);
+        long now = System.currentTimeMillis();
+        if (cached != null && cached.expiresAtMillis > now) {
+            return cached.snapshot;
+        }
+
+        StatsSnapshot snapshot = buildSnapshot(safeApplications, start, end);
+        if (snapshotCache.size() >= CACHE_MAX_ENTRIES) {
+            evictExpiredCacheEntries(now);
+            if (snapshotCache.size() >= CACHE_MAX_ENTRIES) {
+                snapshotCache.clear();
+            }
+        }
+        snapshotCache.put(key, new SnapshotCacheEntry(snapshot, now + CACHE_TTL_MS));
+        return snapshot;
+    }
+
+    private StatsSnapshot buildSnapshot(List<Application> applications, LocalDateTime start, LocalDateTime end) {
+        int total = 0;
+        int pending = 0;
+        int accepted = 0;
+        int rejected = 0;
+        int withdrawn = 0;
+
+        Map<String, MutableMoStats> grouped = new LinkedHashMap<>();
+
+        for (Application application : applications) {
+            if (application == null) {
+                continue;
+            }
+            if (!isInTimeRange(application, start, end)) {
+                continue;
+            }
+
+            total++;
+            Application.Status status = application.getStatus();
+            if (status == null || status == Application.Status.PENDING) {
+                pending++;
+            } else if (status == Application.Status.ACCEPTED) {
+                accepted++;
+            } else if (status == Application.Status.REJECTED) {
+                rejected++;
+            } else if (status == Application.Status.WITHDRAWN) {
+                withdrawn++;
+            }
+
+            String moId = safeText(application.getMoId(), "UNKNOWN_MO");
+            String moName = safeText(application.getMoName(), "Unknown MO");
+            String moKey = moId + "|" + moName;
+            MutableMoStats moStats = grouped.computeIfAbsent(moKey, ignored -> new MutableMoStats(moId, moName));
+            moStats.totalApplications++;
+
+            if (status == null || status == Application.Status.PENDING) {
+                moStats.pending++;
+            } else if (status == Application.Status.ACCEPTED) {
+                moStats.accepted++;
+                moStats.processed++;
+            } else if (status == Application.Status.REJECTED) {
+                moStats.rejected++;
+                moStats.processed++;
+            } else if (status == Application.Status.WITHDRAWN) {
+                moStats.withdrawn++;
+            }
+        }
+
+        List<MoWorkloadStats> workloadList = new ArrayList<>();
+        for (MutableMoStats mo : grouped.values()) {
+            workloadList.add(new MoWorkloadStats(
+                    mo.moId,
+                    mo.moName,
+                    mo.totalApplications,
+                    mo.pending,
+                    mo.processed,
+                    mo.accepted,
+                    mo.rejected,
+                    mo.withdrawn
+            ));
+        }
+
+        ApplicationCounts counts = new ApplicationCounts(total, pending, accepted, rejected, withdrawn);
+        return new StatsSnapshot(counts, Collections.unmodifiableList(workloadList));
+    }
+
+    private String buildSnapshotKey(List<Application> applications, LocalDateTime start, LocalDateTime end) {
+        int size = applications.size();
+        String firstId = size > 0 && applications.get(0) != null ? safeText(applications.get(0).getApplicationId(), "null") : "null";
+        String lastId = size > 0 && applications.get(size - 1) != null ? safeText(applications.get(size - 1).getApplicationId(), "null") : "null";
+        return size
+                + "|" + firstId
+                + "|" + lastId
+                + "|" + (start != null ? start.toString() : "")
+                + "|" + (end != null ? end.toString() : "");
+    }
+
+    private void evictExpiredCacheEntries(long now) {
+        for (Map.Entry<String, SnapshotCacheEntry> entry : snapshotCache.entrySet()) {
+            SnapshotCacheEntry value = entry.getValue();
+            if (value != null && value.expiresAtMillis <= now) {
+                snapshotCache.remove(entry.getKey(), value);
+            }
         }
     }
 
