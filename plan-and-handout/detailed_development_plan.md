@@ -184,7 +184,7 @@
 | --- | ------ | ---------------------------- | --- | --------------------------------------------------------------------------------- |
 | 周7  | #1     | `test: 编写登录注册模块集成测试`         | ✅   | `git commit -m "test: 编写登录注册模块集成测试" --author="member4 <member4@edu.com>"`         |
 | 周8  | #2     | `test: 编写档案和职位模块集成测试`        | ✅   | `git commit -m "test: 编写档案和职位模块集成测试" --author="member4 <member4@edu.com>"`        |
-| 周9  | #3     | `test: 编写申请流程端到端测试`          | ⏳   | `git commit -m "test: 编写申请流程端到端测试" --author="member4 <member4@edu.com>"`          |
+| 周9  | #3     | `test: 编写申请流程端到端测试`          | ✅   | `git commit -m "test: 编写申请流程端到端测试" --author="member4 <member4@edu.com>"`          |
 | 周10 | #4     | `chore: 配置Maven打包脚本，生成WAR文件` | ⏳   | `git commit -m "chore: 配置Maven打包脚本，生成WAR文件" --author="member4 <member4@edu.com>"` |
 | 周11 | #5     | `docs: 编写完整用户手册`             | ⏳   | `git commit -m "docs: 编写完整用户手册" --author="member4 <member4@edu.com>"`             |
 
