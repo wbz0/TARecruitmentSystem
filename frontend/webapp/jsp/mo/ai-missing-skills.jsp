@@ -17,8 +17,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Skill Match - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-skill-match.css">
+    <title>AI Missing Skills - TA Hiring System</title>
+    <link rel="stylesheet" href="<%= contextPath %>/css/mo-ai-missing-skills.css">
 </head>
 <body>
     <div class="portal-shell portal-shell-mo">
@@ -50,7 +50,7 @@
                     </svg>
                     <span>Post Job</span>
                 </a>
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 19h16"></path>
                         <path d="M7 16V8"></path>
@@ -59,7 +59,7 @@
                     </svg>
                     <span>AI Match</span>
                 </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
+                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M4 18h16"></path>
                         <path d="M6 14h4"></path>
@@ -100,78 +100,45 @@
             </header>
 
             <div class="portal-content">
-                <main class="ai-match-page">
-                    <section class="match-hero" aria-labelledby="match-title">
-                        <h1 id="match-title">AI Skill Match</h1>
-                        <p class="subtitle">Review applicant matching scores aligned with your posted job requirements.</p>
+                <main class="ai-gap-page">
+                    <section class="gap-hero" aria-labelledby="gap-title">
+                        <h1 id="gap-title">AI Missing Skills</h1>
+                        <p class="subtitle">Identify the most common capability gaps and plan targeted upskilling actions.</p>
                     </section>
 
-                    <section class="match-panel" aria-label="技能匹配结果">
-                        <form id="match-filter-form" class="filter-form" novalidate>
+                    <section class="gap-panel" aria-label="缺失技能展示">
+                        <form id="gap-filter-form" class="filter-form" novalidate>
                             <div class="field-group">
-                                <label for="job-filter">Job</label>
-                                <select id="job-filter" name="jobId">
+                                <label for="gap-job-filter">Job</label>
+                                <select id="gap-job-filter" name="jobId">
                                     <option value="">Select a job</option>
                                 </select>
                             </div>
                             <div class="filter-actions">
-                                <button id="load-match-btn" class="primary-btn" type="submit">Load results</button>
-                                <button id="refresh-match-btn" class="ghost-btn" type="button">Refresh</button>
+                                <button id="load-gap-btn" class="primary-btn" type="submit">Load gaps</button>
+                                <button id="refresh-gap-btn" class="ghost-btn" type="button">Refresh</button>
                             </div>
                         </form>
 
-                        <div id="match-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                        <div id="gap-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="summary-grid" aria-label="匹配统计概览">
+                        <section class="summary-grid" aria-label="缺失技能统计概览">
                             <article class="summary-card">
-                                <p>Total applicants</p>
-                                <strong id="summary-total">0</strong>
+                                <p>Applicants</p>
+                                <strong id="gap-applicant-count">0</strong>
                             </article>
                             <article class="summary-card">
-                                <p>High match (≥85)</p>
-                                <strong id="summary-high">0</strong>
+                                <p>Required skills</p>
+                                <strong id="gap-required-count">0</strong>
                             </article>
                             <article class="summary-card">
-                                <p>Medium match (60-84)</p>
-                                <strong id="summary-medium">0</strong>
-                            </article>
-                            <article class="summary-card">
-                                <p>Low match (&lt;60)</p>
-                                <strong id="summary-low">0</strong>
+                                <p>Unique gap skills</p>
+                                <strong id="gap-unique-count">0</strong>
                             </article>
                         </section>
 
-                        <section class="visual-grid" aria-label="匹配度可视化组件">
-                            <article class="visual-card average-card">
-                                <p class="visual-title">Average Match Score</p>
-                                <div id="average-ring" class="average-ring" aria-label="平均匹配度">
-                                    <span id="average-score-text">0%</span>
-                                </div>
-                            </article>
-                            <article class="visual-card distribution-card">
-                                <p class="visual-title">Score Distribution</p>
-                                <div class="distribution-list">
-                                    <div class="distribution-item">
-                                        <span>High</span>
-                                        <div class="distribution-track"><i id="dist-high"></i></div>
-                                        <strong id="dist-high-label">0%</strong>
-                                    </div>
-                                    <div class="distribution-item">
-                                        <span>Medium</span>
-                                        <div class="distribution-track"><i id="dist-medium"></i></div>
-                                        <strong id="dist-medium-label">0%</strong>
-                                    </div>
-                                    <div class="distribution-item">
-                                        <span>Low</span>
-                                        <div class="distribution-track"><i id="dist-low"></i></div>
-                                        <strong id="dist-low-label">0%</strong>
-                                    </div>
-                                </div>
-                            </article>
-                        </section>
-
-                        <p id="match-list-summary" class="list-summary">Choose a job to load skill match results.</p>
-                        <div id="match-list" class="match-list" aria-live="polite"></div>
+                        <p id="gap-list-summary" class="list-summary">Choose a job to load missing skills insights.</p>
+                        <div id="gap-list" class="gap-list" aria-live="polite"></div>
                     </section>
                 </main>
             </div>
@@ -183,6 +150,6 @@
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/mo-ai-skill-match.js" defer></script>
+    <script src="<%= contextPath %>/js/mo-ai-missing-skills.js" defer></script>
 </body>
 </html>

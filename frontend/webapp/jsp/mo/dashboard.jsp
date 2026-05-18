@@ -59,6 +59,15 @@
                     </svg>
                     <span>AI Match</span>
                 </a>
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4 18h16"></path>
+                        <path d="M6 14h4"></path>
+                        <path d="M6 10h8"></path>
+                        <path d="M6 6h12"></path>
+                    </svg>
+                    <span>Skill Gaps</span>
+                </a>
                 <span class="portal-nav-link is-disabled" aria-disabled="true">
                     <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M12 8v8"></path>
