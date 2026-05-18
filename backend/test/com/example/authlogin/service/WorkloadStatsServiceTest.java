@@ -2,6 +2,7 @@ package com.example.authlogin.service;
 
 import com.example.authlogin.model.Application;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 /**
@@ -79,6 +80,46 @@ public class WorkloadStatsServiceTest {
             assert mo2.getMoId().equals("mo-2") : "second MO id should be mo-2";
             assert mo2.getRejected() == 1 : "mo-2 rejected should be 1";
             assert mo2.getProcessed() == 1 : "mo-2 processed should be 1";
+        });
+
+        test("Time range filter should limit counted applications", () -> {
+            LocalDateTime now = LocalDateTime.now();
+
+            Application oldApp = new Application();
+            oldApp.setStatus(Application.Status.PENDING);
+            oldApp.setAppliedAt(now.minusDays(10));
+
+            Application newApp = new Application();
+            newApp.setStatus(Application.Status.ACCEPTED);
+            newApp.setAppliedAt(now.minusDays(1));
+
+            WorkloadStatsService.ApplicationCounts counts = service.calculateApplicationCounts(
+                    Arrays.asList(oldApp, newApp),
+                    now.minusDays(3),
+                    now
+            );
+
+            assert counts.getTotal() == 1 : "time filtered total should be 1";
+            assert counts.getAccepted() == 1 : "accepted should be 1 in range";
+            assert counts.getPending() == 0 : "pending should be 0 in range";
+        });
+
+        test("CSV export should include header and MO rows", () -> {
+            Application app = new Application();
+            app.setMoId("mo-1");
+            app.setMoName("Dr. Export");
+            app.setStatus(Application.Status.REJECTED);
+            app.setAppliedAt(LocalDateTime.now());
+
+            String csv = service.exportMoWorkloadCsv(
+                    Arrays.asList(app),
+                    LocalDateTime.now().minusDays(1),
+                    LocalDateTime.now().plusDays(1)
+            );
+
+            assert csv.startsWith("moId,moName,totalApplications") : "csv should start with header";
+            assert csv.contains("mo-1") : "csv should contain MO id";
+            assert csv.contains("Dr. Export") : "csv should contain MO name";
         });
 
         System.out.println("========================================");

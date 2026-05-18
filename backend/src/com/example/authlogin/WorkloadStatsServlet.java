@@ -12,6 +12,10 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * WorkloadStatsServlet - 管理员工作量统计接口
@@ -43,16 +47,40 @@ public class WorkloadStatsServlet extends HttpServlet {
             return;
         }
 
+        LocalDateTime start = parseDateTime(request.getParameter("start"), false);
+        LocalDateTime end = parseDateTime(request.getParameter("end"), true);
+        if (request.getParameter("start") != null && start == null) {
+            writeJsonResponse(response, 400, false, "Invalid start datetime format", null);
+            return;
+        }
+        if (request.getParameter("end") != null && end == null) {
+            writeJsonResponse(response, 400, false, "Invalid end datetime format", null);
+            return;
+        }
+        if (start != null && end != null && start.isAfter(end)) {
+            writeJsonResponse(response, 400, false, "start cannot be after end", null);
+            return;
+        }
+
         String mode = request.getParameter("mode");
         if ("mo".equalsIgnoreCase(mode)) {
+            if ("csv".equalsIgnoreCase(request.getParameter("export"))) {
+                String csv = workloadStatsService.exportMoWorkloadCsv(applicationDao.findAll(), start, end);
+                response.setStatus(200);
+                response.setContentType("text/csv;charset=UTF-8");
+                response.setHeader("Content-Disposition", "attachment; filename=\"mo-workload-stats.csv\"");
+                response.getWriter().write(csv);
+                return;
+            }
+
             String data = "\"moWorkloads\": " + moWorkloadsToJson(
-                    workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll())
+                    workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll(), start, end)
             );
             writeJsonResponse(response, 200, true, "MO workload stats generated", data);
             return;
         }
 
-        WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll());
+        WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll(), start, end);
         String data = "\"total\": " + counts.getTotal()
                 + ", \"pending\": " + counts.getPending()
                 + ", \"accepted\": " + counts.getAccepted()
@@ -118,5 +146,28 @@ public class WorkloadStatsServlet extends HttpServlet {
         }
         json.append("]");
         return json.toString();
+    }
+
+    private LocalDateTime parseDateTime(String text, boolean isEnd) {
+        if (text == null || text.trim().isEmpty()) {
+            return null;
+        }
+        String value = text.trim();
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception ignored) {
+            // fallback
+        }
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+        } catch (Exception ignored) {
+            // fallback
+        }
+        try {
+            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            return isEnd ? LocalDateTime.of(date, LocalTime.MAX) : LocalDateTime.of(date, LocalTime.MIN);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

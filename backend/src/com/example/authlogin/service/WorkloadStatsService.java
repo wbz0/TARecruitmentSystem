@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 /**
  * WorkloadStatsService - 管理员工作量统计服务（阶段1基础类）
@@ -114,6 +115,15 @@ public class WorkloadStatsService {
      * 阶段2：实现申请数量统计逻辑。
      */
     public ApplicationCounts calculateApplicationCounts(List<Application> applications) {
+        return calculateApplicationCounts(applications, null, null);
+    }
+
+    /**
+     * 阶段4：支持时间段筛选。
+     */
+    public ApplicationCounts calculateApplicationCounts(List<Application> applications,
+                                                        LocalDateTime start,
+                                                        LocalDateTime end) {
         List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
         int total = 0;
         int pending = 0;
@@ -123,6 +133,9 @@ public class WorkloadStatsService {
 
         for (Application application : safeApplications) {
             if (application == null) {
+                continue;
+            }
+            if (!isInTimeRange(application, start, end)) {
                 continue;
             }
             total++;
@@ -156,11 +169,20 @@ public class WorkloadStatsService {
      * 阶段3：按MO统计处理工作量。
      */
     public List<MoWorkloadStats> calculateMoWorkloadStats(List<Application> applications) {
+        return calculateMoWorkloadStats(applications, null, null);
+    }
+
+    public List<MoWorkloadStats> calculateMoWorkloadStats(List<Application> applications,
+                                                          LocalDateTime start,
+                                                          LocalDateTime end) {
         List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
         Map<String, MutableMoStats> grouped = new LinkedHashMap<>();
 
         for (Application application : safeApplications) {
             if (application == null) {
+                continue;
+            }
+            if (!isInTimeRange(application, start, end)) {
                 continue;
             }
             String moId = safeText(application.getMoId(), "UNKNOWN_MO");
@@ -208,6 +230,24 @@ public class WorkloadStatsService {
         return results;
     }
 
+    public String exportMoWorkloadCsv(List<Application> applications, LocalDateTime start, LocalDateTime end) {
+        List<MoWorkloadStats> stats = calculateMoWorkloadStats(applications, start, end);
+        StringBuilder csv = new StringBuilder();
+        csv.append("moId,moName,totalApplications,pending,processed,accepted,rejected,withdrawn\n");
+        for (MoWorkloadStats stat : stats) {
+            csv.append(escapeCsv(stat.getMoId())).append(",")
+                    .append(escapeCsv(stat.getMoName())).append(",")
+                    .append(stat.getTotalApplications()).append(",")
+                    .append(stat.getPending()).append(",")
+                    .append(stat.getProcessed()).append(",")
+                    .append(stat.getAccepted()).append(",")
+                    .append(stat.getRejected()).append(",")
+                    .append(stat.getWithdrawn())
+                    .append("\n");
+        }
+        return csv.toString();
+    }
+
     private String safeText(String value, String fallback) {
         if (value == null || value.trim().isEmpty()) {
             return fallback;
@@ -229,5 +269,35 @@ public class WorkloadStatsService {
             this.moId = moId;
             this.moName = moName;
         }
+    }
+
+    private boolean isInTimeRange(Application application, LocalDateTime start, LocalDateTime end) {
+        if (start == null && end == null) {
+            return true;
+        }
+        LocalDateTime ts = application.getAppliedAt();
+        if (ts == null) {
+            ts = application.getUpdatedAt();
+        }
+        if (ts == null) {
+            return false;
+        }
+        if (start != null && ts.isBefore(start)) {
+            return false;
+        }
+        if (end != null && ts.isAfter(end)) {
+            return false;
+        }
+        return true;
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }
