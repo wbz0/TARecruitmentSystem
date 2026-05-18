@@ -19,6 +19,10 @@
         rejected: document.getElementById("summary-rejected"),
         withdrawn: document.getElementById("summary-withdrawn")
     };
+    var chartNodes = {
+        statusChart: document.getElementById("status-chart"),
+        moChart: document.getElementById("mo-chart")
+    };
 
     if (!filterForm || !startInput || !endInput || !moSummaryNode || !moListNode) {
         return;
@@ -88,6 +92,13 @@
             if (!countsResult.ok) {
                 showMessage(countsResult.message || "Failed to load application totals.", "error");
                 resetSummary();
+                renderStatusChart({
+                    total: 0,
+                    pending: 0,
+                    accepted: 0,
+                    rejected: 0,
+                    withdrawn: 0
+                });
             } else {
                 renderSummary(countsResult.payload);
             }
@@ -95,14 +106,24 @@
             if (!moResult.ok) {
                 showMessage(moResult.message || "Failed to load MO workloads.", "error");
                 renderMoList([]);
+                renderMoChart([]);
             } else {
                 var moWorkloads = Array.isArray(moResult.payload.moWorkloads) ? moResult.payload.moWorkloads : [];
                 renderMoList(moWorkloads);
+                renderMoChart(moWorkloads);
             }
         }).catch(function () {
             showMessage("Network error while loading dashboard.", "error");
             resetSummary();
             renderMoList([]);
+            renderStatusChart({
+                total: 0,
+                pending: 0,
+                accepted: 0,
+                rejected: 0,
+                withdrawn: 0
+            });
+            renderMoChart([]);
         }).finally(function () {
             state.loading = false;
             setLoadingState(false);
@@ -195,11 +216,19 @@
     }
 
     function renderSummary(payload) {
-        summaryNodes.total.textContent = String(toNumber(payload.total));
-        summaryNodes.pending.textContent = String(toNumber(payload.pending));
-        summaryNodes.accepted.textContent = String(toNumber(payload.accepted));
-        summaryNodes.rejected.textContent = String(toNumber(payload.rejected));
-        summaryNodes.withdrawn.textContent = String(toNumber(payload.withdrawn));
+        var counts = {
+            total: toNumber(payload.total),
+            pending: toNumber(payload.pending),
+            accepted: toNumber(payload.accepted),
+            rejected: toNumber(payload.rejected),
+            withdrawn: toNumber(payload.withdrawn)
+        };
+        summaryNodes.total.textContent = String(counts.total);
+        summaryNodes.pending.textContent = String(counts.pending);
+        summaryNodes.accepted.textContent = String(counts.accepted);
+        summaryNodes.rejected.textContent = String(counts.rejected);
+        summaryNodes.withdrawn.textContent = String(counts.withdrawn);
+        renderStatusChart(counts);
     }
 
     function resetSummary() {
@@ -222,6 +251,70 @@
         moWorkloads.forEach(function (item) {
             moListNode.appendChild(createMoItem(item));
         });
+    }
+
+    function renderStatusChart(counts) {
+        if (!chartNodes.statusChart) {
+            return;
+        }
+        chartNodes.statusChart.innerHTML = "";
+
+        var total = toNumber(counts.total);
+        if (total <= 0) {
+            chartNodes.statusChart.innerHTML = "<p class=\"empty-copy\">No status data available.</p>";
+            return;
+        }
+
+        var rows = [
+            { label: "Pending", value: toNumber(counts.pending), style: "pending" },
+            { label: "Accepted", value: toNumber(counts.accepted), style: "accepted" },
+            { label: "Rejected", value: toNumber(counts.rejected), style: "rejected" },
+            { label: "Withdrawn", value: toNumber(counts.withdrawn), style: "withdrawn" }
+        ];
+
+        rows.forEach(function (row) {
+            var percent = Math.round((row.value * 100) / total);
+            chartNodes.statusChart.appendChild(buildChartRow(row.label, percent, row.value, row.style));
+        });
+    }
+
+    function renderMoChart(moWorkloads) {
+        if (!chartNodes.moChart) {
+            return;
+        }
+        chartNodes.moChart.innerHTML = "";
+
+        if (!Array.isArray(moWorkloads) || moWorkloads.length === 0) {
+            chartNodes.moChart.innerHTML = "<p class=\"empty-copy\">No MO workload data available.</p>";
+            return;
+        }
+
+        var sorted = moWorkloads.slice().sort(function (a, b) {
+            return toNumber(b.totalApplications) - toNumber(a.totalApplications);
+        }).slice(0, 6);
+
+        var maxValue = 0;
+        sorted.forEach(function (item) {
+            maxValue = Math.max(maxValue, toNumber(item.totalApplications));
+        });
+
+        sorted.forEach(function (item) {
+            var total = toNumber(item.totalApplications);
+            var percent = maxValue > 0 ? Math.round((total * 100) / maxValue) : 0;
+            chartNodes.moChart.appendChild(
+                buildChartRow(safeText(item.moName, "MO"), percent, total, "mo")
+            );
+        });
+    }
+
+    function buildChartRow(label, percent, value, styleClass) {
+        var row = document.createElement("div");
+        row.className = "chart-row";
+        row.innerHTML =
+            "<span class=\"chart-label\">" + escapeHtml(label) + "</span>" +
+            "<div class=\"chart-track\"><i class=\"chart-fill " + escapeHtml(styleClass) + "\" style=\"width:" + escapeHtml(String(percent)) + "%\"></i></div>" +
+            "<strong class=\"chart-value\">" + escapeHtml(String(value)) + "</strong>";
+        return row;
     }
 
     function createMoItem(item) {

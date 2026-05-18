@@ -202,6 +202,99 @@
     color: #6e6e73;
 }
 
+.chart-grid {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.chart-card {
+    border: 1px solid #e8e8ec;
+    border-radius: 14px;
+    background: #f5f5f7;
+    padding: 12px;
+}
+
+.chart-header h2 {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.chart-header p {
+    margin: 4px 0 0;
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.status-chart,
+.mo-chart {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) 56px;
+    gap: 8px;
+    align-items: center;
+}
+
+.chart-row .chart-label {
+    color: #3a3a3c;
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 500;
+}
+
+.chart-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #e5eaf0;
+    overflow: hidden;
+}
+
+.chart-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+}
+
+.chart-fill.pending {
+    background: #0d4d8c;
+}
+
+.chart-fill.accepted {
+    background: #1f7a34;
+}
+
+.chart-fill.rejected {
+    background: #b42332;
+}
+
+.chart-fill.withdrawn {
+    background: #6e6e73;
+}
+
+.chart-fill.mo {
+    background: #0071e3;
+}
+
+.chart-row .chart-value {
+    color: #1d1d1f;
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 600;
+    text-align: right;
+}
+
 .mo-panel {
     margin-top: 14px;
     border: 1px solid #e8e8ec;

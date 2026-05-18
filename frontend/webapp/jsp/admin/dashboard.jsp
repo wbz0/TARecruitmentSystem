@@ -132,6 +132,23 @@
                             </article>
                         </section>
 
+                        <section class="chart-grid" aria-label="数据可视化图表">
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h2>Application Status Distribution</h2>
+                                    <p>Breakdown by review status in current range.</p>
+                                </header>
+                                <div id="status-chart" class="status-chart" aria-live="polite"></div>
+                            </article>
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h2>MO Workload Overview</h2>
+                                    <p>Workload intensity by module owner.</p>
+                                </header>
+                                <div id="mo-chart" class="mo-chart" aria-live="polite"></div>
+                            </article>
+                        </section>
+
                         <section class="mo-panel" aria-label="MO工作量列表">
                             <header class="mo-panel-header">
                                 <h2>MO Workload</h2>
