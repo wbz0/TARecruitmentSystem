@@ -16,6 +16,16 @@
         medium: document.getElementById("summary-medium"),
         low: document.getElementById("summary-low")
     };
+    var visualNodes = {
+        averageRing: document.getElementById("average-ring"),
+        averageText: document.getElementById("average-score-text"),
+        distHigh: document.getElementById("dist-high"),
+        distMedium: document.getElementById("dist-medium"),
+        distLow: document.getElementById("dist-low"),
+        distHighLabel: document.getElementById("dist-high-label"),
+        distMediumLabel: document.getElementById("dist-medium-label"),
+        distLowLabel: document.getElementById("dist-low-label")
+    };
 
     if (!filterForm || !jobFilter || !listNode || !listSummaryNode) {
         return;
@@ -221,7 +231,9 @@
         var high = 0;
         var medium = 0;
         var low = 0;
+        var sumScore = 0;
         matches.forEach(function (match) {
+            sumScore += match.score;
             if (match.score >= 85) {
                 high++;
             } else if (match.score >= 60) {
@@ -234,6 +246,10 @@
         summaryNodes.high.textContent = String(high);
         summaryNodes.medium.textContent = String(medium);
         summaryNodes.low.textContent = String(low);
+
+        var average = total > 0 ? Math.round(sumScore / total) : 0;
+        updateAverageRing(average);
+        updateDistribution(total, high, medium, low);
     }
 
     function renderList(matches) {
@@ -254,13 +270,16 @@
         var card = document.createElement("article");
         card.className = "match-card";
         var skillsPreview = buildSkillPreview(match.requiredSkills, match.coverLetter);
+        var ringStyle = buildRingStyle(match.score);
         card.innerHTML =
             "<header class=\"match-card-header\">" +
                 "<div class=\"match-card-heading\">" +
                     "<h3>" + escapeHtml(match.applicantName) + "</h3>" +
                     "<p>" + escapeHtml(match.applicantEmail) + "</p>" +
                 "</div>" +
-                "<span class=\"score-tag " + escapeHtml(match.scoreLevel) + "\">" + escapeHtml(String(match.score)) + "%</span>" +
+                "<div class=\"score-ring " + escapeHtml(match.scoreLevel) + "\" style=\"" + escapeHtml(ringStyle) + "\">" +
+                    "<strong>" + escapeHtml(String(match.score)) + "%</strong>" +
+                "</div>" +
             "</header>" +
             "<div class=\"match-meta\">" +
                 "<p><span>Job</span><strong>" + escapeHtml(match.jobTitle) + "</strong></p>" +
@@ -269,6 +288,64 @@
             "</div>" +
             "<div class=\"skills-preview\">" + skillsPreview + "</div>";
         return card;
+    }
+
+    function updateAverageRing(score) {
+        if (!visualNodes.averageRing || !visualNodes.averageText) {
+            return;
+        }
+        var percent = Math.max(0, Math.min(100, score));
+        visualNodes.averageText.textContent = percent + "%";
+        visualNodes.averageRing.style.background = buildConicGradient("#0071e3", percent);
+    }
+
+    function updateDistribution(total, high, medium, low) {
+        if (total <= 0) {
+            setDistributionVisual(0, 0, 0);
+            return;
+        }
+        var highPct = Math.round((high * 100) / total);
+        var mediumPct = Math.round((medium * 100) / total);
+        var lowPct = Math.max(0, 100 - highPct - mediumPct);
+        setDistributionVisual(highPct, mediumPct, lowPct);
+    }
+
+    function setDistributionVisual(highPct, mediumPct, lowPct) {
+        if (visualNodes.distHigh) {
+            visualNodes.distHigh.style.width = highPct + "%";
+        }
+        if (visualNodes.distMedium) {
+            visualNodes.distMedium.style.width = mediumPct + "%";
+        }
+        if (visualNodes.distLow) {
+            visualNodes.distLow.style.width = lowPct + "%";
+        }
+        if (visualNodes.distHighLabel) {
+            visualNodes.distHighLabel.textContent = highPct + "%";
+        }
+        if (visualNodes.distMediumLabel) {
+            visualNodes.distMediumLabel.textContent = mediumPct + "%";
+        }
+        if (visualNodes.distLowLabel) {
+            visualNodes.distLowLabel.textContent = lowPct + "%";
+        }
+    }
+
+    function buildRingStyle(score) {
+        var color = "#0071e3";
+        if (score >= 85) {
+            color = "#1f7a34";
+        } else if (score >= 60) {
+            color = "#0d4d8c";
+        } else {
+            color = "#b42332";
+        }
+        return "background: " + buildConicGradient(color, score) + ";";
+    }
+
+    function buildConicGradient(color, score) {
+        var turn = Math.max(0, Math.min(100, score)) / 100;
+        return "conic-gradient(" + color + " 0turn, " + color + " " + turn + "turn, #e8ecf1 " + turn + "turn)";
     }
 
     function buildSkillPreview(requiredSkills, coverText) {

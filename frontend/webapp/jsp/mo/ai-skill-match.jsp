@@ -132,6 +132,35 @@
                             </article>
                         </section>
 
+                        <section class="visual-grid" aria-label="匹配度可视化组件">
+                            <article class="visual-card average-card">
+                                <p class="visual-title">Average Match Score</p>
+                                <div id="average-ring" class="average-ring" aria-label="平均匹配度">
+                                    <span id="average-score-text">0%</span>
+                                </div>
+                            </article>
+                            <article class="visual-card distribution-card">
+                                <p class="visual-title">Score Distribution</p>
+                                <div class="distribution-list">
+                                    <div class="distribution-item">
+                                        <span>High</span>
+                                        <div class="distribution-track"><i id="dist-high"></i></div>
+                                        <strong id="dist-high-label">0%</strong>
+                                    </div>
+                                    <div class="distribution-item">
+                                        <span>Medium</span>
+                                        <div class="distribution-track"><i id="dist-medium"></i></div>
+                                        <strong id="dist-medium-label">0%</strong>
+                                    </div>
+                                    <div class="distribution-item">
+                                        <span>Low</span>
+                                        <div class="distribution-track"><i id="dist-low"></i></div>
+                                        <strong id="dist-low-label">0%</strong>
+                                    </div>
+                                </div>
+                            </article>
+                        </section>
+
                         <p id="match-list-summary" class="list-summary">Choose a job to load skill match results.</p>
                         <div id="match-list" class="match-list" aria-live="polite"></div>
                     </section>
