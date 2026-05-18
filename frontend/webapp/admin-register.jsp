@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - TA Hiring System</title>
+    <title>Admin Register - TA Hiring System</title>
     <link rel="stylesheet" href="<%= contextPath %>/css/register.css">
 </head>
 <body>
@@ -18,11 +18,11 @@
                     <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
                 </svg>
             </div>
-            <h1 id="register-title">Create your account</h1>
-            <p class="subtitle">Join the TA Hiring Portal in a few steps</p>
+            <h1 id="register-title">Create admin account</h1>
+            <p class="subtitle">This page is only for system administrator registration</p>
         </section>
 
-        <section class="register-card" aria-label="注册表单">
+        <section class="register-card" aria-label="管理员注册表单">
             <div id="form-message" class="form-message hidden" role="alert" aria-live="polite"></div>
 
             <form id="register-form" class="register-form" method="post" action="<%= contextPath %>/register" novalidate>
@@ -34,7 +34,7 @@
                         id="username"
                         name="username"
                         type="text"
-                        placeholder="john_smith"
+                        placeholder="admin_username"
                         autocomplete="username"
                         maxlength="20"
                         required
@@ -50,7 +50,7 @@
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="name@university.edu"
+                        placeholder="admin@university.edu"
                         autocomplete="email"
                         maxlength="100"
                         inputmode="email"
@@ -89,46 +89,21 @@
                     >
                 </div>
 
-                <div class="field role-field">
-                    <div class="field-label-row">
-                        <span class="field-label">Register as</span>
-                    </div>
-                    <input id="register-role" type="hidden" name="role" value="TA">
-                    <div class="role-selector" role="group" aria-label="角色选择按钮">
-                        <button
-                            class="role-option is-selected"
-                            type="button"
-                            data-role="TA"
-                            aria-pressed="true"
-                        >
-                            <span class="role-option-title">TA</span>
-                            <span class="role-option-desc">Applicant</span>
-                        </button>
-                        <button
-                            class="role-option"
-                            type="button"
-                            data-role="MO"
-                            aria-pressed="false"
-                        >
-                            <span class="role-option-title">MO</span>
-                            <span class="role-option-desc">Module Organizer</span>
-                        </button>
-                    </div>
-                </div>
+                <input id="register-role" type="hidden" name="role" value="ADMIN">
 
                 <button id="register-submit" class="register-submit-btn" type="submit">
-                    Create account
+                    Create admin account
                 </button>
             </form>
         </section>
 
         <p class="page-switch-hint">
-            Already have an account?
-            <a href="<%= contextPath %>/login.jsp">Back to login</a>
+            Need TA or MO account?
+            <a href="<%= contextPath %>/register.jsp">Use standard registration</a>
         </p>
         <p class="page-switch-hint">
-            Registering as admin?
-            <a href="<%= contextPath %>/admin-register.jsp">Use admin registration</a>
+            Already have an account?
+            <a href="<%= contextPath %>/login.jsp">Back to login</a>
         </p>
 
         <p class="login-footer">University Hiring System © 2026</p>

@@ -1,0 +1,278 @@
+@import url("./ta-job-list.css");
+
+.mo-overview-page {
+    min-height: auto;
+    padding: 28px 28px 36px;
+}
+
+.overview-hero {
+    width: 100%;
+    margin: 0 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.overview-hero .hero-actions {
+    align-items: center;
+}
+
+.hero-nav-links {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.overview-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    min-height: 32px;
+    border-radius: 999px;
+    padding: 0 12px;
+    background: rgba(0, 113, 227, 0.1);
+    color: #0071e3;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.overview-hero h1 {
+    margin: 0;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 1.15;
+    letter-spacing: -1px;
+    font-weight: 700;
+}
+
+.overview-hero .subtitle {
+    margin: 0;
+    text-align: left;
+    max-width: 780px;
+}
+
+.overview-panel {
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.stat-card {
+    background: #f5f5f7;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+.icon-jobs {
+    color: #0071e3;
+    background: #eaf4ff;
+}
+
+.icon-applicants {
+    color: #34c759;
+    background: #e8f8f0;
+}
+
+.icon-pending {
+    color: #ff9f0a;
+    background: #fff3e0;
+}
+
+.icon-offers {
+    color: #af52de;
+    background: #f5eeff;
+}
+
+.stat-value {
+    margin: 12px 0 2px;
+    color: #1d1d1f;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    font-weight: 600;
+}
+
+.stat-label {
+    margin: 0;
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.activity-panel {
+    background: #f5f5f7;
+    border-radius: 24px;
+    border: 1px solid #e8e8ec;
+    padding: 20px 14px 12px;
+}
+
+.activity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 8px;
+}
+
+.activity-label {
+    margin: 0;
+    color: #86868b;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.activity-link {
+    min-height: 34px;
+    border-radius: 10px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.activity-summary {
+    margin: 10px 8px 8px;
+    color: #6e6e73;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px 4px;
+}
+
+.activity-item {
+    border-radius: 18px;
+    background: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.activity-main {
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.activity-dot.pending {
+    background: #ff9f0a;
+}
+
+.activity-dot.accepted {
+    background: #34c759;
+}
+
+.activity-dot.rejected {
+    background: #ff3b30;
+}
+
+.activity-dot.withdrawn,
+.activity-dot.unknown {
+    background: #c7c7cc;
+}
+
+.activity-text {
+    min-width: 0;
+}
+
+.activity-title {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 500;
+}
+
+.activity-subtitle {
+    margin: 2px 0 0;
+    color: #86868b;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.activity-time {
+    flex-shrink: 0;
+    color: #aeaeb2;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.form-message {
+    margin: 0;
+}
+
+.form-message.hidden {
+    display: none;
+}
+
+@media (max-width: 980px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .mo-overview-page {
+        padding: 28px 16px 40px;
+    }
+
+    .activity-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .activity-time {
+        margin-left: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-hero .hero-actions {
+        align-items: flex-start;
+    }
+}

@@ -1,6 +1,0 @@
-applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,phone,address,experience,motivation,createdAt,updatedAt
-67b0cbd6-708d-4eb0-bf3f-2136033fea83,test-user-1,John Doe,S12345,Computer Science,Master,3.8,Java;Python;SQL,,,,,,2026-03-18T12:21:19.6964341,2026-03-18T12:21:19.7008927
-27c760b1-a6ab-42ba-b50b-4a27636549b7,1f95bc48-2fdb-4e23-905d-a408cdd67d79,John Doe,S12345678,Computer Science,Master,3.5,Java;Python;SQL,,1234567890,123 Main St,Teaching Assistant experience,I want to help students,2026-03-18T12:34:35.2165162,2026-03-18T12:35:35.064399
-6dd4fbd4-5cf5-4ed4-ba18-110e2556a8bf,eb5362a0-816b-4fd0-9d94-526c16c57034,Test Uploader,S99999999,Engineering,Master,,,resumes/eb5362a0-816b-4fd0-9d94-526c16c57034_1773817534745.pdf,,,,,2026-03-18T15:05:00.5779068,2026-03-18T15:05:34.751777
-e9dbacf4-55a8-40ed-8f11-8b718668d95f,78369fe5-8733-4b99-8927-910de15e82a2,Test Size,S88888888,CS,PhD,,,resumes/78369fe5-8733-4b99-8927-910de15e82a2_1773818265835.pdf,,,,,2026-03-18T15:16:44.3794066,2026-03-18T15:17:45.8565836
-2169c6af-22d6-4063-baf1-47bca39d5af5,36378917-43fd-4bd9-a264-e1ecae70e69b,Test Complete,S77777777,Engineering,Master,,,,,,,,2026-03-18T15:23:11.7073141,2026-03-18T15:23:11.7151865

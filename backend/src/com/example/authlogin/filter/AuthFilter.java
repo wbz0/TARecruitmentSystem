@@ -22,6 +22,7 @@ import java.util.Set;
  * - /profile/* - 需要登录
  * - /job/* - 需要登录
  * - /application/* - 需要登录
+ * - /apply - 需要登录（申请状态与审核）
  *
  * 公开路径（不需要登录）：
  * - /login - 登录页
@@ -62,6 +63,7 @@ public class AuthFilter implements Filter {
         "/api/ta/",
         "/profile/",
         "/applicant",
+        "/apply",
         "/application/",
         "/job/list",
         "/job/view"

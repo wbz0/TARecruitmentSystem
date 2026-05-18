@@ -69,6 +69,16 @@ chmod +x *.sh
 - Servlet: http://localhost:8080/groupproject/hello
 - JSP: http://localhost:8080/groupproject/jsp/welcome.jsp
 
+## Standard Demo Accounts
+
+预览、联调与对外说明时统一使用以下固定测试账号；如果本地数据缺失，请先补齐再测试，并保持本节与实际使用一致。
+
+| Role | Username | Password |
+| --- | --- | --- |
+| TA | `ta_demo` | `Pass1234` |
+| MO | `mo_demo` | `Pass1234` |
+| Admin | `admin_demo` | `Pass1234` |
+
 ## 日常开发工作流 (修改代码后)
 
 当你修改了任何 `.java` 源码或 `.jsp/.html` 前端文件后，**无需重启 Tomcat**，只需要在 `scripts/` 目录下重新执行编译和部署命令：
@@ -88,6 +98,23 @@ cd scripts
 ```
 
 *(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*
+
+## 集成测试与回归验证
+
+当前仓库采用轻量级 Java 主类测试（`main + assert`）进行集成/回归验证，可直接在命令行执行。
+
+示例：运行登录注册模块集成测试（成员4）
+
+```bash
+cd /path/to/carnegie_software_engineering
+rm -rf /tmp/build-test-login && mkdir /tmp/build-test-login
+javac -encoding UTF-8 -d /tmp/build-test-login \
+  backend/src/com/example/authlogin/util/StoragePaths.java \
+  backend/src/com/example/authlogin/model/User.java \
+  backend/src/com/example/authlogin/dao/UserDao.java \
+  backend/test/com/example/authlogin/integration/LoginRegisterIntegrationTest.java
+java -ea -cp /tmp/build-test-login com.example.authlogin.integration.LoginRegisterIntegrationTest
+```
 
 ## 项目架构与目录说明
 

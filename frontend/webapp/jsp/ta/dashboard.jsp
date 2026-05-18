@@ -1,6 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     String contextPath = request.getContextPath();
+    String username = "";
+    Object usernameObj = session.getAttribute("username");
+    if (usernameObj != null) {
+        username = usernameObj.toString();
+    }
+    String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -11,22 +17,76 @@
     <link rel="stylesheet" href="<%= contextPath %>/css/ta-dashboard.css">
 </head>
 <body>
-    <main class="profile-page">
-        <section class="profile-hero" aria-labelledby="profile-page-title">
-            <div class="profile-hero-aside">
-                <a class="logout-link" href="<%= contextPath %>/logout">Log out</a>
-                <div class="hero-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false">
-                        <path d="M12 4.5L20 8.5L12 12.5L4 8.5L12 4.5ZM7.2 10.1V14.2C7.2 16.6 9.5 18.4 12 18.4C14.5 18.4 16.8 16.6 16.8 14.2V10.1L12 12.5L7.2 10.1Z" />
+    <div class="portal-shell portal-shell-ta">
+        <aside class="portal-sidebar" aria-label="TA portal navigation">
+            <p class="portal-brand">TA Portal</p>
+            <nav class="portal-nav">
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/job-list.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M3 7.5h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
+                        <path d="M3 12h18" />
                     </svg>
-                </div>
+                    <span>Jobs</span>
+                </a>
+                <a class="portal-nav-link" href="<%= contextPath %>/jsp/ta/application-status.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="12" cy="12" r="8"></circle>
+                        <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
+                    </svg>
+                    <span>Status</span>
+                </a>
+                <span class="portal-nav-link is-disabled" aria-disabled="true">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M12 3v3"></path>
+                        <path d="M12 18v3"></path>
+                        <path d="M3 12h3"></path>
+                        <path d="M18 12h3"></path>
+                        <path d="m6 6 2 2"></path>
+                        <path d="m16 16 2 2"></path>
+                        <path d="m6 18 2-2"></path>
+                        <path d="m16 8 2-2"></path>
+                    </svg>
+                    <span>AI Match</span>
+                </span>
+                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="12" cy="8" r="3"></circle>
+                        <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
+                    </svg>
+                    <span>Profile</span>
+                </a>
+            </nav>
+            <div class="portal-sidebar-bottom">
+                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
+                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4 7h12"></path>
+                        <path d="m12 4 4 3-4 3"></path>
+                        <path d="M20 17H8"></path>
+                        <path d="m12 20-4-3 4-3"></path>
+                    </svg>
+                    <span>Switch Roles</span>
+                </a>
             </div>
-            <span class="profile-badge">TA Workspace</span>
-            <h1 id="profile-page-title">Build your applicant profile</h1>
-            <p class="subtitle">Create your profile below, then upload your resume in Step 2. Inline validation will help you correct format issues as you type.</p>
-        </section>
+        </aside>
 
-        <section class="profile-layout" aria-label="TA applicant profile setup">
+        <section class="portal-main">
+            <header class="portal-topbar">
+                <div class="portal-user">
+                    <span class="portal-user-avatar"><%= userInitial %></span>
+                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "TA User" : username %></span>
+                </div>
+                <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
+            </header>
+
+            <div class="portal-content">
+                <main class="profile-page">
+                    <section class="profile-hero" aria-labelledby="profile-page-title">
+                        <h1 id="profile-page-title">Profile</h1>
+                        <p class="subtitle">Manage your personal information and academic background.</p>
+                    </section>
+
+                    <section class="profile-layout" aria-label="TA applicant profile setup">
             <section class="profile-card">
                 <div class="section-heading">
                     <div>
@@ -265,8 +325,11 @@
                     <button id="resume-upload-btn" class="placeholder-button" type="button" disabled>Upload selected resume</button>
                 </section>
             </aside>
+                    </section>
+                </main>
+            </div>
         </section>
-    </main>
+    </div>
 
     <script>
         window.APP_CONTEXT_PATH = "<%= contextPath %>";

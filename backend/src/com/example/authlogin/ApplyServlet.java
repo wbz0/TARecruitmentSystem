@@ -32,6 +32,7 @@ public class ApplyServlet extends HttpServlet {
 
     private ApplicationDao applicationDao;
     private JobDao jobDao;
+    private static final int MAX_COVER_LETTER_LENGTH = 2000;
 
     // 简单的日志方法
     private void logInfo(String message) {
@@ -200,15 +201,29 @@ public class ApplyServlet extends HttpServlet {
             // 获取请求参数
             String jobId = request.getParameter("jobId");
             String coverLetter = request.getParameter("coverLetter");
+            String normalizedJobId = jobId != null ? jobId.trim() : "";
+            String normalizedCoverLetter = coverLetter != null ? coverLetter.trim() : "";
 
             // 输入验证
-            if (jobId == null || jobId.trim().isEmpty()) {
+            if (normalizedJobId.isEmpty()) {
                 writeJsonResponse(response, 400, false, "Job ID is required", null);
+                return;
+            }
+            if (hasControlChars(jobId) || containsDangerousMarkup(jobId)) {
+                writeJsonResponse(response, 400, false, "Job ID contains unsupported characters", null);
+                return;
+            }
+            if (normalizedCoverLetter.length() > MAX_COVER_LETTER_LENGTH) {
+                writeJsonResponse(response, 400, false, "Cover letter must be 2000 characters or fewer", null);
+                return;
+            }
+            if (hasControlChars(coverLetter) || containsDangerousMarkup(coverLetter)) {
+                writeJsonResponse(response, 400, false, "Cover letter contains unsupported characters", null);
                 return;
             }
 
             // 检查职位是否存在
-            Optional<Job> jobOpt = jobDao.findById(jobId.trim());
+            Optional<Job> jobOpt = jobDao.findById(normalizedJobId);
             if (jobOpt.isEmpty()) {
                 writeJsonResponse(response, 404, false, "Job not found", null);
                 return;
@@ -223,14 +238,14 @@ public class ApplyServlet extends HttpServlet {
             }
 
             // 检查是否已申请
-            if (applicationDao.hasApplied(jobId.trim(), currentUser.getUserId())) {
+            if (applicationDao.hasApplied(normalizedJobId, currentUser.getUserId())) {
                 writeJsonResponse(response, 400, false, "You have already applied for this job", null);
                 return;
             }
 
             // 创建申请对象
             Application application = new Application();
-            application.setJobId(jobId.trim());
+            application.setJobId(normalizedJobId);
             application.setApplicantId(currentUser.getUserId());
             application.setApplicantName(currentUser.getUsername());
             application.setApplicantEmail(currentUser.getEmail());
@@ -238,7 +253,7 @@ public class ApplyServlet extends HttpServlet {
             application.setCourseCode(job.getCourseCode());
             application.setMoId(job.getMoId());
             application.setMoName(job.getMoName());
-            application.setCoverLetter(coverLetter != null ? coverLetter.trim() : null);
+            application.setCoverLetter(normalizedCoverLetter.isEmpty() ? null : normalizedCoverLetter);
 
             // 保存申请
             Application savedApp = applicationDao.create(application);
@@ -446,6 +461,20 @@ public class ApplyServlet extends HttpServlet {
             return null;
         }
         return (User) session.getAttribute("user");
+    }
+
+    private boolean hasControlChars(String value) {
+        return value != null && value.matches(".*[\\x00-\\x1F\\x7F].*");
+    }
+
+    private boolean containsDangerousMarkup(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        String text = value.toLowerCase();
+        return text.matches(".*<[^>]*>.*")
+            || text.contains("javascript:")
+            || text.matches(".*on\\w+\\s*=.*");
     }
 
     /**

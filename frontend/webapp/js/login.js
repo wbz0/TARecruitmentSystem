@@ -1,4 +1,9 @@
 (function () {
+    var USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
+    var LOGIN_IDENTIFIER_MAX_LENGTH = 100;
+    var PASSWORD_MIN_LENGTH = 6;
+    var PASSWORD_MAX_LENGTH = 100;
+
     var form = document.getElementById("login-form");
     if (!form) {
         return;
@@ -15,10 +20,9 @@
     setSelectedRole(selectedRole);
 
     Array.prototype.forEach.call(loginButtons, function (button) {
-        button.addEventListener("click", function (event) {
-            event.preventDefault();
+        button.addEventListener("click", function () {
             setSelectedRole(button.getAttribute("data-role"));
-            handleLogin(selectedRole);
+            hideMessage();
         });
     });
 
@@ -61,7 +65,7 @@
                 var payload = result.payload;
 
                 if (!payload || payload.success !== true || !response.ok) {
-                    var errorMessage = "登录失败，请检查用户名和密码。";
+                    var errorMessage = "Login failed. Please check your username and password.";
                     if (payload && typeof payload.message === "string" && payload.message.trim()) {
                         errorMessage = payload.message.trim();
                     }
@@ -69,7 +73,7 @@
                     return;
                 }
 
-                showMessage("登录成功，正在跳转...", "success");
+                showMessage("Login successful! Redirecting...", "success");
 
                 var redirect = "";
                 if (typeof payload.redirect === "string") {
@@ -92,25 +96,67 @@
     function handleLogin(role) {
         hideMessage();
 
-        var username = usernameInput.value.trim();
-        var password = passwordInput.value;
+        var identifier = getTrimmedValue(usernameInput);
+        var password = getTrimmedValue(passwordInput);
 
-        if (!username) {
-            showMessage("请输入用户名。", "error");
+        if (!identifier) {
+            showMessage("Please enter your username or email.", "error");
+            usernameInput.focus();
+            return;
+        }
+
+        if (identifier.length > LOGIN_IDENTIFIER_MAX_LENGTH) {
+            showMessage("Username or email is too long.", "error");
+            usernameInput.focus();
+            return;
+        }
+
+        if (containsControlChars(identifier) || containsDangerousMarkup(identifier)) {
+            showMessage("Username or email contains unsupported characters.", "error");
+            usernameInput.focus();
+            return;
+        }
+
+        if (identifier.indexOf("@") >= 0) {
+            if (!isValidEmailAddress(identifier)) {
+                showMessage("Please enter a valid email address.", "error");
+                usernameInput.focus();
+                return;
+            }
+        } else if (!USERNAME_PATTERN.test(identifier)) {
+            showMessage("Username must start with a letter and contain 3-20 letters, numbers, or underscores.", "error");
             usernameInput.focus();
             return;
         }
 
         if (!password) {
-            showMessage("请输入密码。", "error");
+            showMessage("Please enter your password.", "error");
+            passwordInput.focus();
+            return;
+        }
+
+        if (password.length < PASSWORD_MIN_LENGTH) {
+            showMessage("Password must be at least 6 characters.", "error");
+            passwordInput.focus();
+            return;
+        }
+
+        if (password.length > PASSWORD_MAX_LENGTH) {
+            showMessage("Password is too long.", "error");
+            passwordInput.focus();
+            return;
+        }
+
+        if (containsControlChars(password)) {
+            showMessage("Password contains unsupported characters.", "error");
             passwordInput.focus();
             return;
         }
 
         setSubmitting(true);
-        submitLogin(username, password, role)
+        submitLogin(identifier, password, role)
             .catch(function () {
-                showMessage("网络异常，请稍后重试。", "error");
+                showMessage("Network error. Please try again.", "error");
             })
             .finally(function () {
                 setSubmitting(false);
@@ -143,10 +189,57 @@
             return "";
         }
         var normalized = value.trim().toUpperCase();
-        if (normalized === "TA" || normalized === "MO") {
+        if (normalized === "TA" || normalized === "MO" || normalized === "ADMIN") {
             return normalized;
         }
         return "";
+    }
+
+    function getTrimmedValue(input) {
+        if (!input || typeof input.value !== "string") {
+            return "";
+        }
+        return input.value.trim();
+    }
+
+    function containsControlChars(value) {
+        return /[\u0000-\u001F\u007F]/.test(value || "");
+    }
+
+    function containsDangerousMarkup(value) {
+        if (typeof value !== "string" || !value) {
+            return false;
+        }
+        return /<[^>]*>/.test(value) || /javascript:/i.test(value) || /on\w+\s*=/.test(value);
+    }
+
+    function isValidEmailAddress(email) {
+        if (typeof email !== "string") {
+            return false;
+        }
+        if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
+            return false;
+        }
+
+        var parts = email.split("@");
+        if (parts.length !== 2) {
+            return false;
+        }
+
+        var local = parts[0];
+        var domain = parts[1];
+        if (!local || !domain) {
+            return false;
+        }
+
+        if (local.charAt(0) === "." || local.charAt(local.length - 1) === "." || local.indexOf("..") !== -1) {
+            return false;
+        }
+        if (domain.charAt(0) === "." || domain.charAt(domain.length - 1) === "." || domain.indexOf("..") !== -1) {
+            return false;
+        }
+
+        return true;
     }
 
     function showMessage(message, type) {
