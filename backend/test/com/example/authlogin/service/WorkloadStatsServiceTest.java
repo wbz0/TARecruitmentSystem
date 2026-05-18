@@ -47,6 +47,40 @@ public class WorkloadStatsServiceTest {
             assert counts.getWithdrawn() == 1 : "withdrawn should be 1";
         });
 
+        test("MO workload stats should aggregate processed work", () -> {
+            Application app1 = new Application();
+            app1.setMoId("mo-1");
+            app1.setMoName("Dr. A");
+            app1.setStatus(Application.Status.PENDING);
+
+            Application app2 = new Application();
+            app2.setMoId("mo-1");
+            app2.setMoName("Dr. A");
+            app2.setStatus(Application.Status.ACCEPTED);
+
+            Application app3 = new Application();
+            app3.setMoId("mo-2");
+            app3.setMoName("Dr. B");
+            app3.setStatus(Application.Status.REJECTED);
+
+            java.util.List<WorkloadStatsService.MoWorkloadStats> stats = service.calculateMoWorkloadStats(
+                    Arrays.asList(app1, app2, app3)
+            );
+
+            assert stats.size() == 2 : "should aggregate into 2 MOs";
+            WorkloadStatsService.MoWorkloadStats mo1 = stats.get(0);
+            WorkloadStatsService.MoWorkloadStats mo2 = stats.get(1);
+
+            assert mo1.getMoId().equals("mo-1") : "first MO id should be mo-1";
+            assert mo1.getTotalApplications() == 2 : "mo-1 total should be 2";
+            assert mo1.getPending() == 1 : "mo-1 pending should be 1";
+            assert mo1.getProcessed() == 1 : "mo-1 processed should be 1";
+
+            assert mo2.getMoId().equals("mo-2") : "second MO id should be mo-2";
+            assert mo2.getRejected() == 1 : "mo-2 rejected should be 1";
+            assert mo2.getProcessed() == 1 : "mo-2 processed should be 1";
+        });
+
         System.out.println("========================================");
         System.out.println("WorkloadStatsServiceTest Summary");
         System.out.println("========================================");

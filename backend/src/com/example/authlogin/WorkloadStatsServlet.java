@@ -43,15 +43,21 @@ public class WorkloadStatsServlet extends HttpServlet {
             return;
         }
 
-        WorkloadStatsService.ApplicationCounts counts =
-                workloadStatsService.calculateApplicationCounts(applicationDao.findAll());
+        String mode = request.getParameter("mode");
+        if ("mo".equalsIgnoreCase(mode)) {
+            String data = "\"moWorkloads\": " + moWorkloadsToJson(
+                    workloadStatsService.calculateMoWorkloadStats(applicationDao.findAll())
+            );
+            writeJsonResponse(response, 200, true, "MO workload stats generated", data);
+            return;
+        }
 
+        WorkloadStatsService.ApplicationCounts counts = workloadStatsService.calculateApplicationCounts(applicationDao.findAll());
         String data = "\"total\": " + counts.getTotal()
                 + ", \"pending\": " + counts.getPending()
                 + ", \"accepted\": " + counts.getAccepted()
                 + ", \"rejected\": " + counts.getRejected()
                 + ", \"withdrawn\": " + counts.getWithdrawn();
-
         writeJsonResponse(response, 200, true, "Application count stats generated", data);
     }
 
@@ -87,5 +93,30 @@ public class WorkloadStatsServlet extends HttpServlet {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    private String moWorkloadsToJson(java.util.List<WorkloadStatsService.MoWorkloadStats> workloads) {
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+        if (workloads != null) {
+            for (int i = 0; i < workloads.size(); i++) {
+                WorkloadStatsService.MoWorkloadStats stats = workloads.get(i);
+                json.append("{");
+                json.append("\"moId\": \"").append(escapeJson(stats.getMoId())).append("\", ");
+                json.append("\"moName\": \"").append(escapeJson(stats.getMoName())).append("\", ");
+                json.append("\"totalApplications\": ").append(stats.getTotalApplications()).append(", ");
+                json.append("\"pending\": ").append(stats.getPending()).append(", ");
+                json.append("\"processed\": ").append(stats.getProcessed()).append(", ");
+                json.append("\"accepted\": ").append(stats.getAccepted()).append(", ");
+                json.append("\"rejected\": ").append(stats.getRejected()).append(", ");
+                json.append("\"withdrawn\": ").append(stats.getWithdrawn());
+                json.append("}");
+                if (i < workloads.size() - 1) {
+                    json.append(", ");
+                }
+            }
+        }
+        json.append("]");
+        return json.toString();
     }
 }
