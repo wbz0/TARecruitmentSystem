@@ -100,38 +100,38 @@
             </header>
 
             <div class="portal-content">
-                <main class="ai-gap-page">
-                    <section class="gap-hero" aria-labelledby="gap-title">
+                <main class="ai-gap-page ai-module-page">
+                    <section class="gap-hero ai-module-hero" aria-labelledby="gap-title">
                         <h1 id="gap-title">AI Missing Skills</h1>
                         <p class="subtitle">Identify the most common capability gaps and plan targeted upskilling actions.</p>
                     </section>
 
-                    <section class="gap-panel" aria-label="缺失技能展示">
-                        <form id="gap-filter-form" class="filter-form" novalidate>
-                            <div class="field-group">
+                    <section class="gap-panel ai-module-panel" aria-label="缺失技能展示">
+                        <form id="gap-filter-form" class="filter-form ai-module-filter-form" novalidate>
+                            <div class="field-group ai-module-field-group">
                                 <label for="gap-job-filter">Job</label>
                                 <select id="gap-job-filter" name="jobId">
                                     <option value="">Select a job</option>
                                 </select>
                             </div>
-                            <div class="filter-actions">
+                            <div class="filter-actions ai-module-filter-actions">
                                 <button id="load-gap-btn" class="primary-btn" type="submit">Load gaps</button>
                                 <button id="refresh-gap-btn" class="ghost-btn" type="button">Refresh</button>
                             </div>
                         </form>
 
-                        <div id="gap-message" class="form-message hidden" role="status" aria-live="polite"></div>
+                        <div id="gap-message" class="form-message ai-module-form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="summary-grid" aria-label="缺失技能统计概览">
-                            <article class="summary-card">
+                        <section class="summary-grid ai-module-summary-grid" aria-label="缺失技能统计概览">
+                            <article class="summary-card ai-module-summary-card">
                                 <p>Applicants</p>
                                 <strong id="gap-applicant-count">0</strong>
                             </article>
-                            <article class="summary-card">
+                            <article class="summary-card ai-module-summary-card">
                                 <p>Required skills</p>
                                 <strong id="gap-required-count">0</strong>
                             </article>
-                            <article class="summary-card">
+                            <article class="summary-card ai-module-summary-card">
                                 <p>Unique gap skills</p>
                                 <strong id="gap-unique-count">0</strong>
                             </article>
@@ -154,7 +154,7 @@
                             </article>
                         </section>
 
-                        <p id="gap-list-summary" class="list-summary">Choose a job to load missing skills insights.</p>
+                        <p id="gap-list-summary" class="list-summary ai-module-list-summary">Choose a job to load missing skills insights.</p>
                         <div id="gap-list" class="gap-list" aria-live="polite"></div>
                     </section>
                 </main>
