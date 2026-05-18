@@ -47,10 +47,44 @@ public class WorkloadStatsService {
     }
 
     /**
-     * 阶段1：先提供基础方法签名，后续阶段补充完整统计逻辑。
+     * 阶段2：实现申请数量统计逻辑。
      */
     public ApplicationCounts calculateApplicationCounts(List<Application> applications) {
         List<Application> safeApplications = applications != null ? applications : Collections.emptyList();
-        return new ApplicationCounts(safeApplications.size(), 0, 0, 0, 0);
+        int total = 0;
+        int pending = 0;
+        int accepted = 0;
+        int rejected = 0;
+        int withdrawn = 0;
+
+        for (Application application : safeApplications) {
+            if (application == null) {
+                continue;
+            }
+            total++;
+            Application.Status status = application.getStatus();
+            if (status == null) {
+                pending++;
+                continue;
+            }
+            switch (status) {
+                case PENDING:
+                    pending++;
+                    break;
+                case ACCEPTED:
+                    accepted++;
+                    break;
+                case REJECTED:
+                    rejected++;
+                    break;
+                case WITHDRAWN:
+                    withdrawn++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return new ApplicationCounts(total, pending, accepted, rejected, withdrawn);
     }
 }
