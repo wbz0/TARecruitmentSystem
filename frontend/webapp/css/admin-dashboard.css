@@ -434,6 +434,18 @@
 }
 
 @media (max-width: 760px) {
+    .portal-topbar {
+        padding: 0 16px;
+        min-height: 52px;
+    }
+
+    .portal-user-name {
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .admin-dashboard-page {
         padding: 24px 16px 32px;
     }
@@ -461,12 +473,43 @@
     .filter-actions .inline-btn {
         flex: 1;
         min-width: 120px;
+        min-height: 44px;
+    }
+
+    .chart-card {
+        padding: 12px 10px;
+    }
+
+    .chart-header p {
+        margin-top: 2px;
     }
 }
 
 @media (max-width: 560px) {
+    .portal-shell {
+        gap: 8px;
+    }
+
+    .portal-brand {
+        font-size: 20px;
+    }
+
+    .portal-nav-link {
+        min-height: 38px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
     .summary-grid {
         grid-template-columns: 1fr;
+    }
+
+    .summary-card {
+        padding: 10px;
+    }
+
+    .summary-card strong {
+        font-size: 20px;
     }
 
     .chart-row {
@@ -481,5 +524,30 @@
 
     .mo-item-stats {
         grid-template-columns: 1fr;
+    }
+
+    .mo-item {
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .mo-item-header h3 {
+        font-size: 14px;
+    }
+
+    .mo-item-id {
+        font-size: 11px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .primary-btn,
+    .ghost-btn,
+    .inline-btn {
+        transition: none;
+    }
+
+    .chart-fill {
+        transition: none;
     }
 }
