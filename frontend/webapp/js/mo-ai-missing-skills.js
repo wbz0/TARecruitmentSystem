@@ -15,6 +15,10 @@
         requiredCount: document.getElementById("gap-required-count"),
         uniqueCount: document.getElementById("gap-unique-count")
     };
+    var chartNodes = {
+        frequencyChart: document.getElementById("gap-frequency-chart"),
+        bucketChart: document.getElementById("score-bucket-chart")
+    };
 
     if (!filterForm || !jobFilter || !listNode || !listSummaryNode) {
         return;
@@ -141,13 +145,18 @@
             }
 
             var frequency = Array.isArray(payload.missingSkillFrequency) ? payload.missingSkillFrequency : [];
+            var scoreBuckets = payload.scoreBuckets && typeof payload.scoreBuckets === "object" ? payload.scoreBuckets : {};
             var applicantCount = Number(payload.applicantCount || 0);
             var requiredCount = Number(payload.requiredSkillCount || 0);
             updateSummary(applicantCount, requiredCount, frequency.length);
+            renderFrequencyChart(frequency);
+            renderScoreBucketChart(scoreBuckets, applicantCount);
             renderList(frequency);
         }).catch(function () {
             showMessage("Network error while loading missing skills data.", "error");
             resetSummary();
+            renderFrequencyChart([]);
+            renderScoreBucketChart({}, 0);
             renderList([]);
         }).finally(function () {
             state.loading = false;
@@ -163,6 +172,67 @@
 
     function resetSummary() {
         updateSummary(0, 0, 0);
+    }
+
+    function renderFrequencyChart(frequency) {
+        if (!chartNodes.frequencyChart) {
+            return;
+        }
+        chartNodes.frequencyChart.innerHTML = "";
+        if (!frequency.length) {
+            chartNodes.frequencyChart.innerHTML = "<p class=\"gap-meta\">No frequency data available.</p>";
+            return;
+        }
+        var max = 0;
+        frequency.forEach(function (item) {
+            max = Math.max(max, Number(item.count || 0));
+        });
+        frequency.forEach(function (item) {
+            var skill = safeText(item.skill, "Unknown");
+            var count = Number(item.count || 0);
+            var percent = max > 0 ? Math.round((count * 100) / max) : 0;
+            chartNodes.frequencyChart.appendChild(buildBarRow(skill, percent, count, "blue"));
+        });
+    }
+
+    function renderScoreBucketChart(scoreBuckets, applicantCount) {
+        if (!chartNodes.bucketChart) {
+            return;
+        }
+        chartNodes.bucketChart.innerHTML = "";
+        var total = applicantCount > 0 ? applicantCount : sumBucketValues(scoreBuckets);
+        var rows = [
+            { label: "High", value: Number(scoreBuckets.high || 0), color: "green" },
+            { label: "Medium", value: Number(scoreBuckets.medium || 0), color: "teal" },
+            { label: "Low", value: Number(scoreBuckets.low || 0), color: "blue" },
+            { label: "None", value: Number(scoreBuckets.none || 0), color: "red" }
+        ];
+        if (total <= 0) {
+            chartNodes.bucketChart.innerHTML = "<p class=\"gap-meta\">No score bucket data available.</p>";
+            return;
+        }
+        rows.forEach(function (row) {
+            var percent = Math.round((row.value * 100) / total);
+            chartNodes.bucketChart.appendChild(buildBarRow(row.label, percent, row.value, row.color));
+        });
+    }
+
+    function buildBarRow(label, percent, value, colorClass) {
+        var row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML =
+            "<span class=\"bar-label\">" + escapeHtml(label) + "</span>" +
+            "<div class=\"bar-track\"><i class=\"bar-fill " + escapeHtml(colorClass) + "\" style=\"width:" + escapeHtml(String(percent)) + "%\"></i></div>" +
+            "<strong class=\"bar-value\">" + escapeHtml(String(value)) + "</strong>";
+        return row;
+    }
+
+    function sumBucketValues(scoreBuckets) {
+        var high = Number(scoreBuckets.high || 0);
+        var medium = Number(scoreBuckets.medium || 0);
+        var low = Number(scoreBuckets.low || 0);
+        var none = Number(scoreBuckets.none || 0);
+        return high + medium + low + none;
     }
 
     function renderList(frequency) {

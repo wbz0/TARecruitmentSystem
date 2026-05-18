@@ -137,6 +137,23 @@
                             </article>
                         </section>
 
+                        <section class="chart-grid" aria-label="技能对比图表">
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h3>Missing Skill Frequency</h3>
+                                    <p>Most frequently missing capabilities</p>
+                                </header>
+                                <div id="gap-frequency-chart" class="bar-chart" aria-live="polite"></div>
+                            </article>
+                            <article class="chart-card">
+                                <header class="chart-header">
+                                    <h3>Match Score Buckets</h3>
+                                    <p>Distribution by high / medium / low / none</p>
+                                </header>
+                                <div id="score-bucket-chart" class="bar-chart" aria-live="polite"></div>
+                            </article>
+                        </section>
+
                         <p id="gap-list-summary" class="list-summary">Choose a job to load missing skills insights.</p>
                         <div id="gap-list" class="gap-list" aria-live="polite"></div>
                     </section>
