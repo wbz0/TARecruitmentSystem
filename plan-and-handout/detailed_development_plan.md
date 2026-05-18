@@ -164,13 +164,13 @@
 负责：管理员工作量统计
 
 
-| 周次  | Commit | Message                      | Git Command                                                                       |
-| --- | ------ | ---------------------------- | --------------------------------------------------------------------------------- |
-| 周7  | #1     | `feat: 创建WorkloadStats统计服务类` | `git commit -m "feat: 创建WorkloadStats统计服务类" --author="member3 <member3@edu.com>"` |
-| 周7  | #2     | `feat: 实现申请数量统计API`          | `git commit -m "feat: 实现申请数量统计API" --author="member3 <member3@edu.com>"`          |
-| 周8  | #3     | `feat: 实现MO处理工作量统计`          | `git commit -m "feat: 实现MO处理工作量统计" --author="member3 <member3@edu.com>"`          |
-| 周9  | #4     | `feat: 添加时间段筛选和导出功能`         | `git commit -m "feat: 添加时间段筛选和导出功能" --author="member3 <member3@edu.com>"`         |
-| 周10 | #5     | `perf: 优化大数据量统计查询性能`         | `git commit -m "perf: 优化大数据量统计查询性能" --author="member3 <member3@edu.com>"`         |
+| 周次  | Commit | Message                      | 状态  | Git Command                                                                       |
+| --- | ------ | ---------------------------- | --- | --------------------------------------------------------------------------------- |
+| 周7  | #1     | `feat: 创建WorkloadStats统计服务类` | ✅   | `git commit -m "feat: 创建WorkloadStats统计服务类" --author="member3 <member3@edu.com>"` |
+| 周7  | #2     | `feat: 实现申请数量统计API`          | ✅   | `git commit -m "feat: 实现申请数量统计API" --author="member3 <member3@edu.com>"`          |
+| 周8  | #3     | `feat: 实现MO处理工作量统计`          | ✅   | `git commit -m "feat: 实现MO处理工作量统计" --author="member3 <member3@edu.com>"`          |
+| 周9  | #4     | `feat: 添加时间段筛选和导出功能`         | ✅   | `git commit -m "feat: 添加时间段筛选和导出功能" --author="member3 <member3@edu.com>"`         |
+| 周10 | #5     | `perf: 优化大数据量统计查询性能`         | ✅   | `git commit -m "perf: 优化大数据量统计查询性能" --author="member3 <member3@edu.com>"`         |
 
 
 ---
@@ -180,13 +180,13 @@
 负责：集成测试、打包、用户手册
 
 
-| 周次  | Commit | Message                      | Git Command                                                                       |
-| --- | ------ | ---------------------------- | --------------------------------------------------------------------------------- |
-| 周7  | #1     | `test: 编写登录注册模块集成测试`         | `git commit -m "test: 编写登录注册模块集成测试" --author="member4 <member4@edu.com>"`         |
-| 周8  | #2     | `test: 编写档案和职位模块集成测试`        | `git commit -m "test: 编写档案和职位模块集成测试" --author="member4 <member4@edu.com>"`        |
-| 周9  | #3     | `test: 编写申请流程端到端测试`          | `git commit -m "test: 编写申请流程端到端测试" --author="member4 <member4@edu.com>"`          |
-| 周10 | #4     | `chore: 配置Maven打包脚本，生成WAR文件` | `git commit -m "chore: 配置Maven打包脚本，生成WAR文件" --author="member4 <member4@edu.com>"` |
-| 周11 | #5     | `docs: 编写完整用户手册`             | `git commit -m "docs: 编写完整用户手册" --author="member4 <member4@edu.com>"`             |
+| 周次  | Commit | Message                      | 状态  | Git Command                                                                       |
+| --- | ------ | ---------------------------- | --- | --------------------------------------------------------------------------------- |
+| 周7  | #1     | `test: 编写登录注册模块集成测试`         | ✅   | `git commit -m "test: 编写登录注册模块集成测试" --author="member4 <member4@edu.com>"`         |
+| 周8  | #2     | `test: 编写档案和职位模块集成测试`        | ⏳   | `git commit -m "test: 编写档案和职位模块集成测试" --author="member4 <member4@edu.com>"`        |
+| 周9  | #3     | `test: 编写申请流程端到端测试`          | ⏳   | `git commit -m "test: 编写申请流程端到端测试" --author="member4 <member4@edu.com>"`          |
+| 周10 | #4     | `chore: 配置Maven打包脚本，生成WAR文件` | ⏳   | `git commit -m "chore: 配置Maven打包脚本，生成WAR文件" --author="member4 <member4@edu.com>"` |
+| 周11 | #5     | `docs: 编写完整用户手册`             | ⏳   | `git commit -m "docs: 编写完整用户手册" --author="member4 <member4@edu.com>"`             |
 
 
 ---
