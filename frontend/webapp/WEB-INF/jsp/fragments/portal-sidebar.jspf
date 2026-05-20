@@ -1,0 +1,545 @@
+<%--
+    共享侧边栏片段。
+
+    调用页面必须先设置：
+    - contextPath：当前部署路径；
+    - portalRole：ta/mo/admin，用于决定导航项和品牌文案；
+    - activeNav：当前高亮导航；
+    - username/userInitial：底部用户区兜底展示。
+
+    这里还包含 TA/MO 可编辑的账号资料弹窗，调用 /api/me/account 和 /api/me/avatar。
+--%>
+<%
+    String sidebarRole = portalRole == null ? "" : portalRole;
+    String sidebarActive = activeNav == null ? "" : activeNav;
+    String sidebarBrandKey = "portal.brand.ta";
+    String sidebarBrandFallback = "TA Portal";
+    String sidebarAriaKey = "portal.nav.ta.aria";
+    if ("mo".equals(sidebarRole)) {
+        sidebarBrandKey = "portal.brand.mo";
+        sidebarBrandFallback = "MO Portal";
+        sidebarAriaKey = "portal.nav.mo.aria";
+    } else if ("admin".equals(sidebarRole)) {
+        sidebarBrandKey = "portal.brand.admin";
+        sidebarBrandFallback = "Admin Portal";
+        sidebarAriaKey = "portal.nav.admin.aria";
+    }
+    boolean sidebarAccountEditable = "ta".equals(sidebarRole) || "mo".equals(sidebarRole);
+    boolean sidebarIsMo = "mo".equals(sidebarRole);
+%>
+<aside class="portal-sidebar" data-i18n-aria-label="<%= sidebarAriaKey %>">
+    <p class="portal-brand" data-i18n="<%= sidebarBrandKey %>"><%= sidebarBrandFallback %></p>
+    <nav class="portal-nav">
+        <% if ("ta".equals(sidebarRole)) { %>
+            <a class="portal-nav-link <%= "jobs".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/ta/job-list.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 7.5h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5" />
+                    <path d="M3 12h18" />
+                </svg>
+                <span data-i18n="portal.nav.ta.jobs">Job List</span>
+            </a>
+            <a class="portal-nav-link <%= "applications".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/ta/application-status.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="12" r="8"></circle>
+                    <path d="m8.5 12.5 2.2 2.2L15.5 10"></path>
+                </svg>
+                <span data-i18n="portal.nav.ta.status">My Applications</span>
+            </a>
+            <a class="portal-nav-link <%= "profile".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/ta/dashboard.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="8" r="3"></circle>
+                    <path d="M6 18c1.2-2 3.2-3 6-3s4.8 1 6 3"></path>
+                </svg>
+                <span data-i18n="portal.nav.ta.profile">Profile</span>
+            </a>
+        <% } else if ("mo".equals(sidebarRole)) { %>
+            <a class="portal-nav-link <%= "my-jobs".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/mo/dashboard.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 7.5h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5"/>
+                    <path d="M3 12h18"/>
+                </svg>
+                <span data-i18n="portal.nav.mo.myJobs">我的发布</span>
+            </a>
+            <a class="portal-nav-link <%= "post-job".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/mo/dashboard.jsp?tab=post-job">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 5v14"/>
+                    <path d="M5 12h14"/>
+                </svg>
+                <span data-i18n="portal.nav.mo.postJob">发布新职位</span>
+            </a>
+        <% } else if ("admin".equals(sidebarRole)) { %>
+            <a class="portal-nav-link <%= "dashboard".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/admin/dashboard.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 12h7V4H4z"></path>
+                    <path d="M13 20h7v-8h-7z"></path>
+                    <path d="M13 11h7V4h-7z"></path>
+                    <path d="M4 20h7v-6H4z"></path>
+                </svg>
+                <span data-i18n="portal.nav.admin.dashboard">TA Workload</span>
+            </a>
+            <a id="admin-invite-nav-link" class="portal-nav-link <%= "invite".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/admin/invite.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 5v14"></path>
+                    <path d="M5 12h14"></path>
+                    <path d="M4 4h16v16H4z"></path>
+                </svg>
+                <span data-i18n="portal.nav.admin.invite">Invite Code</span>
+            </a>
+            <a class="portal-nav-link <%= "notifications".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/admin/notifications.jsp">
+                <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span data-i18n="portal.nav.admin.notifications">Notifications</span>
+            </a>
+        <% } %>
+    </nav>
+    <%
+        String sidebarUsername = username == null || username.isEmpty() ? "User" : username;
+        String sidebarInitial = userInitial == null || userInitial.isEmpty() ? sidebarUsername.substring(0, 1).toUpperCase() : userInitial;
+        String inboxHref = contextPath + "/jsp/ta/notifications.jsp";
+        if ("mo".equals(sidebarRole))    inboxHref = contextPath + "/jsp/mo/notifications.jsp";
+        else if ("admin".equals(sidebarRole)) inboxHref = contextPath + "/jsp/admin/notifications.jsp";
+    %>
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <% if (sidebarAccountEditable) { %>
+                <button class="sidebar-avatar-button" type="button" id="sidebar-profile-trigger"
+                        data-i18n-aria-label="portal.accountProfile.open"
+                        data-i18n-title="portal.accountProfile.open"
+                        aria-label="Edit account display profile"
+                        title="Edit account display profile">
+                    <span class="portal-user-avatar" id="sidebar-avatar-el"><%= sidebarInitial %></span>
+                </button>
+            <% } else { %>
+                <span class="portal-user-avatar" id="sidebar-avatar-el"><%= sidebarInitial %></span>
+            <% } %>
+            <span class="sidebar-username" id="sidebar-username-el"><%= sidebarUsername %></span>
+        </div>
+        <a class="sidebar-inbox" href="<%= inboxHref %>" data-i18n-aria-label="portal.action.inbox" aria-label="Inbox" data-i18n-title="portal.action.inbox" title="Inbox">
+            <svg class="sidebar-inbox-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+            </svg>
+        </a>
+        <form class="sidebar-signout-form" method="post" action="<%= contextPath %>/api/auth/logout">
+            <button class="sidebar-signout" type="submit" data-i18n-aria-label="portal.action.signOut" aria-label="Sign Out" data-i18n-title="portal.action.signOut" title="Sign Out">
+                <svg class="sidebar-signout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</aside>
+<% if (sidebarAccountEditable) { %>
+<div class="account-profile-modal" id="account-profile-modal" aria-hidden="true">
+    <div class="account-profile-backdrop" data-account-profile-close></div>
+    <section class="account-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="account-profile-title">
+        <header class="account-profile-head">
+            <div>
+                <p class="account-profile-kicker" data-i18n="portal.accountProfile.kicker">Account display</p>
+                <h2 id="account-profile-title" data-i18n="portal.accountProfile.title">Edit account profile</h2>
+            </div>
+            <button class="account-profile-close" type="button" data-account-profile-close
+                    data-i18n-aria-label="portal.action.cancel" aria-label="Cancel">&times;</button>
+        </header>
+        <form id="account-profile-form" class="account-profile-form" novalidate>
+            <div class="account-profile-avatar-row">
+                <div class="account-profile-avatar-control">
+                    <span class="portal-user-avatar account-profile-preview" id="account-profile-preview"><%= sidebarInitial %></span>
+                    <label class="account-profile-avatar-edit" for="account-avatar-input"
+                           data-i18n-aria-label="portal.accountProfile.chooseAvatar"
+                           data-i18n-title="portal.accountProfile.chooseAvatar"
+                           aria-label="Choose avatar" title="Choose avatar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </label>
+                    <input id="account-avatar-input" name="avatar" type="file" accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div class="account-profile-upload">
+                    <p data-i18n="<%= sidebarIsMo ? "portal.accountProfile.avatarHintMo" : "portal.accountProfile.avatarHintTa" %>"><%= sidebarIsMo
+                            ? "This avatar is only for your account display. Job cards use your title and real name below."
+                            : "This avatar is only for your account display. Application reviewers still see the avatar saved in your TA profile." %></p>
+                </div>
+            </div>
+            <label class="account-profile-field">
+                <span data-i18n="portal.accountProfile.nickname">Nickname</span>
+                <input id="account-display-name" name="displayName" type="text" maxlength="20" autocomplete="username" required>
+            </label>
+            <label class="account-profile-field">
+                <span data-i18n="portal.accountProfile.realName">Real name</span>
+                <input id="account-real-name" name="realName" type="text" maxlength="100" autocomplete="name">
+            </label>
+            <% if (sidebarIsMo) { %>
+            <label class="account-profile-field">
+                <span data-i18n="portal.accountProfile.professionalTitle">Title</span>
+                <input id="account-professional-title" name="professionalTitle" type="text" maxlength="40"
+                       data-i18n-placeholder="portal.accountProfile.professionalTitlePlaceholder"
+                       placeholder="Dr. / Prof.">
+            </label>
+            <% } %>
+            <p class="account-profile-message" id="account-profile-message" role="status" aria-live="polite"></p>
+            <div class="account-profile-actions">
+                <button class="btn btn-secondary" type="button" data-account-profile-close data-i18n="portal.action.cancel">Cancel</button>
+                <button class="btn btn-primary" type="submit" id="account-profile-save" data-i18n="portal.action.save">Save Changes</button>
+            </div>
+        </form>
+    </section>
+</div>
+<% } %>
+<script>
+(function () {
+    // 这段脚本绑定在共享侧边栏中，负责加载账号资料、头像和账号资料编辑弹窗。
+    // DOM 节点可能因角色不同而不存在，例如 Admin 没有资料编辑弹窗。
+    var el = document.getElementById("sidebar-avatar-el");
+    var usernameEl = document.getElementById("sidebar-username-el");
+    var trigger = document.getElementById("sidebar-profile-trigger");
+    var modal = document.getElementById("account-profile-modal");
+    var form = document.getElementById("account-profile-form");
+    var preview = document.getElementById("account-profile-preview");
+    var avatarInput = document.getElementById("account-avatar-input");
+    var displayNameInput = document.getElementById("account-display-name");
+    var realNameInput = document.getElementById("account-real-name");
+    var professionalTitleInput = document.getElementById("account-professional-title");
+    var messageEl = document.getElementById("account-profile-message");
+    var saveBtn = document.getElementById("account-profile-save");
+    var initial = "<%= sidebarInitial %>";
+    var fallbackUsername = "<%= sidebarUsername.replace("\\", "\\\\").replace("\"", "\\\"") %>";
+    var contextPath = "<%= contextPath %>";
+    // 当前账号资料快照，侧边栏展示和弹窗表单都从这里同步。
+    var currentProfile = {
+        username: fallbackUsername,
+        displayName: "",
+        realName: "",
+        professionalTitle: "",
+        hasAvatar: false
+    };
+
+    /*
+     * 读取 /api/me... 路由集合。
+     */
+    function getMeRoutes() {
+        // ta-recruitment.js 可能因为 defer 顺序稍晚才挂到 window，下面会等待 DOMContentLoaded 再取一次。
+        return window.TARecruitment && window.TARecruitment.routes && window.TARecruitment.routes.me
+            ? window.TARecruitment.routes.me
+            : null;
+    }
+
+    /*
+     * 等公共路由工具可用后再加载账号资料。
+     */
+    function whenMeRoutesReady(callback) {
+        var routes = getMeRoutes();
+        if (routes) {
+            callback(routes);
+            return;
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            routes = getMeRoutes();
+            if (routes) {
+                callback(routes);
+            }
+        });
+    }
+
+    /*
+     * 共享侧边栏里的本地化兜底。
+     */
+    function t(key, fallback) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            return window.AppI18n.t(key, fallback);
+        }
+        return fallback;
+    }
+
+    /*
+     * 保存资料失败时尽量把服务端英文错误转换成当前语言。
+     */
+    function localizeServerMessage(message, fallbackKey, fallbackText) {
+        if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
+            return window.AppI18n.localizeServerMessage(message, fallbackKey, fallbackText);
+        }
+        return message || t(fallbackKey, fallbackText);
+    }
+
+    /*
+     * 侧边栏用户名展示优先取账号 profile，缺失时使用 JSP session 兜底。
+     */
+    function getAccountLabel(profile) {
+        if (profile && profile.username) return profile.username;
+        return fallbackUsername;
+    }
+
+    /*
+     * 根据用户名/实名生成头像首字母。
+     */
+    function getInitialFromText(text) {
+        var source = typeof text === "string" && text.trim() ? text.trim() : fallbackUsername;
+        return source.substring(0, 1).toUpperCase();
+    }
+
+    /*
+     * 清空头像图片，回到首字母头像。
+     */
+    function clearAvatar(target, seed) {
+        if (!target) return;
+        target.textContent = getInitialFromText(seed || getAccountLabel(currentProfile) || initial);
+        target.classList.remove("has-photo");
+    }
+
+    /*
+     * 把图片地址应用到头像容器；加载失败时回退首字母。
+     */
+    function applyAvatar(target, src) {
+        if (!target) return;
+        var img = new Image();
+        img.className = "portal-user-avatar-photo";
+        img.alt = "";
+        img.onload = function () {
+            target.textContent = "";
+            target.appendChild(img);
+            target.classList.add("has-photo");
+        };
+        img.onerror = function () {
+            clearAvatar(target);
+        };
+        img.src = src;
+    }
+
+    /*
+     * 弹窗内消息提示。
+     */
+    function setMessage(text, isError) {
+        if (!messageEl) return;
+        messageEl.textContent = text || "";
+        messageEl.classList.toggle("is-error", !!isError);
+    }
+
+    /*
+     * 根据账号资料更新侧边栏用户名和头像。
+     */
+    function updateSidebar(profile) {
+        var label = getAccountLabel(profile);
+        if (usernameEl) {
+            usernameEl.textContent = label;
+        }
+        var routes = getMeRoutes();
+        if (profile.hasAvatar && routes) {
+            applyAvatar(el, routes.avatar() + "?v=" + Date.now());
+        } else {
+            clearAvatar(el, label);
+        }
+    }
+
+    /*
+     * 打开弹窗前，把当前 profile 写入表单。
+     */
+    function updateModal(profile) {
+        if (displayNameInput) displayNameInput.value = getAccountLabel(profile);
+        if (realNameInput) realNameInput.value = profile.realName || "";
+        if (professionalTitleInput) professionalTitleInput.value = profile.professionalTitle || "";
+        var routes = getMeRoutes();
+        if (profile.hasAvatar && routes) {
+            applyAvatar(preview, routes.avatar() + "?v=" + Date.now());
+        } else {
+            clearAvatar(preview, getAccountLabel(profile));
+        }
+        if (avatarInput) avatarInput.value = "";
+    }
+
+    /*
+     * 账号资料保存后广播给其他页面脚本，例如 TA dashboard 的头像同步逻辑。
+     */
+    function notifyAccountProfileUpdated(profile) {
+        if (typeof window.CustomEvent !== "function" || !profile) return;
+        // 给 TA dashboard 等页面同步侧边栏保存后的账号资料，不需要刷新整页。
+        document.dispatchEvent(new CustomEvent("account-profile-updated", {
+            detail: profile
+        }));
+    }
+
+    /*
+     * TA 档案保存 fullName 后，同步到账号资料弹窗的 realName 字段。
+     */
+    function applyTaProfileRealName(realName) {
+        if (typeof realName !== "string") return;
+        currentProfile.realName = realName;
+        if (realNameInput && realNameInput.value !== realName) {
+            realNameInput.value = realName;
+        }
+    }
+
+    /*
+     * 从 /api/me/account 加载账号资料。
+     */
+    function loadProfile() {
+        if (!el || !trigger) return;
+        var routes = getMeRoutes();
+        if (!routes) return;
+        fetch(routes.account(), {
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (payload) {
+                if (!payload || !payload.success || !payload.data) return;
+                currentProfile = payload.data;
+                updateSidebar(currentProfile);
+                notifyAccountProfileUpdated(currentProfile);
+            })
+            .catch(function () {
+                clearAvatar(el);
+            });
+    }
+
+    /*
+     * 打开账号资料弹窗。
+     */
+    function openModal() {
+        if (!modal) return;
+        updateModal(currentProfile);
+        setMessage("", false);
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        window.setTimeout(function () {
+            if (displayNameInput) displayNameInput.focus();
+        }, 0);
+    }
+
+    /*
+     * 关闭账号资料弹窗。
+     */
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        setMessage("", false);
+    }
+
+    if (trigger) {
+        trigger.addEventListener("click", openModal);
+    }
+    document.querySelectorAll("[data-account-profile-close]").forEach(function (btn) {
+        btn.addEventListener("click", closeModal);
+    });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && modal && modal.classList.contains("is-open")) {
+            closeModal();
+        }
+    });
+    if (avatarInput) {
+        avatarInput.addEventListener("change", function () {
+            // 本地预览头像，不等保存接口返回；真正持久化仍在表单 submit 中完成。
+            var file = avatarInput.files && avatarInput.files[0];
+            if (!file || !preview) return;
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                applyAvatar(preview, event.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            setMessage("", false);
+            // displayName 复用用户名规则，因为后端账号资料仍按 username 风格校验展示名。
+            var usernameError = validateAccountUsername(displayNameInput ? displayNameInput.value.trim() : "");
+            if (usernameError) {
+                setMessage(usernameError, true);
+                if (displayNameInput) displayNameInput.focus();
+                return;
+            }
+            if (saveBtn) saveBtn.disabled = true;
+            var formData = new FormData(form);
+            var routes = getMeRoutes();
+            if (!routes) {
+                setMessage(t("portal.accountProfile.saveFailed", "Unable to save account profile."), true);
+                if (saveBtn) saveBtn.disabled = false;
+                return;
+            }
+            if (displayNameInput) {
+                formData.set("displayName", displayNameInput.value.trim());
+            }
+            if (professionalTitleInput) {
+                formData.set("professionalTitle", professionalTitleInput.value.trim());
+            }
+            fetch(routes.account(), {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                body: formData
+            })
+                .then(function (res) {
+                    return res.json().then(function (payload) {
+                        return { ok: res.ok, payload: payload };
+                    });
+                })
+                .then(function (result) {
+                    if (!result.ok || !result.payload || !result.payload.success) {
+                        throw new Error(localizeServerMessage(
+                            result.payload && result.payload.message,
+                            "portal.accountProfile.saveFailed",
+                            "Unable to save account profile."
+                        ));
+                    }
+                    currentProfile = result.payload.data || currentProfile;
+                    updateSidebar(currentProfile);
+                    updateModal(currentProfile);
+                    notifyAccountProfileUpdated(currentProfile);
+                    setMessage(t("portal.accountProfile.saved", "Account profile saved."), false);
+                    window.setTimeout(closeModal, 350);
+                })
+                .catch(function (err) {
+                    setMessage(err && err.message ? err.message : t("portal.accountProfile.saveFailed", "Unable to save account profile."), true);
+                })
+                .finally(function () {
+                    if (saveBtn) saveBtn.disabled = false;
+                });
+        });
+    }
+
+    /*
+     * 账号资料弹窗里的用户名/展示名校验。
+     * 规则与注册登录侧保持一致，避免保存后侧边栏显示非法账号名。
+     */
+    function validateAccountUsername(value) {
+        if (!value) {
+            return t("server.auth.usernameRequired", "Username is required.");
+        }
+        if (value.length > 20) {
+            return t("server.auth.usernameTooLong", "Username is too long.");
+        }
+        if (!/^[A-Za-z][A-Za-z0-9_]{2,19}$/.test(value)) {
+            return t("server.auth.usernameInvalid", "Username format is invalid.");
+        }
+        if (value.indexOf("__") !== -1) {
+            return t("server.auth.usernameConsecutiveUnderscore", "Username cannot contain consecutive underscores.");
+        }
+        if (value.charAt(value.length - 1) === "_") {
+            return t("server.auth.usernameTrailingUnderscore", "Username cannot end with an underscore.");
+        }
+        return "";
+    }
+
+    if (el && trigger) {
+        clearAvatar(el);
+        whenMeRoutesReady(loadProfile);
+    } else if (el) {
+        el.textContent = "";
+        el.textContent = initial;
+    }
+
+    document.addEventListener("ta-profile-real-name-updated", function (event) {
+        var detail = event && event.detail ? event.detail : {};
+        // TA 档案 fullName 保存后，会通知账号资料弹窗一起更新 realName。
+        applyTaProfileRealName(typeof detail.realName === "string" ? detail.realName : "");
+    });
+})();
+</script>
