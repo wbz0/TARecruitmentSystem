@@ -1,0 +1,347 @@
+/*
+ * 注册页共享样式。
+ * register.jsp 和 admin-invite.jsp 共用这套表单和提示布局。
+ */
+@import url("./login.css?v=20260513-password-toggle");
+
+.register-page {
+    min-height: 100vh;
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(260px, 0.78fr) minmax(360px, 460px);
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    column-gap: 28px;
+    row-gap: 12px;
+    padding: 32px 24px 40px;
+    box-sizing: border-box;
+}
+
+.register-page .page-utility {
+    grid-column: 1 / -1;
+    width: min(920px, 100%);
+    margin: 0 auto;
+}
+
+.register-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0;
+}
+
+.register-hero h1 {
+    margin: 0;
+    max-width: 500px;
+    font-family: var(--ui-font-display);
+    font-size: clamp(38px, 5.4vw, 62px);
+    line-height: 1.02;
+    letter-spacing: 0;
+    font-weight: 700;
+    text-align: left;
+}
+
+.register-page > .register-hero {
+    grid-column: 1;
+}
+
+.register-page > .register-card,
+.register-page > .page-switch-hint,
+.register-page > .login-footer {
+    grid-column: 2;
+}
+
+.register-card {
+    width: min(460px, 100%);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
+    padding: 30px;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.field-label {
+    margin: 0;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.field-hint {
+    margin: 0;
+    padding: 0 4px;
+    color: var(--ui-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* === Info icon button === */
+.field-info-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ui-text-tertiary);
+    background: transparent;
+    color: var(--ui-text-tertiary);
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.field-info-btn:hover,
+.field-info-btn:focus-visible {
+    border-color: var(--ui-brand);
+    color: var(--ui-brand);
+    outline: none;
+}
+
+/* === Tooltip === */
+.field-tooltip {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--ui-text-primary);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.5;
+    font-style: normal;
+    font-weight: 400;
+    padding: 8px 10px;
+    border-radius: 8px;
+    width: 220px;
+    white-space: normal;
+    text-align: left;
+    z-index: 20;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s, transform 0.15s;
+}
+
+.field-info-btn:hover .field-tooltip,
+.field-info-btn:focus-visible .field-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === Inline field error === */
+.field-error {
+    margin: 0;
+    padding: 0 4px;
+    color: #b42318;
+    font-size: 12px;
+    line-height: 1.5;
+    display: none;
+}
+
+.field-error.visible {
+    display: block;
+}
+
+/* === Invalid input state === */
+.field input.is-invalid {
+    background: #fff2f2;
+    border-color: #ffc5c5;
+}
+
+.field input.is-invalid:focus {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.18);
+}
+
+/* === Flash animation on invalid === */
+@keyframes field-flash {
+    0%   { border-color: #ffc5c5; box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.18); }
+    30%  { border-color: #e53e3e; box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.28); }
+    60%  { border-color: #ffc5c5; box-shadow: 0 0 0 1px rgba(180, 35, 24, 0.10); }
+    100% { border-color: #ffc5c5; box-shadow: none; }
+}
+
+.field input.is-flashing {
+    animation: field-flash 0.45s ease-out;
+}
+
+.role-field {
+    gap: 10px;
+}
+
+.role-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.role-option {
+    min-height: 80px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-surface);
+    color: var(--ui-text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.role-option:hover {
+    transform: translateY(-1px);
+    border-color: var(--ui-brand);
+}
+
+.role-option:active {
+    transform: translateY(0);
+}
+
+.role-option:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.role-option.is-selected {
+    border-color: var(--ui-brand);
+    background: var(--ui-brand-soft);
+    box-shadow: var(--ui-shadow-focus);
+}
+
+.role-option-title {
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.role-option-desc {
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.register-submit-btn {
+    width: 100%;
+    height: 48px;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-brand);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 600;
+    padding: 0 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0, 113, 227, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, opacity 0.2s;
+}
+
+.register-submit-btn:hover {
+    transform: translateY(-1px);
+    background: var(--ui-brand-press);
+}
+
+.register-submit-btn:active {
+    transform: translateY(0);
+}
+
+.register-submit-btn:disabled {
+    opacity: 0.78;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.page-switch-hint {
+    margin: 14px 0 0;
+    text-align: center;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.page-switch-hint a {
+    color: var(--ui-brand);
+    text-decoration: none;
+}
+
+.page-switch-hint a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 840px) {
+    .register-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+
+    .register-hero {
+        align-items: center;
+        text-align: center;
+    }
+
+    .register-hero h1,
+    .register-page .subtitle {
+        text-align: center;
+    }
+}
+
+@media (max-width: 520px) {
+
+    .register-card {
+        border-radius: var(--ui-radius-card);
+        padding: 24px 18px;
+    }
+
+    .role-selector {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Admin invite: contact hint block ── */
+
+.invite-contact-hint {
+    background: color-mix(in srgb, var(--ui-surface-muted) 50%, #e8f4ff);
+    border: 1px solid color-mix(in srgb, var(--ui-border) 60%, #93c5fd);
+    border-radius: var(--ui-radius-control);
+    padding: 13px 16px;
+    margin-bottom: 20px;
+}
+
+.invite-contact-hint p {
+    margin: 0 0 5px;
+    font-size: 13.5px;
+    color: var(--ui-text-secondary);
+    line-height: 1.55;
+}
+
+.invite-contact-hint p:last-child {
+    margin-bottom: 0;
+}
+
+.invite-contact-hint a {
+    color: var(--ui-link, #2563eb);
+    font-weight: 600;
+}

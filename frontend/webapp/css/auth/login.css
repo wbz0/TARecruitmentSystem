@@ -1,0 +1,414 @@
+/*
+ * 登录页样式。
+ * 覆盖 login.jsp 的角色选择、密码显示按钮和登录错误提示。
+ */
+@import url("../common/motion.css");
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--ui-font-body);
+    color: var(--ui-text-primary);
+    background: var(--ui-bg);
+}
+
+.page-utility {
+    width: min(384px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.login-page > .page-utility {
+    grid-column: 1 / -1;
+    width: min(920px, 100%);
+    margin: 0 auto;
+}
+
+.login-page > .login-hero {
+    grid-column: 1;
+}
+
+.login-page > .login-card,
+.login-page > .register-hint,
+.login-page > .login-footer {
+    grid-column: 2;
+}
+
+.utility-link {
+    color: var(--ui-text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.utility-link:hover {
+    color: var(--ui-brand);
+}
+
+.login-page {
+    min-height: 100vh;
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(260px, 0.78fr) minmax(340px, 440px);
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    column-gap: 28px;
+    row-gap: 12px;
+    padding: 32px 24px 40px;
+}
+
+.login-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0;
+}
+
+.hero-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow-float);
+    margin-bottom: 18px;
+}
+
+.hero-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: var(--ui-brand);
+}
+
+.login-hero h1 {
+    margin: 0;
+    max-width: 460px;
+    font-family: var(--ui-font-display);
+    font-size: clamp(40px, 6vw, 66px);
+    line-height: 1;
+    letter-spacing: 0;
+    font-weight: 600;
+    text-align: left;
+}
+
+.subtitle {
+    margin: 8px 0 0;
+    color: var(--ui-text-secondary);
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.login-card {
+    width: min(440px, 100%);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
+    padding: 30px;
+}
+
+.form-message {
+    margin-bottom: 14px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.form-message.hidden {
+    display: none;
+}
+
+.form-message.error {
+    color: #b42318;
+    background-color: #fff2f2;
+    border-color: #ffd4d4;
+}
+
+.form-message.success {
+    color: #1f7a34;
+    background-color: #edf7ed;
+    border-color: #cce8d0;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label-row {
+    min-height: 20px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.field label,
+.field-label {
+    margin: 0;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.forgot-link {
+    border: none;
+    background: transparent;
+    color: var(--ui-brand);
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+    padding: 0;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+.field input {
+    width: 100%;
+    height: 48px;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-surface-muted);
+    padding: 0 16px;
+    font-size: 15px;
+    color: var(--ui-text-primary);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.field input::placeholder {
+    color: var(--ui-text-tertiary);
+}
+
+.field input:focus {
+    background: var(--ui-surface);
+    border-color: var(--ui-brand);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+}
+
+.password-input-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrap input {
+    box-sizing: border-box;
+    padding-right: 48px;
+}
+
+.password-toggle {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ui-text-tertiary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+    background: color-mix(in srgb, var(--ui-brand-soft) 70%, transparent);
+    color: var(--ui-brand);
+    outline: none;
+}
+
+.password-toggle svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.role-field {
+    gap: 10px;
+}
+
+.role-selector {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.role-option {
+    min-height: 74px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-surface);
+    color: var(--ui-text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    padding: 13px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s, opacity 0.2s;
+}
+
+.role-option:hover {
+    transform: translateY(-1px);
+    border-color: var(--ui-brand);
+}
+
+.role-option:active {
+    transform: translateY(0);
+}
+
+.role-option.is-selected {
+    border-color: var(--ui-brand);
+    background: var(--ui-brand-soft);
+    box-shadow: var(--ui-shadow-focus);
+}
+
+.role-option:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.role-option-title {
+    color: var(--ui-text-primary);
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.role-option-desc {
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.login-submit-btn {
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-brand);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--ui-shadow-button-selected);
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.login-submit-btn:hover {
+    transform: translateY(-1px);
+    background: var(--ui-brand-press);
+}
+
+.login-submit-btn:active {
+    transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.register-hint {
+    margin: 14px 0 0;
+    text-align: center;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.register-hint a {
+    color: var(--ui-brand);
+    text-decoration: none;
+}
+
+.register-hint a:hover {
+    text-decoration: underline;
+}
+
+.login-footer {
+    margin: 8px 0 0;
+    text-align: center;
+    color: var(--ui-text-tertiary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 840px) {
+    .login-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+
+    .login-hero {
+        align-items: center;
+        text-align: center;
+    }
+
+    .login-hero h1,
+    .subtitle {
+        text-align: center;
+    }
+}
+
+@media (max-width: 520px) {
+
+    .page-utility {
+        margin-bottom: 12px;
+    }
+
+    .login-hero h1 {
+        font-size: 24px;
+    }
+
+    .login-card {
+        border-radius: var(--ui-radius-card);
+        padding: 24px 18px;
+    }
+
+    .role-selector {
+        grid-template-columns: 1fr;
+    }
+}

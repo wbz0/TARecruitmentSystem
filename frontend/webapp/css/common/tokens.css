@@ -1,0 +1,129 @@
+/*
+ * 全站设计变量和基础盒模型。
+ * 其它页面 CSS 应优先复用这里的颜色、字体、间距和宽度变量。
+ */
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --ui-font-body: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --ui-font-display: Georgia, "Songti SC", "STSong", serif;
+    --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    --ui-bg: #f3f2ed;
+    --ui-bg-ink: #24211c;
+    --ui-surface: #fffdf8;
+    --ui-surface-muted: #f7f5ef;
+    --ui-surface-raised: #ffffff;
+    --ui-border: #ded8ca;
+    --ui-border-strong: #c9beab;
+    --ui-text-primary: #24211c;
+    --ui-text-secondary: #6d675f;
+    --ui-text-tertiary: #938b7f;
+
+    --ui-brand: #1e5f7a;
+    --ui-brand-hover: #184f67;
+    --ui-brand-press: #123d51;
+    --ui-brand-soft: #e7f2f5;
+    --ui-brand-contrast: #ffffff;
+
+    --role-ta: #1e5f7a;
+    --role-ta-soft: #e7f2f5;
+    --role-mo: #16705c;
+    --role-mo-soft: #e4f3ed;
+    --role-admin: #2a261f;
+    --role-admin-soft: #f3ead8;
+    --role-admin-accent: #b68a2f;
+
+    --status-pending: #8b6f19;
+    --status-pending-soft: #fff4cc;
+    --status-accepted: #1f7a4d;
+    --status-accepted-soft: #e6f4ea;
+    --status-rejected: #b42332;
+    --status-rejected-soft: #fff0f2;
+    --status-withdrawn: #6d675f;
+    --status-withdrawn-soft: #eeeeea;
+    --status-open: #1f7a4d;
+    --status-open-soft: #e6f4ea;
+    --status-closed: #b42332;
+    --status-closed-soft: #fff0f2;
+    --status-filled: #5b4bb2;
+    --status-filled-soft: #efedff;
+    --status-info: #1e5f7a;
+    --status-info-soft: #e7f2f5;
+
+    --ui-radius-card: 8px;
+    --ui-radius-panel: 10px;
+    --ui-radius-control: 8px;
+    --ui-radius-pill: 999px;
+    --ui-shadow-card: 0 1px 2px rgba(36, 33, 28, 0.06), 0 12px 30px rgba(36, 33, 28, 0.06);
+    --ui-shadow-float: 0 18px 50px rgba(36, 33, 28, 0.14);
+    --ui-shadow-focus: 0 0 0 3px rgba(30, 95, 122, 0.18);
+    --ui-shadow-button: 0 1px 2px rgba(36, 33, 28, 0.08);
+    --ui-shadow-button-hover: 0 8px 18px rgba(36, 33, 28, 0.12);
+    --ui-shadow-button-selected: 0 8px 22px rgba(30, 95, 122, 0.24);
+
+    --ui-content-wide: 1120px;
+    --ui-content-data: 1320px;
+    --ui-content-form: 960px;
+    --ui-content-readable: 1040px;
+    --ui-content: 920px;
+    --ui-page-pad: 28px;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--ui-font-body);
+    color: var(--ui-text-primary);
+    background:
+        linear-gradient(135deg, rgba(30, 95, 122, 0.06), transparent 28%),
+        linear-gradient(315deg, rgba(182, 138, 47, 0.08), transparent 34%),
+        var(--ui-bg);
+}
+
+h1,
+h2,
+h3,
+.portal-brand,
+.portal-page-title {
+    font-family: var(--ui-font-display);
+    letter-spacing: 0;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+.portal-shell-ta {
+    --ui-brand: var(--role-ta);
+    --ui-brand-hover: #174f67;
+    --ui-brand-press: #103d51;
+    --ui-brand-soft: var(--role-ta-soft);
+}
+
+.portal-shell-mo {
+    --ui-brand: var(--role-mo);
+    --ui-brand-hover: #115e4d;
+    --ui-brand-press: #0c493d;
+    --ui-brand-soft: var(--role-mo-soft);
+}
+
+.portal-shell-admin {
+    --ui-brand: var(--role-admin);
+    --ui-brand-hover: #1d1a15;
+    --ui-brand-press: #11100d;
+    --ui-brand-soft: var(--role-admin-soft);
+}
