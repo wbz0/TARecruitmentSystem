@@ -1,0 +1,258 @@
+/*
+ * 通知页共享样式。
+ * TA/MO 只读公告列表和 Admin 发布/删除公告页共用本文件。
+ */
+@import url("../common/motion.css");
+@import url("../portal/portal-shell.css");
+
+/* ── Page layout ─────────────────────────────────────────────────────── */
+
+.notifications-page {
+    min-height: auto;
+    padding: 28px 28px 36px;
+    width: min(var(--ui-content-wide), 100%);
+    max-width: var(--ui-content-wide);
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+
+.notifications-hero {
+    width: 100%;
+    max-width: var(--ui-content-readable);
+    margin: 0 auto 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 16px;
+    border-left: 4px solid var(--accent-color, var(--role-ta));
+}
+
+.notifications-hero h1 {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.8px;
+    font-weight: 700;
+    font-family: var(--ui-font-display);
+}
+
+.notifications-hero .subtitle {
+    margin: 0;
+    text-align: left;
+    max-width: 700px;
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────── */
+
+.notifications-panel {
+    width: 100%;
+    max-width: var(--ui-content-readable);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Compose card (admin only) ──────────────────────────────────────── */
+
+.compose-card {
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
+    padding: 22px 24px;
+    box-sizing: border-box;
+}
+
+.compose-card-title {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 650;
+    color: var(--ui-text-primary);
+}
+
+.compose-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.compose-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.compose-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ui-text-secondary);
+}
+
+.compose-field input,
+.compose-field textarea {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: var(--ui-surface-muted);
+    color: var(--ui-text-primary);
+    font-size: 15px;
+    line-height: 1.5;
+    outline: none;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.compose-field input {
+    height: 44px;
+    resize: none;
+}
+
+.compose-field textarea {
+    min-height: 100px;
+}
+
+.compose-field input:focus,
+.compose-field textarea:focus {
+    border-color: var(--accent-color, var(--role-ta));
+    background: var(--ui-surface);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color, var(--role-ta)) 16%, transparent);
+}
+
+.compose-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.compose-message {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.compose-message.hidden {
+    display: none;
+}
+
+/* ── Notification list section ──────────────────────────────────────── */
+
+.notifications-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notifications-list-title {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ui-text-tertiary);
+}
+
+/* ── Individual notification card ────────────────────────────────────── */
+
+.notification-card {
+    position: relative;
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
+    padding: 18px 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notification-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.notification-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 650;
+    color: var(--ui-text-primary);
+    line-height: 1.35;
+}
+
+.notification-delete-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--ui-radius-control);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ui-text-tertiary);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.notification-delete-btn:hover {
+    color: var(--status-rejected);
+    background: var(--status-rejected-soft);
+    border-color: color-mix(in srgb, var(--status-rejected) 20%, transparent);
+}
+
+.notification-content {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ui-text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.notification-meta {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ui-text-tertiary);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+
+.notifications-empty {
+    border: 1px dashed var(--ui-border);
+    border-radius: 16px;
+    padding: 32px 20px;
+    background: var(--ui-surface-muted);
+    text-align: center;
+}
+
+.notifications-empty-text {
+    margin: 0;
+    font-size: 15px;
+    color: var(--ui-text-secondary);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+    .notifications-page {
+        padding: 28px 16px 40px;
+    }
+
+    .compose-card {
+        padding: 18px 16px;
+    }
+
+    .notification-card {
+        padding: 16px;
+    }
+}

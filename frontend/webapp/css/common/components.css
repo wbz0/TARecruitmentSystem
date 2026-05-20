@@ -1,0 +1,330 @@
+/*
+ * 公共组件样式。
+ * 适用于跨页面复用的隐藏状态、按钮、通用卡片和 i18n 初始化状态。
+ */
+@import url("./tokens.css");
+
+.hidden,
+[hidden] {
+    display: none !important;
+}
+
+html.i18n-pending [data-i18n] {
+    visibility: hidden;
+}
+
+html.i18n-pending [data-i18n-placeholder]::placeholder {
+    color: transparent;
+}
+
+.locale-switch {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 4px;
+    min-height: 32px;
+    padding: 2px;
+    border-radius: var(--ui-radius-pill);
+    border: 1px solid var(--ui-border);
+    background: var(--ui-surface);
+    box-shadow: 0 1px 2px rgba(36, 33, 28, 0.05);
+}
+
+.locale-divider {
+    color: var(--ui-text-tertiary);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.locale-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ui-text-secondary);
+    min-height: 26px;
+    padding: 0 9px;
+    border-radius: var(--ui-radius-pill);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.locale-btn:hover {
+    color: var(--ui-text-primary);
+}
+
+.locale-btn.is-active {
+    background: var(--ui-brand-soft);
+    color: var(--ui-brand);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-brand) 12%, transparent);
+}
+
+.locale-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-shadow-focus);
+}
+
+.section-panel,
+.login-card,
+.register-card,
+.jobs-panel,
+.status-panel,
+.detail-card,
+.profile-card,
+.mo-card,
+.selection-panel,
+.match-panel,
+.admin-panel,
+.invite-page-panel {
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card);
+}
+
+.primary-btn,
+.ghost-btn,
+.inline-btn,
+.danger-btn,
+.home-link-btn,
+.register-submit-btn,
+.profile-submit-btn {
+    min-height: 42px;
+    border-radius: var(--ui-radius-control);
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    color: var(--ui-text-primary);
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: var(--ui-shadow-button);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.primary-btn,
+.home-link-btn.primary,
+.register-submit-btn,
+.profile-submit-btn {
+    color: var(--ui-brand-contrast);
+    background: var(--ui-brand);
+    border-color: var(--ui-brand);
+}
+
+.primary-btn:hover,
+.home-link-btn.primary:hover,
+.register-submit-btn:hover,
+.profile-submit-btn:hover {
+    transform: translateY(-1px);
+    background: var(--ui-brand-hover);
+    border-color: var(--ui-brand-hover);
+    box-shadow: var(--ui-shadow-button-hover);
+}
+
+.ghost-btn,
+.home-link-btn.secondary {
+    background: var(--ui-surface);
+    border-color: var(--ui-border-strong);
+    color: var(--ui-text-primary);
+}
+
+.ghost-btn:hover,
+.home-link-btn.secondary:hover {
+    transform: translateY(-1px);
+    border-color: var(--ui-brand);
+    color: var(--ui-brand);
+    box-shadow: var(--ui-shadow-button-hover);
+}
+
+.inline-btn {
+    min-height: 34px;
+    padding: 0 12px;
+    background: var(--ui-surface-muted);
+    border-color: var(--ui-border);
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+}
+
+.inline-btn:hover {
+    color: var(--ui-brand);
+    border-color: color-mix(in srgb, var(--ui-brand) 45%, var(--ui-border));
+    background: var(--ui-brand-soft);
+}
+
+.danger-btn {
+    color: #ffffff;
+    background: var(--status-rejected);
+    border-color: var(--status-rejected);
+}
+
+.danger-btn:hover {
+    transform: translateY(-1px);
+    background: #961b28;
+    border-color: #961b28;
+}
+
+.primary-btn:disabled,
+.ghost-btn:disabled,
+.inline-btn:disabled,
+.danger-btn:disabled,
+.register-submit-btn:disabled,
+.profile-submit-btn:disabled {
+    opacity: 0.68;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.primary-btn:focus-visible,
+.ghost-btn:focus-visible,
+.inline-btn:focus-visible,
+.danger-btn:focus-visible,
+.home-link-btn:focus-visible,
+.register-submit-btn:focus-visible,
+.profile-submit-btn:focus-visible,
+.portal-nav-link:focus-visible,
+.portal-topbar-link:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-shadow-focus), var(--ui-shadow-button);
+}
+
+.form-message {
+    margin-top: 14px;
+    margin-bottom: 0;
+    padding: 11px 12px;
+    border-radius: var(--ui-radius-control);
+    border: 1px solid transparent;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.form-message.error {
+    color: var(--status-rejected);
+    background: var(--status-rejected-soft);
+    border-color: color-mix(in srgb, var(--status-rejected) 28%, white);
+}
+
+.form-message.success {
+    color: var(--status-accepted);
+    background: var(--status-accepted-soft);
+    border-color: color-mix(in srgb, var(--status-accepted) 26%, white);
+}
+
+.empty-state {
+    border: 1px dashed var(--ui-border-strong);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-surface-muted);
+    padding: 22px;
+    text-align: center;
+}
+
+.empty-title {
+    margin: 0;
+    color: var(--ui-text-primary);
+    font-size: 16px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.empty-copy {
+    margin: 6px 0 0;
+    color: var(--ui-text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.status-chip,
+.status-pill,
+.job-status-chip,
+.application-status-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+    border-radius: var(--ui-radius-pill);
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.status-pending {
+    color: var(--status-pending);
+    background: var(--status-pending-soft);
+    border-color: color-mix(in srgb, var(--status-pending) 24%, white);
+}
+
+.status-accepted,
+.status-open {
+    color: var(--status-accepted);
+    background: var(--status-accepted-soft);
+    border-color: color-mix(in srgb, var(--status-accepted) 22%, white);
+}
+
+.status-rejected,
+.status-closed {
+    color: var(--status-rejected);
+    background: var(--status-rejected-soft);
+    border-color: color-mix(in srgb, var(--status-rejected) 22%, white);
+}
+
+.status-withdrawn,
+.status-unknown {
+    color: var(--status-withdrawn);
+    background: var(--status-withdrawn-soft);
+    border-color: color-mix(in srgb, var(--status-withdrawn) 18%, white);
+}
+
+.status-filled {
+    color: var(--status-filled);
+    background: var(--status-filled-soft);
+    border-color: color-mix(in srgb, var(--status-filled) 22%, white);
+}
+
+.metric-card {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-surface-muted);
+    padding: 14px;
+}
+
+.eyebrow,
+.profile-badge,
+.jobs-badge,
+.selection-badge,
+.mo-badge,
+.hero-badge {
+    color: var(--ui-brand);
+    font-family: var(--ui-font-body);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.portal-page-title {
+    margin: 0;
+    color: var(--ui-text-primary);
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.05;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--ui-text-secondary);
+    font-size: 15px;
+    line-height: 1.55;
+}
