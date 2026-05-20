@@ -1,0 +1,39 @@
+<%--
+    共享顶部栏片段。
+
+    调用页面通过 portalRole/pageTitleKey/pageTitleFallback 控制角色品牌和页面标题。
+    顶部栏只放面包屑式标题和语言切换；用户资料与退出登录在 portal-sidebar.jspf。
+--%>
+<%
+    String topbarRole = portalRole == null ? "" : portalRole;
+    String topbarBrandKey = "portal.brand.ta";
+    String topbarBrandFallback = "TA Portal";
+    String topbarUserFallback = "TA User";
+    if ("mo".equals(topbarRole)) {
+        topbarBrandKey = "portal.brand.mo";
+        topbarBrandFallback = "MO Portal";
+        topbarUserFallback = "MO User";
+    } else if ("admin".equals(topbarRole)) {
+        topbarBrandKey = "portal.brand.admin";
+        topbarBrandFallback = "Admin Portal";
+        topbarUserFallback = "Admin User";
+    }
+    String topbarTitleKey = pageTitleKey == null ? topbarBrandKey : pageTitleKey;
+    String topbarTitleFallback = pageTitleFallback == null ? topbarBrandFallback : pageTitleFallback;
+    String topbarUsername = username == null || username.isEmpty() ? topbarUserFallback : username;
+    String topbarInitial = userInitial == null || userInitial.isEmpty() ? topbarUserFallback.substring(0, 1) : userInitial;
+%>
+<header class="portal-topbar">
+    <div class="portal-topbar-menu">
+        <span class="portal-topbar-role" data-i18n="<%= topbarBrandKey %>"><%= topbarBrandFallback %></span>
+        <span class="portal-topbar-divider" aria-hidden="true"></span>
+        <span class="portal-topbar-page" data-i18n="<%= topbarTitleKey %>"><%= topbarTitleFallback %></span>
+    </div>
+    <div class="portal-topbar-right">
+        <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
+            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+            <span class="locale-divider">/</span>
+            <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
+        </div>
+    </div>
+</header>
