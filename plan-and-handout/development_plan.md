@@ -1,140 +1,16 @@
-# EBU6304 助教招聘系统开发计划
-
-## 项目概览
-
-- **项目名称**: 北京邮电大学国际学院助教招聘系统
-- **技术栈**: Java Servlet/JSP Web 应用 (需要 Tomcat)
-- **界面**: HTML + CSS + 浏览器访问
-- **数据存储**: JSON 文件
-- **团队规模**: 6 人
-
----
-
-## 三个评估阶段计划
-
-### 第一阶段：第一次评估 (3月22日) - 30%
-
-**目标**: 完成产品待办列表、低保真原型、短报告
-
-**时间安排**:
-
-| 周次  | 日期       | 活动                           | Git 提交                                |
-| ----- | ---------- | ------------------------------ | --------------------------------------- |
-| 第1周 | 3月6-8日   | 项目启动、需求调研、角色分工   | `init: 初始化项目结构`                |
-| 第2周 | 3月9-15日  | 编写用户故事、创建产品待办列表 | `docs: 添加用户故事和Product Backlog` |
-| 第3周 | 3月16-21日 | 绘制低保真原型、撰写报告       | `docs: 添加原型和报告`                |
-
-**交付物**:
-
-- `ProductBacklog_groupXXX.xlsx` - 产品待办事项列表
-- `Prototype_groupXXX.pdf` - 低保真原型 (手绘/PPT/草图)
-- `Report_groupXXX.pdf` - 简短报告 (最多5页)
-
-**Git 分支策略 (6人)**: 每人一个文档分支
-
-```
-main
-├── docs/user-stories/      # 成员1: 用户故事编写
-├── docs/ProductBacklog/     # 成员2: 产品待办事项列表条列
-├── docs/proto/MO/         # 成员3: 原型-MO发布与筛选页
-├── docs/proto/jobs/         # 成员4: 原型-职位页
-├── docs/proto/application/   # 成员5: 原型-申请页
-└── docs/report/              # 成员6: 报告撰写
-```
-
----
-
-### 第二阶段：中期评估 (4月12日) - 20%
-
-**目标**: 完成可工作软件版本1和2
-
-**时间安排**:
-
-| 周次 |     日期     | 活动                           |    人员    |
-| :--: | :----------: | :----------------------------- | :---------: |
-| 周4 |  3月23-29日  | 迭代1：核心功能开发(v1)        | 4后端+2前端 |
-| 周5 | 3月30-4月5日 | 迭代2：功能完善(v2) + 集成测试 | 4后端+2前端 |
-| 周6 |  4月6-11日  | 准备中期演示 + 测试修复        | 4后端+2前端 |
-
-**核心功能 (MVP)**:
-
-1. TA 创建申请人档案 + 上传简历
-2. MO 发布职位
-3. TA 查找并申请职位
-4. TA 查看申请状态
-5. MO 选择申请人
-
-**Git 分支策略 (6人)**: 4后端 + 2前端 (前后端功能对称)
-
-```
-main
-├── backend/auth-login/           # 成员1(后端): 登录注册 + Session管理
-├── frontend/auth-login/          # 成员5(前端): 登录注册界面
-├── backend/applicant-profile/    # 成员2(后端): TA档案创建 + 简历上传
-├── frontend/applicant-profile/   # 成员5(前端): TA档案界面
-├── backend/job-posting/           # 成员3(后端): MO发布职位 + 职位列表
-├── frontend/job-posting/          # 成员6(前端): 职位浏览界面
-├── backend/application-status/    # 成员4(后端): 查看申请状态 + MO选择
-├── frontend/application-status/  # 成员6(前端): 申请状态界面
-```
-
-**每人预计提交次数**: 4-6次/阶段
-
----
-
-### 第三阶段：最终评估 (5月24日) - 50%
-
-**目标**: 完成最终产品、演示视频、完整报告
-
-**时间安排**:
-
-| 周次 |     日期     | 活动                    |    人员    |
-| :--: | :----------: | :---------------------- | :---------: |
-| 周7 |  4月13-19日  | 迭代3：AI功能开发       | 4后端+2前端 |
-| 周8 |  4月20-26日  | 迭代3：优化完善 + 测试  | 4后端+2前端 |
-| 周9 | 4月27-5月3日 | 迭代4：完善功能 + 测试  | 4后端+2前端 |
-| 周10 |  5月4-10日  | 迭代4：最终优化         | 4后端+2前端 |
-| 周11 |  5月11-17日  | 准备最终交付 + 演示视频 | 4后端+2前端 |
-| 周12 |  5月18-24日  | 最终测试 + 打包提交     | 4后端+2前端 |
-
-**交付物**:
-
-- `Software_groupXXX.zip` - 源代码 + 测试 + JavaDoc + 用户手册 + README + AI-coding plan
-- `Report_groupXXX.pdf` - 完整报告 (小组10页 + 个人300字)
-- 演示视频 (不超过10分钟，英语配音)
-
-**Git 分支策略 (6人)**: 4后端 + 2前端 (前后端功能对称)
-
-```
-main
-├── backend/ai-skill-match/      # 成员1(后端): AI技能匹配
-├── frontend/ai-skill-match/     # 成员5(前端): AI技能匹配界面
-├── backend/ai-missing-skills/   # 成员2(后端): AI识别缺失技能
-├── frontend/ai-missing-skills/  # 成员5(前端): AI缺失技能展示界面
-├── backend/admin-workload/      # 成员3(后端): 管理员工作量统计
-├── frontend/admin-workload/     # 成员6(前端): 管理统计仪表盘
-├── backend/integration-test/    # 成员4(后端): 集成测试 + 打包
-├── docs/user-manual/            # 成员4(后端): 用户手册
-├── frontend/responsive/         # 成员6(前端): 响应式设计 + UI优化
-```
-
-> 注：演示视频在第11周统一录制，不设专门分支
-
-**每人预计提交次数**: 12-18次/阶段
-
----
+# EBU6304 助教招聘系统 - 详细开发计划
 
 ## Git 提交规范
 
-### 提交信息格式:
+### 提交信息格式
 
-```
+```text
 <type>: <description>
 
 [optional body]
 ```
 
-### Type 类型:
+### Type 类型
 
 - `feat`: 新功能
 - `fix`: Bug修复
@@ -145,52 +21,194 @@ main
 - `perf`: 性能优化
 - `chore`: 杂项
 
-### 每人需有:
+## 分阶段分工与进行
 
-- 独立的功能分支
-- 至少10次有意义的提交
-- 合并到main的PR记录
+### 第一阶段：对应第一次评估 (3月22日) - 30%
+
+**目标**: 完成产品待办列表、低保真原型、短报告
+
+**时间安排**:
+
+|活动|Git 提交|
+|---|---|
+|项目启动、需求调研、角色分工|`init: 初始化项目结构`|
+|编写用户故事、创建产品待办列表|`docs: 添加用户故事和Product Backlog`|
+|绘制低保真原型、撰写报告|`docs: 添加原型和报告`|
+
+**交付物**:
+
+- `ProductBacklog_groupXXX.xlsx` - 产品待办事项列表
+- `Prototype_groupXXX.pdf` - 低保真原型 (手绘/PPT/草图)
+- `Report_groupXXX.pdf` - 简短报告 (最多5页)
+
+### 第二阶段：中期评估 (4月12日) - 20%
+
+#### 成员1 (后端) - auth-login
+
+负责：登录注册 + Session管理
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建User实体类和UserDao`|✅|`git commit -m "feat: 创建User实体类和UserDao" --author="member1 <member1@edu.com>"`|
+|#2|`feat: 实现登录Servlet和注册Servlet`|✅|`git commit -m "feat: 实现登录Servlet和注册Servlet" --author="member1 <member1@edu.com>"`|
+|#3|`feat: 添加Session管理和权限验证`|✅|`git commit -m "feat: 添加Session管理和权限验证" --author="member1 <member1@edu.com>"`|
+|#4|`fix: 修复验证登录密码加密问题`|✅|`git commit -m "fix: 修复验证登录密码加密问题" --author="member1 <member1@edu.com>"`|
+|#5|`refactor: 优化登录逻辑，添加错误处理`|✅|`git commit -m "refactor: 优化登录逻辑，添加错误处理" --author="member1 <member1@edu.com>"`|
+
+---
+
+#### 成员2 (后端) - applicant-profile
+
+负责：TA档案创建 + 简历上传
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建Applicant实体类和ApplicantDao`|✅|`git commit -m "feat: 创建Applicant实体类和ApplicantDao" --author="member2 <member2@edu.com>"`|
+|#2|`feat: 实现档案创建Servlet，支持基本信息存储`|✅|`git commit -m "feat: 实现档案创建Servlet，支持基本信息存储" --author="member2 <member2@edu.com>"`|
+|#3|`feat: 实现简历文件上传功能`|✅|`git commit -m "feat: 实现简历文件上传功能" --author="member2 <member2@edu.com>"`|
+|#4|`fix: 修复文件上传大小限制问题`|✅|`git commit -m "fix: 修复文件上传大小限制问题" --author="member2 <member2@edu.com>"`|
+|#5|`refactor: 添加档案完整性验证`|✅|`git commit -m "refactor: 添加档案完整性验证" --author="member2 <member2@edu.com>"`|
 
 ---
 
-## 关键里程碑
+#### 成员3 (后端) - job-posting
 
-1. **3月22日** - 第一次评估提交 (30%)
-2. **4月12日** - 中期评估演示 (20%)
-3. **5月24日** - 最终评估提交 (50%)
+负责：MO发布职位 + 职位列表
 
----
-
-## 建议的工具
-
-- **原型**: AI 生成 HTML 页面 → 浏览器截图 → 拼接成 PDF
-- **Web服务器**: Apache Tomcat (轻量级)
-- **文档**:
-  - AI-coding plan (AI使用策略文档)
-  - JavaDoc (代码注释文档)
-- **代码**: IntelliJ IDEA / VS Code
-- **版本控制**: Git + GitHub
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建Job职位实体类和JobDao`|✅|`git commit -m "feat: 创建Job职位实体类和JobDao" --author="member3 <member3@edu.com>"`|
+|#2|`feat: 实现职位发布Servlet`|✅|`git commit -m "feat: 实现职位发布Servlet" --author="member3 <member3@edu.com>"`|
+|#3|`feat: 实现职位列表查询API，支持筛选`|✅|`git commit -m "feat: 实现职位列表查询API，支持筛选" --author="member3 <member3@edu.com>"`|
+|#4|`fix: 修复职位状态显示错误`|✅|`git commit -m "fix: 修复职位状态显示错误" --author="member3 <member3@edu.com>"`|
+|#5|`feat: 添加职位编辑和删除功能`|✅|`git commit -m "feat: 添加职位编辑和删除功能" --author="member3 <member3@edu.com>"`|
 
 ---
 
-## 6人团队分工建议
+#### 成员4 (后端) - application-status
 
-| 角色 | 成员 |  第一阶段  |             第二阶段             |                第三阶段                |
-| :--: | :--: | :---------: | :------------------------------: | :------------------------------------: |
-| 后端 |  1  |  用户故事  |            auth-login            |             ai-skill-match             |
-| 后端 |  2  |  用户故事  |        applicant-profile        |           ai-missing-skills           |
-| 后端 |  3  | 原型-登录页 |           job-posting           |             admin-workload             |
-| 后端 |  4  | 原型-职位页 |        application-status        |       集成测试 + 打包 + 用户手册       |
-| 前端 |  5  | 原型-申请页 |  auth-login + applicant-profile  |   ai-skill-match + ai-missing-skills   |
-| 前端 |  6  |  报告撰写  | job-posting + application-status | admin-workload + responsive + 演示视频 |
+负责：查看申请状态 + MO选择
 
-> 前后端对称: 4后端(成员1-4) + 2前端(成员5-6)，前端2人各负责2个模块的界面开发
-
-**每人提交次数统计**:
-
-- 第一阶段: 3-5次
-- 第二阶段: 4-6次
-- 第三阶段: 4-6次
-- **总计: 11-17次提交/人**
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建Application申请实体类和ApplicationDao`|✅|`git commit -m "feat: 创建Application申请实体类和ApplicationDao" --author="member4 <member4@edu.com>"`|
+|#2|`feat: 实现职位申请Servlet`|✅|`git commit -m "feat: 实现职位申请Servlet" --author="member4 <member4@edu.com>"`|
+|#3|`feat: 实现申请状态查询API`|✅|`git commit -m "feat: 实现申请状态查询API" --author="member4 <member4@edu.com>"`|
+|#4|`feat: 添加MO选择申请人功能`|✅|`git commit -m "feat: 添加MO选择申请人功能" --author="member4 <member4@edu.com>"`|
+|#5|`fix: 修复状态更新不及时的问题`|✅|`git commit -m "fix: 修复状态更新不及时的问题" --author="member4 <member4@edu.com>"`|
 
 ---
+
+#### 成员5 (前端) - auth-login + applicant-profile
+
+负责：登录注册界面 + TA档案界面
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 设计并实现登录页面HTML/CSS`|✅|`git commit -m "feat: 设计并实现登录页面HTML/CSS" --author="member5 <member5@edu.com>"`|
+|#2|`feat: 设计并实现注册页面`|✅|`git commit -m "feat: 设计并实现注册页面" --author="member5 <member5@edu.com>"`|
+|#3|`feat: 设计并实现TA档案创建页面`|✅|`git commit -m "feat: 设计并实现TA档案创建页面" --author="member5 <member5@edu.com>"`|
+|#4|`feat: 添加简历上传前端逻辑和进度显示`|✅|`git commit -m "feat: 添加简历上传前端逻辑和进度显示" --author="member5 <member5@edu.com>"`|
+|#5|`style: 优化表单样式和用户体验`|✅|`git commit -m "style: 优化表单样式和用户体验" --author="member5 <member5@edu.com>"`|
+
+---
+
+#### 成员6 (前端) - job-posting + application-status
+
+负责：职位浏览界面 + 申请状态界面
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 设计并实现职位列表页面`|✅|`git commit -m "feat: 设计并实现职位列表页面" --author="member6 <member6@edu.com>"`|
+|#2|`feat: 设计并实现职位详情页面`|✅|`git commit -m "feat: 设计并实现职位详情页面" --author="member6 <member6@edu.com>"`|
+|#3|`feat: 设计并实现MO发布职位页面`|✅|`git commit -m "feat: 设计并实现MO发布职位页面" --author="member6 <member6@edu.com>"`|
+|#4|`feat: 设计并实现申请状态查看页面`|✅|`git commit -m "feat: 设计并实现申请状态查看页面" --author="member6 <member6@edu.com>"`|
+|#5|`feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化`|✅|`git commit -m "feat: 添加MO选择申请人的操作界面并作阶段性前端整体检查与优化" --author="member6 <member6@edu.com>"`|
+
+### 第三阶段：对应最终评估(5月24日) 中第三次迭代 - 50%
+
+#### 成员1 (后端) - ai-skill-match
+
+负责：AI技能匹配
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建SkillMatch服务类，定义技能匹配算法`|✅|`git commit -m "feat: 创建SkillMatch服务类，定义技能匹配算法" --author="member1 <member1@edu.com>"`|
+|#2|`feat: 实现基于关键词的技能匹配逻辑`|✅|`git commit -m "feat: 实现基于关键词的技能匹配逻辑" --author="member1 <member1@edu.com>"`|
+|#3|`feat: 集成AI API进行智能技能匹配`|✅|`git commit -m "feat: 集成AI API进行智能技能匹配" --author="member1 <member1@edu.com>"`|
+|#4|`fix: 优化匹配算法性能，减少响应时间`|✅|`git commit -m "fix: 优化匹配算法性能，减少响应时间" --author="member1 <member1@edu.com>"`|
+|#5|`refactor: 添加缓存机制提升匹配效率`|✅|`git commit -m "refactor: 添加缓存机制提升匹配效率" --author="member1 <member1@edu.com>"`|
+
+---
+
+#### 成员2 (后端) - ai-missing-skills
+
+负责：AI识别缺失技能
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建MissingSkills分析服务类`|✅|`git commit -m "feat: 创建MissingSkills分析服务类" --author="member2 <member2@edu.com>"`|
+|#2|`feat: 实现职位要求与申请人技能对比逻辑`|✅|`git commit -m "feat: 实现职位要求与申请人技能对比逻辑" --author="member2 <member2@edu.com>"`|
+|#3|`feat: 生成缺失技能报告和建议`|✅|`git commit -m "feat: 生成缺失技能报告和建议" --author="member2 <member2@edu.com>"`|
+|#4|`fix: 修复技能对比边界条件错误`|✅|`git commit -m "fix: 修复技能对比边界条件错误" --author="member2 <member2@edu.com>"`|
+|#5|`feat: 添加缺失技能可视化数据接口`|✅|`git commit -m "feat: 添加缺失技能可视化数据接口" --author="member2 <member2@edu.com>"`|
+
+---
+
+#### 成员3 (后端) - admin-workload
+
+负责：管理员工作量统计
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 创建WorkloadStats统计服务类`|✅|`git commit -m "feat: 创建WorkloadStats统计服务类" --author="member3 <member3@edu.com>"`|
+|#2|`feat: 实现申请数量统计API`|✅|`git commit -m "feat: 实现申请数量统计API" --author="member3 <member3@edu.com>"`|
+|#3|`feat: 实现MO处理工作量统计`|✅|`git commit -m "feat: 实现MO处理工作量统计" --author="member3 <member3@edu.com>"`|
+|#4|`feat: 添加时间段筛选和导出功能`|✅|`git commit -m "feat: 添加时间段筛选和导出功能" --author="member3 <member3@edu.com>"`|
+|#5|`perf: 优化大数据量统计查询性能`|✅|`git commit -m "perf: 优化大数据量统计查询性能" --author="member3 <member3@edu.com>"`|
+
+---
+
+#### 成员4 (后端) - 集成测试 + 打包 + 用户手册
+
+负责：集成测试、打包、用户手册
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`test: 编写登录注册模块集成测试`|✅|`git commit -m "test: 编写登录注册模块集成测试" --author="member4 <member4@edu.com>"`|
+|#2|`test: 编写档案和职位模块集成测试`|✅|`git commit -m "test: 编写档案和职位模块集成测试" --author="member4 <member4@edu.com>"`|
+|#3|`test: 编写申请流程端到端测试`|✅|`git commit -m "test: 编写申请流程端到端测试" --author="member4 <member4@edu.com>"`|
+|#4|`chore: 配置Maven打包脚本，生成WAR文件`|✅|`git commit -m "chore: 配置Maven打包脚本，生成WAR文件" --author="member4 <member4@edu.com>"`|
+|#5|`docs: 编写完整用户手册`|✅|`git commit -m "docs: 编写完整用户手册" --author="member4 <member4@edu.com>"`|
+
+---
+
+#### 成员5 (前端) - ai-skill-match + ai-missing-skills
+
+负责：AI技能匹配界面 + AI缺失技能展示界面
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 设计技能匹配结果展示页面`|✅|`git commit -m "feat: 设计技能匹配结果展示页面" --author="member5 <member5@edu.com>"`|
+|#2|`feat: 添加匹配度可视化组件`|✅|`git commit -m "feat: 添加匹配度可视化组件" --author="member5 <member5@edu.com>"`|
+|#3|`feat: 设计缺失技能展示页面`|✅|`git commit -m "feat: 设计缺失技能展示页面" --author="member5 <member5@edu.com>"`|
+|#4|`feat: 添加技能对比图表`|✅|`git commit -m "feat: 添加技能对比图表" --author="member5 <member5@edu.com>"`|
+|#5|`style: 统一AI功能模块的UI风格`|✅|`git commit -m "style: 统一AI功能模块的UI风格" --author="member5 <member5@edu.com>"`|
+
+---
+
+#### 成员6 (前端) - admin-workload + responsive + 演示视频
+
+负责：管理统计仪表盘 + 响应式设计 + 演示视频
+
+|Commit|Message|状态|Git Command|
+|---|---|---|---|
+|#1|`feat: 设计管理员统计仪表盘`|✅|`git commit -m "feat: 设计管理员统计仪表盘" --author="member6 <member6@edu.com>"`|
+|#2|`feat: 实现数据可视化图表`|✅|`git commit -m "feat: 实现数据可视化图表" --author="member6 <member6@edu.com>"`|
+|#3|`feat: 添加响应式布局适配移动端`|✅|`git commit -m "feat: 添加响应式布局适配移动端" --author="member6 <member6@edu.com>"`|
+|#4|`style: 优化响应式样式细节`|✅|`git commit -m "style: 优化响应式样式细节" --author="member6 <member6@edu.com>"`|
+|#5|`refactor: 整体检查并优化前端代码质量`|✅|`git commit -m "refactor: 整体检查并优化前端代码质量" --author="member6 <member6@edu.com>"`|
+
+### 第四阶段：对应最终评估(5月24日) 中第四次迭代 - 50%
+
+- 随机应变，主要解决使用与测试中各种遗留小问题

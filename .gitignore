@@ -1,23 +1,36 @@
 # =========================
+
 # Project Specific
+
 # =========================
+
 build/
 scripts/config.bat
 scripts/config.sh
 author.md
 /nul
 .cursor/rules/
+.codex/
+AGENTS.md
 data/logs/
+logs/
+.playwright/
+.playwright-cli/
 /shelf/
 docs/proto/TADesign/
+frontend/webapp/WEB-INF/ai/*.local.properties
 
 # =========================
+
 # Java / Compiled Class
+
 # =========================
+
 *.class
 *.log
 
 # Package Files
+
 *.jar
 *.war
 *.nar
@@ -27,12 +40,16 @@ docs/proto/TADesign/
 *.rar
 
 # virtual machine crash logs
+
 hs_err_pid*
 replay_pid*
 
 # =========================
+
 # IntelliJ IDEA
+
 # =========================
+
 .idea/
 *.iml
 *.iws
@@ -42,8 +59,11 @@ replay_pid*
 /shelf/
 
 # =========================
+
 # Eclipse
+
 # =========================
+
 .apt_generated
 .classpath
 .factorypath
@@ -55,8 +75,11 @@ bin/
 !bin/
 
 # =========================
+
 # Maven / Gradle (Just in case)
+
 # =========================
+
 target/
 pom.xml.tag
 pom.xml.releaseBackup
@@ -65,19 +88,26 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
+.m2/
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 .gradle/
 /build/
 
 # =========================
+
 # VS Code
+
 # =========================
+
 .vscode/
 
 # =========================
+
 # OS generated files
+
 # =========================
+
 .DS_Store
 .DS_Store?
 ._*
@@ -88,5 +118,6 @@ Thumbs.db
 desktop.ini
 
 
-Reference
 data
+
+delivery.md
