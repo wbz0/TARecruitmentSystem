@@ -11,151 +11,63 @@
     if (usernameObj != null) {
         username = usernameObj.toString();
     }
+    String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A";
 %>
+<%-- Admin 工作量页：展示 /api/admin/workload-statistics 返回的 TA 工作量统计。 --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Workload Dashboard - TA Hiring System</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/admin-dashboard.css">
+    <script src="<%= contextPath %>/js/common/locale-bootstrap.js?v=20260513-workload-stats-row"></script>
+    <title data-i18n="portal.page.adminDashboard.title">TA Workload - TA Hiring System</title>
+    <link rel="stylesheet" href="<%= contextPath %>/css/admin/admin-dashboard.css?v=20260513-workload-search-align">
 </head>
 <body>
     <div class="portal-shell portal-shell-admin">
-        <aside class="portal-sidebar" aria-label="Admin portal navigation">
-            <p class="portal-brand">Admin Portal</p>
-            <nav class="portal-nav">
-                <a class="portal-nav-link is-active" href="<%= contextPath %>/jsp/admin/dashboard.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 12h7V4H4z"></path>
-                        <path d="M13 20h7v-8h-7z"></path>
-                        <path d="M13 11h7V4h-7z"></path>
-                        <path d="M4 20h7v-6H4z"></path>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/overview.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M12 5v14"></path>
-                        <path d="M5 12h14"></path>
-                    </svg>
-                    <span>MO View</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-skill-match.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 19h16"></path>
-                        <path d="M7 16V8"></path>
-                        <path d="M12 16V5"></path>
-                        <path d="M17 16v-6"></path>
-                    </svg>
-                    <span>AI Match</span>
-                </a>
-                <a class="portal-nav-link" href="<%= contextPath %>/jsp/mo/ai-missing-skills.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 18h16"></path>
-                        <path d="M6 14h4"></path>
-                        <path d="M6 10h8"></path>
-                        <path d="M6 6h12"></path>
-                    </svg>
-                    <span>Skill Gaps</span>
-                </a>
-            </nav>
-            <div class="portal-sidebar-bottom">
-                <a class="portal-nav-link" href="<%= contextPath %>/login.jsp">
-                    <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M4 7h12"></path>
-                        <path d="m12 4 4 3-4 3"></path>
-                        <path d="M20 17H8"></path>
-                        <path d="m12 20-4-3 4-3"></path>
-                    </svg>
-                    <span>Switch Roles</span>
-                </a>
-            </div>
-        </aside>
+        <% String portalRole = "admin"; String activeNav = "dashboard"; String pageTitleKey = "portal.adminDashboard.title"; String pageTitleFallback = "TA Workload"; %>
+        <%@ include file="/WEB-INF/jsp/fragments/portal-sidebar.jspf" %>
 
         <section class="portal-main">
-            <header class="portal-topbar">
-                <div class="portal-user">
-                    <span class="portal-user-avatar"><%= username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A" %></span>
-                    <span class="portal-user-name"><%= username == null || username.isEmpty() ? "Admin User" : username %></span>
-                </div>
-                <a class="portal-topbar-link" href="<%= contextPath %>/logout">Sign Out</a>
-            </header>
+            <%@ include file="/WEB-INF/jsp/fragments/portal-topbar.jspf" %>
 
             <div class="portal-content">
                 <main class="admin-dashboard-page">
                     <section class="admin-hero" aria-labelledby="admin-title">
-                        <h1 id="admin-title">Admin Workload Dashboard</h1>
-                        <p class="subtitle">Track application volume and module owner review workload in one place.</p>
+                        <h1 id="admin-title" class="portal-page-title" data-i18n="portal.adminDashboard.title">TA Workload</h1>
+                        <p class="subtitle" data-i18n="portal.adminDashboard.subtitle">Track accepted TA job workload by weekly hours and active work period.</p>
                     </section>
 
-                    <section class="admin-panel" aria-label="管理员工作量统计仪表盘">
-                        <form id="workload-filter-form" class="filter-form" novalidate>
-                            <div class="field-group">
-                                <label for="start-time">Start</label>
-                                <input id="start-time" name="start" type="datetime-local">
-                            </div>
-                            <div class="field-group">
-                                <label for="end-time">End</label>
-                                <input id="end-time" name="end" type="datetime-local">
+                    <section class="admin-panel" aria-label="管理员工作量统计仪表盘" data-i18n-aria-label="portal.adminDashboard.panelAria">
+                        <form id="workload-filter-form" class="filter-form workload-search-form" novalidate>
+                            <div class="field-group workload-search-field">
+                                <label for="workload-search-input" data-i18n="portal.adminDashboard.searchLabel">Search</label>
+                                <input
+                                    id="workload-search-input"
+                                    name="query"
+                                    type="search"
+                                    data-i18n-placeholder="portal.adminDashboard.searchPlaceholder"
+                                    placeholder="Search by TA name, job title, or course code"
+                                    autocomplete="off"
+                                >
                             </div>
                             <div class="filter-actions">
-                                <button id="apply-filter-btn" class="primary-btn" type="submit">Apply range</button>
-                                <button id="clear-filter-btn" class="ghost-btn" type="button">Clear</button>
-                                <button id="refresh-btn" class="inline-btn" type="button">Refresh</button>
-                                <button id="export-btn" class="inline-btn" type="button">Export CSV</button>
+                                <button id="apply-filter-btn" class="primary-btn" type="submit" data-i18n="portal.common.search">Search</button>
                             </div>
                         </form>
 
                         <div id="dashboard-message" class="form-message hidden" role="status" aria-live="polite"></div>
 
-                        <section class="summary-grid" aria-label="申请状态统计">
-                            <article class="summary-card">
-                                <p>Total</p>
-                                <strong id="summary-total">0</strong>
-                            </article>
-                            <article class="summary-card pending">
-                                <p>Pending</p>
-                                <strong id="summary-pending">0</strong>
-                            </article>
-                            <article class="summary-card accepted">
-                                <p>Accepted</p>
-                                <strong id="summary-accepted">0</strong>
-                            </article>
-                            <article class="summary-card rejected">
-                                <p>Rejected</p>
-                                <strong id="summary-rejected">0</strong>
-                            </article>
-                            <article class="summary-card withdrawn">
-                                <p>Withdrawn</p>
-                                <strong id="summary-withdrawn">0</strong>
-                            </article>
-                        </section>
-
-                        <section class="chart-grid" aria-label="数据可视化图表">
-                            <article class="chart-card">
-                                <header class="chart-header">
-                                    <h2>Application Status Distribution</h2>
-                                    <p>Breakdown by review status in current range.</p>
-                                </header>
-                                <div id="status-chart" class="status-chart" aria-live="polite"></div>
-                            </article>
-                            <article class="chart-card">
-                                <header class="chart-header">
-                                    <h2>MO Workload Overview</h2>
-                                    <p>Workload intensity by module owner.</p>
-                                </header>
-                                <div id="mo-chart" class="mo-chart" aria-live="polite"></div>
-                            </article>
-                        </section>
-
-                        <section class="mo-panel" aria-label="MO工作量列表">
-                            <header class="mo-panel-header">
-                                <h2>MO Workload</h2>
-                                <p id="mo-summary">Loading workload...</p>
+                        <section class="workload-panel" aria-label="纳入统计的工作量" data-i18n-aria-label="portal.adminDashboard.includedWorkloadPanelAria">
+                            <header class="workload-panel-header">
+                                <h2 data-i18n="portal.adminDashboard.includedWorkloadPanel">Included Workload</h2>
+                                <p id="ta-summary" data-i18n="portal.adminDashboard.loadingWorkload">Loading workload...</p>
                             </header>
-                            <div id="mo-list" class="mo-list" aria-live="polite"></div>
+                            <p class="workload-panel-lead" data-i18n="portal.adminDashboard.includedWorkloadLead">TA cards are sorted by total accepted workload. Click a card to view the counted jobs.</p>
+                            <div id="ta-list" class="workload-card-list" aria-live="polite"></div>
+                            <nav id="workload-pagination" class="workload-pagination hidden" aria-label="工作量分页" data-i18n-aria-label="portal.adminDashboard.paginationAria"></nav>
                         </section>
+
                     </section>
                 </main>
             </div>
@@ -163,10 +75,14 @@
     </div>
 
     <script>
+        // 注入给 admin-dashboard.js；username 仅作前端兜底展示，不参与权限判断。
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
         window.APP_CURRENT_USER_ID = "<%= userId %>";
         window.APP_CURRENT_USERNAME = "<%= username %>";
     </script>
-    <script src="<%= contextPath %>/js/admin-dashboard.js" defer></script>
+    <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-workload-stats-row" defer></script>
+    <script src="<%= contextPath %>/js/common/portal-i18n.js?v=20260513-workload-stats-row" defer></script>
+    <script src="<%= contextPath %>/js/common/ta-recruitment.js?v=20260514-architecture" defer></script>
+    <script src="<%= contextPath %>/js/admin/admin-dashboard.js?v=20260513-workload-search-only" defer></script>
 </body>
 </html>
