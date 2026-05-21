@@ -1,6 +1,6 @@
 /**
- * 档案领域数据模型。
+ * Profile domain data model.
  *
- * <p>Applicant 表达 TA 申请人档案字段、技能列表和 CSV 序列化规则。
+ * <p>Applicant expresses TA applicant profile fields, skill list, and CSV serialization rules.
  */
 package com.example.tarecruitment.profile.model;

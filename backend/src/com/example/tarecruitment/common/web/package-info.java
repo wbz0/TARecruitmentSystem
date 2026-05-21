@@ -1,6 +1,6 @@
 /**
- * 通用 Web 基础设施包。
+ * Common Web infrastructure package.
  *
- * <p>包含统一 JSON 响应、request/session 读取、权限辅助和底层 JSON 序列化工具。
+ * <p>Contains unified JSON responses, request/session reading, permission helpers, and low-level JSON serialization utilities.
  */
 package com.example.tarecruitment.common.web;

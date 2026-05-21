@@ -10,10 +10,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * 简单文件日志工具。
+ * Simple file logging utility.
  *
- * 日志文件位置: logs/app.log。
- * 它用于本地脚本直跑时快速排查，不替代 Servlet 容器日志。
+ * Log file location: logs/app.log.
+ * Used for quick troubleshooting when running scripts directly, does not replace Servlet container logs.
  */
 public final class Logger {
 
@@ -25,19 +25,19 @@ public final class Logger {
     private final Path logPath;
 
     private Logger() {
-        // 使用 user.dir 获取项目根目录，兼容从 scripts 目录运行的场景。
+        // Use user.dir to get project root directory, compatible with running from scripts directory.
         String userDir = System.getProperty("user.dir");
-        // 如果 user.dir 是 scripts，就退到父目录。
+        // If user.dir is scripts, go to parent directory.
         if (userDir != null && userDir.endsWith("scripts")) {
             userDir = new java.io.File(userDir).getParent();
         }
         Path logsDir = Paths.get(userDir, LOG_DIR);
 
-        // 确保日志目录存在；失败时仍允许应用继续跑，只把错误打到 stderr。
+        // Ensure log directory exists; if failed, still allow application to continue, just print error to stderr.
         try {
             Files.createDirectories(logsDir);
         } catch (IOException e) {
-            System.err.println("[Logger] 创建日志目录失败: " + logsDir);
+            System.err.println("[Logger] Failed to create log directory: " + logsDir);
         }
 
         this.logPath = logsDir.resolve(LOG_FILE);
@@ -64,7 +64,7 @@ public final class Logger {
         synchronized (Logger.class) {
             writeToFile(formatted);
         }
-        // 同时打印到控制台
+        // Also print to console
         if ("ERROR".equals(level)) {
             System.err.println(formatted);
         } else {
@@ -77,7 +77,7 @@ public final class Logger {
              PrintWriter pw = new PrintWriter(fw)) {
             pw.println(content);
         } catch (IOException e) {
-            System.err.println("[Logger] 写入日志文件失败: " + logPath);
+            System.err.println("[Logger] Failed to write log file: " + logPath);
             e.printStackTrace(System.err);
         }
     }
@@ -98,7 +98,7 @@ public final class Logger {
         write("ERROR", tag, message + " - " + t.getClass().getName() + ": " + t.getMessage());
     }
 
-    // 便捷静态方法
+    // Convenient static methods
     public static void i(String tag, String message) {
         getInstance().info(tag, message);
     }

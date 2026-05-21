@@ -1,10 +1,11 @@
 package com.example.tarecruitment.application.mapper;
 
 /**
- * 解析 `/api/applications...` 后面的资源路径。
+ * Parses resource paths after `/api/applications...`.
  *
- * ApplicationServlet 只根据这里判断集合、详情、状态流转和申请人资源子路径，
- * 避免在 Servlet 里散落字符串判断。这里不做权限校验，权限在 service 层处理。
+ * ApplicationServlet only determines collection, detail, status transition and applicant resource subpaths here,
+ * avoiding scattered string checks in the Servlet.
+ * No permission validation here; permissions are handled in the service layer.
  */
 public final class ApplicationRequestMapper {
 
@@ -12,7 +13,7 @@ public final class ApplicationRequestMapper {
     }
 
     /**
-     * 读取路径中的 applicationId，也就是 /api/applications/{applicationId} 的第一段。
+     * Read applicationId from path, which is the first segment of /api/applications/{applicationId}.
      */
     public static String applicationId(String pathInfo) {
         String[] segments = segments(pathInfo);
@@ -20,21 +21,21 @@ public final class ApplicationRequestMapper {
     }
 
     /**
-     * 是否访问申请集合资源：/api/applications。
+     * Whether accessing application collection resource: /api/applications.
      */
     public static boolean isCollection(String pathInfo) {
         return applicationId(pathInfo).isEmpty();
     }
 
     /**
-     * 是否访问单条申请详情：/api/applications/{applicationId}。
+     * Whether accessing single application detail: /api/applications/{applicationId}.
      */
     public static boolean isDetail(String pathInfo) {
         return segments(pathInfo).length == 1;
     }
 
     /**
-     * 是否访问状态流转子资源：/api/applications/{applicationId}/transition。
+     * Whether accessing status transition sub-resource: /api/applications/{applicationId}/transition.
      */
     public static boolean isTransition(String pathInfo) {
         String[] segments = segments(pathInfo);
@@ -42,7 +43,7 @@ public final class ApplicationRequestMapper {
     }
 
     /**
-     * 是否访问申请人资料快照：/api/applications/{applicationId}/applicant。
+     * Whether accessing applicant profile snapshot: /api/applications/{applicationId}/applicant.
      */
     public static boolean isApplicantDetail(String pathInfo) {
         String[] segments = segments(pathInfo);
@@ -50,21 +51,22 @@ public final class ApplicationRequestMapper {
     }
 
     public static boolean isApplicantResume(String pathInfo) {
-        // 当前 MO/TA 申请详情页会使用这个子资源预览申请人的简历文件。
+        // Current MO/TA application detail page uses this sub-resource to preview applicant's resume file.
         String[] segments = segments(pathInfo);
         return segments.length == 3 && "applicant".equals(segments[1]) && "resume".equals(segments[2]);
     }
 
     public static boolean isApplicantPhoto(String pathInfo) {
-        // 当前 MO/TA 申请详情页会使用这个子资源显示申请人的个人照片。
+        // Current MO/TA application detail page uses this sub-resource to display applicant's personal photo.
         String[] segments = segments(pathInfo);
         return segments.length == 3 && "applicant".equals(segments[1]) && "photo".equals(segments[2]);
     }
 
     /**
-     * 把 Servlet pathInfo 拆成稳定路径段。
+     * Split Servlet pathInfo into stable path segments.
      *
-     * 只处理当前 REST 风格路径，不解码业务 ID；业务 ID 的合法性由 validator 校验。
+     * Only handles current REST-style paths; does not decode business IDs.
+     * Business ID validity is validated by the validator.
      */
     private static String[] segments(String pathInfo) {
         if (pathInfo == null || pathInfo.trim().isEmpty() || "/".equals(pathInfo.trim())) {

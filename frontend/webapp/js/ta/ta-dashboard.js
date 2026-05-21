@@ -1,9 +1,9 @@
 /*
- * TA dashboard 档案脚本，对应 /jsp/ta/dashboard.jsp。
+ * TA dashboard profile script, corresponds to /jsp/ta/dashboard.jsp.
  *
- * 负责 TA 档案表单、简历草稿上传、档案照片预览/移除，以及保存后刷新侧边栏头像。
- * 相关 API：/api/me/applicant-profile、/api/me/applicant-profile/resume-draft、
- * /api/me/applicant-profile/photo、/api/me/applicant-profile/resume。
+ * Handles TA profile form, resume draft upload, profile photo preview/remove, and sidebar avatar refresh after save.
+ * Related APIs: /api/me/applicant-profile, /api/me/applicant-profile/resume-draft,
+ * /api/me/applicant-profile/photo, /api/me/applicant-profile/resume.
  */
 (function () {
     var form = document.getElementById("ta-profile-form");
@@ -59,7 +59,7 @@
         return fallbackKey ? localizeText(fallbackKey, fallbackText) : (fallbackText || "");
     }
 
-    // 表单字段映射：key 与后端 ApplicantProfileRequestMapper 接收的字段名保持一致。
+    // Form field mapping: key matches the field name accepted by backend ApplicantProfileRequestMapper.
     var inputs = {
         fullName: document.getElementById("full-name"),
         studentId: document.getElementById("student-id"),
@@ -73,7 +73,7 @@
     };
 
     var state = {
-        // saved* 是后端已保存的档案资源；pending* 是当前 session 的简历草稿；selected* 是浏览器本地刚选的文件。
+        // saved* are backend-saved profile resources; pending* are resume drafts in current session; selected* are browser-local newly selected files.
         hasExistingProfile: false,
         isEditing: false,
         isSubmitting: false,
@@ -96,13 +96,13 @@
         photoPreviewVersion: Date.now()
     };
 
-    // touched 用于区分“用户已经编辑过”和“初始化填值”，避免加载旧档案时立刻报错。
+    // touched distinguishes “user has edited” from “initialized with old values”, preventing immediate validation errors when loading existing profile.
     var fieldValidationState = {
         feedbackByKey: {},
         touchedByKey: {}
     };
 
-    // 校验摘要按页面视觉顺序定位第一个错误字段。
+    // Validation summary locates the first error field by page visual order.
     var orderedInputKeys = [
         "fullName",
         "studentId",
@@ -216,8 +216,8 @@
     });
 
     /*
-     * 创建 TA 档案：先做前端必填/文件校验，再提交 /api/me/applicant-profile。
-     * 成功后不直接相信本地表单，而是重新 GET 一次后端保存结果。
+     * Create TA profile: validates required fields and files on frontend first, then submits to /api/me/applicant-profile.
+     * On success, does not trust the local form directly; instead fetches the backend-saved result again.
      */
     function handleCreate() {
         hideMessage();
@@ -280,7 +280,7 @@
     }
 
     /*
-     * 页面初始化和保存后都会调用：读取当前账号的 TA 档案、已保存简历/照片、session 草稿。
+     * Called both on page init and after save: reads current account's TA profile, saved resume/photo, and session draft.
      */
     function loadExistingProfile(options) {
         var settings = options || {};
@@ -342,7 +342,7 @@
     }
 
     /*
-     * 更新已有档案：只在编辑模式触发，流程与创建一致但会保留旧资源的删除标记。
+     * Update existing profile: triggered only in edit mode, same flow as create but keeps deletion markers for old resources.
      */
     function handleUpdate() {
         hideMessage();
@@ -407,13 +407,13 @@
     }
 
     /*
-     * 组装档案提交体。
-     * 没照片时使用表单编码；有照片或更新照片状态时使用 multipart，避免前端另走上传接口。
+     * Assemble profile submission payload.
+     * Uses form encoding when no photo; uses multipart when photo is present or photo status is being updated, avoiding separate upload API call on frontend.
      */
     function submitProfile(isUpdate) {
         if (isUpdate) {
-            // 遗留/待移除：当前前端更新档案仍走 multipart POST 分支。
-            // 保留原因：同一条路径可以同时提交文本字段和照片；后续若统一为 PUT multipart，可清理这段绕路说明。
+            // Legacy/pending removal: profile update currently still uses multipart POST branch.
+            // Reason: same path can submit both text fields and photo; if unified to PUT multipart later, this detour explanation can be cleaned up.
             var updateData = new FormData();
             updateData.append("fullName", inputs.fullName.value.trim());
             updateData.append("studentId", inputs.studentId.value.trim());
@@ -487,7 +487,7 @@
     }
 
     /*
-     * 把后端档案结果回填到只读表单，同时同步侧边栏显示名和资源状态。
+     * Fill backend profile result into read-only form, sync sidebar display name and resource state.
      */
     function applyExistingProfile(payload, createdNow) {
         state.hasExistingProfile = true;
@@ -528,7 +528,7 @@
     }
 
     /*
-     * 没有档案或读取失败时进入创建态；payload 可能只包含 session 内的简历草稿。
+     * Enter create mode when no profile or read failed; payload may only contain resume draft in session.
      */
     function enableCreateMode(payload) {
         state.hasExistingProfile = false;
@@ -554,7 +554,7 @@
     }
 
     /*
-     * 保存/编辑/取消按钮的可见性由“是否已有档案”和“是否正在编辑”共同决定。
+     * Save/Edit/Cancel button visibility determined by “has existing profile” and “is editing”.
      */
     function updateProfileActionState() {
         if (!submitButton) {
@@ -587,7 +587,7 @@
     }
 
     /*
-     * 进入编辑态时恢复表单可编辑，但仍保留已保存资源的展示。
+     * Enter edit mode: form becomes editable but saved resources remain displayed.
      */
     function enterEditMode() {
         state.isEditing = true;
@@ -612,7 +612,7 @@
     }
 
     /*
-     * 取消编辑会丢弃本次 session 上传的简历草稿，再从后端重新加载已保存档案。
+     * Cancel edit discards the resume draft uploaded in this session, then reloads saved profile from backend.
      */
     function handleCancelEdit() {
         var reloadProfile = function () {
@@ -644,7 +644,7 @@
     }
 
     /*
-     * 根据加载、提交、上传草稿状态刷新主按钮，避免用户在资源处理中重复保存。
+     * Refresh main button based on loading/submitting/upload draft state, preventing duplicate saves during resource processing.
      */
     function refreshSubmitButton() {
         if (state.hasExistingProfile && !state.isEditing) {
@@ -675,7 +675,7 @@
     }
 
     /*
-     * 切换提交中状态，并同步禁用表单和文件上传区域。
+     * Toggle submitting state, sync disabled form and file upload area.
      */
     function setSubmitting(submitting) {
         state.isSubmitting = submitting;
@@ -688,7 +688,7 @@
     }
 
     /*
-     * 只控制当前表单字段；上传区按钮由 refreshResumeArea/refreshPhotoArea 单独处理。
+     * Only controls current form fields; upload area buttons handled separately by refreshResumeArea/refreshPhotoArea.
      */
     function setFormDisabled(disabled) {
         Array.prototype.forEach.call(formFields, function (field) {
@@ -697,7 +697,7 @@
     }
 
     /*
-     * 简历草稿保存在 session 中，尚未成为正式 profile resume。
+     * Resume draft is stored in session, not yet converted to formal profile resume.
      */
     function syncResumeDraftState(payload) {
         state.pendingResumePath = payload && typeof payload.pendingResumePath === "string" ? payload.pendingResumePath : "";
@@ -706,7 +706,7 @@
     }
 
     /*
-     * 简历是保存档案的前置条件：可以是已保存简历，也可以是本次 session 草稿。
+     * Resume is a prerequisite for saving profile: can be saved resume or this session's draft.
      */
     function validateResumeRequirement() {
         if (state.pendingResumePath || hasSavedResume()) {
@@ -722,7 +722,7 @@
     }
 
     /*
-     * 照片不是必填；只有用户新选照片时才校验类型和大小。
+     * Photo is not required; only validates type and size when user selects a new photo.
      */
     function validatePhotoSelection() {
         if (!state.selectedPhotoFile) {
@@ -742,7 +742,7 @@
     }
 
     /*
-     * 简历上传区必须跟随表单编辑态，避免只读档案被局部改动。
+     * Resume upload area must follow form edit state to prevent partial modification of read-only profile.
      */
     function canEditResumeSection() {
         if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
@@ -752,7 +752,7 @@
     }
 
     /*
-     * 照片区与简历区使用同一套编辑权限。
+     * Photo area uses the same edit permission as resume area.
      */
     function canEditPhotoSection() {
         if (state.isLoading || state.isSubmitting || state.isUploadingResume) {
@@ -762,7 +762,7 @@
     }
 
     /*
-     * 选择简历后立即上传为草稿，真正保存档案时后端再把草稿转为正式简历。
+     * After selecting resume, immediately upload as draft; backend converts draft to formal resume when profile is saved.
      */
     function handleResumeFileChange(event) {
         hideResumeMessage();
@@ -798,7 +798,7 @@
     }
 
     /*
-     * 上传 session 简历草稿；失败时清空本地选择，避免页面显示一个后端不存在的文件。
+     * Upload session resume draft; on failure clears local selection to avoid page showing a file that does not exist on backend.
      */
     function uploadDraftResume(file) {
         if (!file) {
@@ -853,10 +853,10 @@
     }
 
     /*
-     * 底层草稿上传实现：使用 XMLHttpRequest 是为了给简历草稿上传保留进度扩展点。
+     * Low-level draft upload implementation: XMLHttpRequest is used to keep progress extension point for resume draft upload; current UI only shows uploading/success/failure.
      */
     function uploadDraftResumeWithProgress(file) {
-        // 使用 XMLHttpRequest 是为了给简历草稿上传保留进度扩展点；当前 UI 只展示上传中/成功/失败。
+        // XMLHttpRequest is used to keep progress extension point; current UI only shows uploading/success/failure.
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open("POST", window.TARecruitment.routes.me.resumeDraft(), true);
@@ -888,7 +888,7 @@
     }
 
     /*
-     * 简历文件只允许办公文档和 PDF，大小限制与 ProfileAssetValidator 保持一致。
+     * Resume files only allow office documents and PDF; size limit consistent with ProfileAssetValidator.
      */
     function validateResumeFile(file) {
         if (!file) {
@@ -911,7 +911,7 @@
     }
 
     /*
-     * 维护浏览器本地选择的简历文件；清空时也重置 input，确保可重新选择同一文件。
+     * Maintain browser-local selected resume file; clearing also resets input to allow selecting the same file again.
      */
     function setSelectedResumeFile(file) {
         state.selectedResumeFile = file || null;
@@ -922,7 +922,7 @@
     }
 
     /*
-     * 草稿上传态会同时影响保存按钮、简历区和照片区。
+     * Draft uploading state affects save button, resume area, and photo area simultaneously.
      */
     function setResumeUploading(uploading) {
         state.isUploadingResume = uploading;
@@ -932,7 +932,7 @@
     }
 
     /*
-     * 移除简历按优先级处理：先丢 session 草稿，再清本地选择，最后标记删除已保存简历。
+     * Remove resume by priority: discard session draft first, clear local selection second, mark saved resume for deletion last.
      */
     function handleResumeRemove() {
         if (!canEditResumeSection()) {
@@ -974,7 +974,7 @@
     }
 
     /*
-     * 根据“本地选择 / session 草稿 / 已保存简历”三层状态刷新简历上传区。
+     * Refresh resume upload area based on “local selection / session draft / saved resume” three-layer state.
      */
     function refreshResumeArea() {
         var resumeSectionEditable = canEditResumeSection();
@@ -1030,7 +1030,7 @@
     }
 
     /*
-     * 只要有任一层简历资源，就允许用户打开预览入口。
+     * If any layer of resume resource exists, allow user to open preview.
      */
     function canPreviewResume() {
         return !state.isUploadingResume
@@ -1038,7 +1038,7 @@
     }
 
     /*
-     * 选择当前应该展示的简历卡片：本地选择优先，其次草稿，最后已保存文件。
+     * Choose which resume card to display: local selection first, then draft, then saved file.
      */
     function buildActiveResumeCard() {
         if (state.selectedResumeFile) {
@@ -1066,7 +1066,7 @@
     }
 
     /*
-     * 简历卡片副文案优先显示文件大小，未知大小时显示 ready 状态。
+     * Resume card subtitle prefers showing file size; shows ready state when size is unknown.
      */
     function buildResumeCardDetail(fileSize) {
         if (typeof fileSize === "number" && fileSize > 0) {
@@ -1076,14 +1076,14 @@
     }
 
     /*
-     * 已保存简历被用户标记移除后，本次编辑态不再当作可用资源。
+     * Saved resume marked for removal by user is not treated as available resource in this edit session.
      */
     function hasSavedResume() {
         return hasText(state.resumePath) && !state.removedSavedResume;
     }
 
     /*
-     * 从后端 profile payload 同步已正式保存的简历资源信息。
+     * Sync formally saved resume resource info from backend profile payload.
      */
     function syncSavedResumeState(payload) {
         state.resumePath = payload && typeof payload.resumePath === "string" ? payload.resumePath : "";
@@ -1092,7 +1092,7 @@
     }
 
     /*
-     * 同步已保存照片；路径变化时刷新版本号以避开浏览器缓存。
+     * Sync saved photo; refresh version to avoid browser cache when path changes.
      */
     function syncSavedPhotoState(payload) {
         var nextPhotoPath = payload && typeof payload.photoPath === "string" ? payload.photoPath : "";
@@ -1105,7 +1105,7 @@
     }
 
     /*
-     * 照片只在保存档案时提交；这里先做本地预览和前端格式校验。
+     * Photo is only submitted when saving profile; local preview and frontend format validation done here first.
      */
     function handlePhotoFileChange(event) {
         hidePhotoMessage();
@@ -1136,7 +1136,7 @@
     }
 
     /*
-     * 照片格式和大小限制与后端 ProfileAssetValidator 对齐。
+     * Photo format and size limits aligned with backend ProfileAssetValidator.
      */
     function validatePhotoFile(file) {
         if (!file) {
@@ -1159,7 +1159,7 @@
     }
 
     /*
-     * 维护照片本地预览 URL；替换文件时释放旧 object URL，避免浏览器内存泄漏。
+     * Maintain photo local preview URL; release old object URL when replacing file to avoid browser memory leak.
      */
     function setSelectedPhotoFile(file) {
         if (state.photoObjectUrl && typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
@@ -1181,7 +1181,7 @@
     }
 
     /*
-     * 移除照片时，本地新选照片直接清空；已保存照片只记录删除标记，等保存时生效。
+     * When removing photo: locally selected photo is cleared directly; saved photo only records deletion marker, effective on save.
      */
     function handlePhotoRemove() {
         if (!canEditPhotoSection()) {
@@ -1206,7 +1206,7 @@
     }
 
     /*
-     * 根据本地照片或已保存照片刷新上传壳、缩略图、删除按钮和只读态。
+     * Refresh upload shell, thumbnail, remove button, and read-only state based on local or saved photo.
      */
     function refreshPhotoArea() {
         var photoSectionEditable = canEditPhotoSection();
@@ -1255,7 +1255,7 @@
     }
 
     /*
-     * 当前照片展示来源：本地选择优先，已保存照片次之。
+     * Current photo display source: local selection first, saved photo second.
      */
     function buildActivePhotoCard() {
         if (state.selectedPhotoFile && state.photoObjectUrl) {
@@ -1278,7 +1278,7 @@
     }
 
     /*
-     * 照片卡片副文案与简历保持一致：优先大小，未知则显示 ready。
+     * Photo card subtitle consistent with resume: size first, show ready if unknown.
      */
     function buildPhotoCardDetail(fileSize) {
         if (typeof fileSize === "number" && fileSize > 0) {
@@ -1288,19 +1288,19 @@
     }
 
     /*
-     * 已保存照片被标记删除后，在本次编辑视图中视为不存在。
+     * Saved photo marked for deletion is treated as not existing in this edit view.
      */
     function hasSavedPhoto() {
         return hasText(state.photoPath) && !state.removedSavedPhoto;
     }
 
     function buildSavedPhotoPreviewUrl() {
-        // v 参数只用于破坏浏览器图片缓存，让刚上传的新照片立即显示。
+        // v parameter only used to break browser image cache so newly uploaded photo displays immediately.
         return window.TARecruitment.routes.me.applicantPhoto() + "?v=" + encodeURIComponent(String(state.photoPreviewVersion));
     }
 
     /*
-     * 照片上传区的局部消息，不影响整个档案表单的保存提示。
+     * Local message for photo upload area, does not affect main profile form save prompts.
      */
     function showPhotoMessage(message, type) {
         if (!photoUploadMessage) {
@@ -1312,7 +1312,7 @@
     }
 
     /*
-     * 清空照片区局部消息。
+     * Clear photo area local message.
      */
     function hidePhotoMessage() {
         if (!photoUploadMessage) {
@@ -1324,7 +1324,7 @@
     }
 
     /*
-     * 简历上传区的局部消息，专门提示草稿上传、移除和预览状态。
+     * Local message for resume upload area, specifically for draft upload, remove, and preview status.
      */
     function showResumeMessage(message, type) {
         if (!resumeUploadMessage) {
@@ -1336,7 +1336,7 @@
     }
 
     /*
-     * 清空简历区局部消息。
+     * Clear resume area local message.
      */
     function hideResumeMessage() {
         if (!resumeUploadMessage) {
@@ -1348,7 +1348,7 @@
     }
 
     /*
-     * 删除 session 草稿简历；取消编辑或手动移除草稿时调用。
+     * Delete session draft resume; called when canceling edit or manually removing draft.
      */
     function discardPendingResume() {
         return request(window.TARecruitment.routes.me.resumeDraft(), {
@@ -1381,7 +1381,7 @@
     }
 
     /*
-     * 文件大小只用于前端展示，不参与后端保存。
+     * File size only for frontend display, not involved in backend save.
      */
     function formatFileSize(bytes) {
         if (typeof bytes !== "number" || bytes < 0) {
@@ -1405,7 +1405,7 @@
     }
 
     /*
-     * 后端可能返回存储路径；前端只展示最后一级文件名。
+     * Backend may return storage path; frontend only displays the last level filename.
      */
     function extractFileNameFromPath(path) {
         if (typeof path !== "string" || !path.trim()) {
@@ -1418,7 +1418,7 @@
     }
 
     /*
-     * 提交前强制校验全部字段，并返回第一个错误用于聚焦。
+     * Force validate all fields before submission, return first error for focus.
      */
     function validateForm() {
         var firstError = null;
@@ -1439,7 +1439,7 @@
     }
 
     /*
-     * 初始化实时校验：用户触碰字段后再显示错误，减少初次打开页面的干扰。
+     * Initialize realtime validation: show errors only after user touches field, reducing interference when first opening page.
      */
     function initializeRealtimeValidation() {
         Object.keys(inputs).forEach(function (key) {
@@ -1494,7 +1494,7 @@
     }
 
     /*
-     * 表单内 Enter 默认跳到下一个字段，最后一个字段再提交，降低误保存概率。
+     * Form Enter key: jump to next field by default, submit on last field to reduce accidental save probability.
      */
     function initializeEnterKeyBehavior() {
         form.addEventListener("keydown", function (event) {
@@ -1531,21 +1531,21 @@
     }
 
     /*
-     * 统一判断当前是否允许编辑和实时校验。
+     * Unified check if editing and realtime validation are currently allowed.
      */
     function isProfileFormEditable() {
         return (!state.hasExistingProfile || state.isEditing) && !state.isLoading && !state.isSubmitting;
     }
 
     /*
-     * 字段只有在表单可编辑且未禁用时才参与实时校验。
+     * Fields only participate in realtime validation when form is editable and not disabled.
      */
     function canValidateField(field) {
         return !!field && isProfileFormEditable() && !field.disabled;
     }
 
     /*
-     * 从 DOM 字段反查 inputs key，供键盘导航和校验定位使用。
+     * Look up inputs key from DOM field, used by keyboard navigation and validation positioning.
      */
     function getFieldKeyByElement(element) {
         var matchedKey = "";
@@ -1560,7 +1560,7 @@
     }
 
     /*
-     * 按 orderedInputKeys 顺序移动焦点，跳过不存在或禁用的控件。
+     * Move focus in order of orderedInputKeys, skipping non-existent or disabled controls.
      */
     function focusNextFormControl(current) {
         var orderedControls = [];
@@ -1590,7 +1590,7 @@
     }
 
     /*
-     * 兼容不支持 requestSubmit 的浏览器容器。
+     * Compatible with browsers that do not support requestSubmit.
      */
     function submitFormFromEnter() {
         if (!submitButton || submitButton.disabled) {
@@ -1606,7 +1606,7 @@
     }
 
     /*
-     * 为字段创建或复用错误提示节点，并建立 aria-describedby 关联。
+     * Create or reuse error hint node for field and establish aria-describedby association.
      */
     function ensureFieldFeedbackNode(key, field) {
         var container = field.closest(".field");
@@ -1643,7 +1643,7 @@
     }
 
     /*
-     * 切换模式或重新加载档案时清空所有字段错误。
+     * Clear all field errors when switching mode or reloading profile.
      */
     function clearAllFieldValidation() {
         Object.keys(inputs).forEach(function (key) {
@@ -1652,7 +1652,7 @@
     }
 
     /*
-     * 重置 touched，避免后端回填字段被当成用户输入。
+     * Reset touched to avoid backend-filled fields being treated as user input.
      */
     function resetFieldTouchedState() {
         Object.keys(inputs).forEach(function (key) {
@@ -1661,7 +1661,7 @@
     }
 
     /*
-     * 写入单字段校验结果，同时同步 aria-invalid。
+     * Write single field validation result, sync aria-invalid.
      */
     function setFieldValidationResult(key, message, animate) {
         var field = inputs[key];
@@ -1693,7 +1693,7 @@
     }
 
     /*
-     * 单字段校验入口，实时校验和提交校验共用。
+     * Single field validation entry point, shared by realtime and submission validation.
      */
     function validateSingleField(key, options) {
         var field = inputs[key];
@@ -1723,14 +1723,14 @@
     }
 
     /*
-     * TA 档案校验文案统一放在 portal.taDashboard.validation 命名空间。
+     * TA profile validation text unified under portal.taDashboard.validation namespace.
      */
     function tv(key, fallback) {
         return localizeText("portal.taDashboard.validation." + key, fallback);
     }
 
     /*
-     * 前端校验用于即时反馈；最终可信校验仍由 ApplicantProfileValidator 完成。
+     * Frontend validation for immediate feedback; final trusted validation still done by ApplicantProfileValidator.
      */
     function getFieldValidationMessage(key, value, forceRequired) {
         var isRequired = key === "fullName"
@@ -1970,14 +1970,14 @@
     }
 
     /*
-     * 名称、院系、技能等字段至少要包含可读文字，不能只有符号或数字。
+     * Name, department, skills etc. must contain at least readable text, not just symbols or numbers.
      */
     function hasLetterOrCjk(text) {
         return /[A-Za-z\u00C0-\u024F\u4E00-\u9FFF]/.test(text || "");
     }
 
     /*
-     * 电话字段允许括号，但必须成对出现。
+     * Phone field allows parentheses but must be balanced.
      */
     function hasBalancedParentheses(text) {
         var balance = 0;
@@ -1997,7 +1997,7 @@
     }
 
     /*
-     * 粗略拦截无意义重复字符，例如 aaaaaa 或 111111。
+     * Roughly block meaningless repeated characters, e.g. aaaaaa or 111111.
      */
     function hasExcessiveRepeatedChars(text, threshold) {
         if (!text) {
@@ -2009,7 +2009,7 @@
     }
 
     /*
-     * 中英文混合长文本按“中文字符 + 英文词”估算内容量。
+     * Estimate content amount for mixed Chinese/English long text by “Chinese characters + English words”.
      */
     function getTextContentUnits(text) {
         if (!text) {
@@ -2023,7 +2023,7 @@
     }
 
     /*
-     * 经验和动机共用长文本校验，要求不是空泛的一两个词。
+     * Experience and motivation share long text validation, requiring not just vague one or two words.
      */
     function validateLongTextField(value, keyPrefix) {
         if (value.length > 1200) {
@@ -2045,7 +2045,7 @@
     }
 
     /*
-     * 统一提交校验错误结构，便于聚焦第一个错误字段。
+     * Unify submission validation error structure for focusing first error field.
      */
     function buildValidationError(message, field) {
         return {
@@ -2055,7 +2055,7 @@
     }
 
     /*
-     * 页面请求优先使用公共 TARecruitment.api.request，保证 context path 和 JSON 解析一致。
+     * Page requests prefer using shared TARecruitment.api.request for consistent context path and JSON parsing.
      */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
@@ -2072,14 +2072,14 @@
     }
 
     /*
-     * 档案接口应返回标准 JSON；解析失败直接抛错进入 catch。
+     * Profile API should return standard JSON; parse failure throws error into catch.
      */
     function parseResponse(bodyText) {
         return JSON.parse(bodyText);
     }
 
     /*
-     * 标准响应使用 payload.data；兼容直接返回对象的旧测试调用。
+     * Standard response uses payload.data; compatible with legacy test calls that return object directly.
      */
     function extractData(payload) {
         if (!payload || typeof payload !== "object") {
@@ -2092,7 +2092,7 @@
     }
 
     /*
-     * 提交给后端前把中英文逗号统一为英文逗号分隔。
+     * Normalize Chinese/English commas to English comma separator before submitting to backend.
      */
     function normalizeSkillsForSubmit(value) {
         if (typeof value !== "string" || !value.trim()) {
@@ -2111,7 +2111,7 @@
     }
 
     /*
-     * 后端旧数据可能用分号或中文逗号保存，展示时统一成逗号+空格。
+     * Backend legacy data may be stored with semicolons or Chinese commas; display normalizes to comma+space.
      */
     function formatSkillsForDisplay(value) {
         if (typeof value !== "string" || !value.trim()) {
@@ -2130,7 +2130,7 @@
     }
 
     /*
-     * 安全回填普通输入字段。
+     * Safe fill for normal input fields.
      */
     function setFieldValue(field, value) {
         if (field) {
@@ -2139,7 +2139,7 @@
     }
 
     /*
-     * 如果旧 CSV 中保存了当前下拉没有的 program，临时注入选项让用户能看到原值。
+     * If old CSV has a program not in current dropdown, temporarily inject option so user can see original value.
      */
     function setSelectValue(field, value) {
         if (!field) {
@@ -2167,7 +2167,7 @@
     }
 
     /*
-     * 提交失败的总提示，具体错误仍显示在字段旁边。
+     * General prompt for submission failure; specific errors still displayed next to fields.
      */
     function showValidationSummaryMessage() {
         showMessage(
@@ -2178,7 +2178,7 @@
     }
 
     /*
-     * 档案表单顶部总消息，用于保存成功、网络失败和会话失效。
+     * Top form message for save success, network failure, and session expiration.
      */
     function showMessage(message, type, animate) {
         messageBox.textContent = message;
@@ -2194,7 +2194,7 @@
     }
 
     /*
-     * 新一轮操作前清空旧总消息。
+     * Clear old general message before new operation.
      */
     function hideMessage() {
         messageBox.textContent = "";
@@ -2203,7 +2203,7 @@
     }
 
     /*
-     * 登录态失效时回登录页，保留 contextPath 以兼容非根路径部署。
+     * Login state expired redirects to login page, preserves contextPath for non-root path deployment compatibility.
      */
     function handleUnauthorized() {
         showMessage(localizeText("portal.dynamic.sessionExpiredRedirect", "Your session has expired. Redirecting to login..."), "error");
@@ -2213,7 +2213,7 @@
     }
 
     /*
-     * 与共享侧边栏账号资料同步真实姓名：任一处修改时通知另一处更新。
+     * Sync real name with shared sidebar account profile: notify other side to update when either side changes.
      */
     function setupSharedRealNameSync() {
         if (inputs.fullName) {
@@ -2236,7 +2236,7 @@
     }
 
     /*
-     * 广播 TA 档案姓名，portal-sidebar.jspf 会用它同步账号资料表单。
+     * Broadcast TA profile real name; portal-sidebar.jspf uses it to sync account profile form.
      */
     function announceTaProfileRealName(realName) {
         if (typeof window.CustomEvent !== "function") {
@@ -2250,7 +2250,7 @@
     }
 
     /*
-     * 打开简历预览：本地新选文件可临时预览，session 草稿需要先保存成正式简历。
+     * Open resume preview: local newly selected file can be previewed temporarily, session draft needs to be saved as formal resume first.
      */
     function openResumePreview() {
         var url = "";
@@ -2274,7 +2274,7 @@
     }
 
     /*
-     * 新窗口失败时降级为当前页跳转，兼容浏览器弹窗拦截。
+     * Fallback to current page navigation when new window fails, compatible with browser popup blocker.
      */
     function openPreviewUrl(url, openInNewTab) {
         if (!openInNewTab) {
@@ -2288,7 +2288,7 @@
     }
 
     /*
-     * 在当前页打开照片预览层，不额外请求后端元数据。
+     * Open photo preview layer on current page without additional backend metadata request.
      */
     function openPhotoLightbox() {
         var url = "";

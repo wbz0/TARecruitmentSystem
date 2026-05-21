@@ -1,85 +1,85 @@
-# TA 档案管理模块技术文档
+# TA Profile Management Module Technical Documentation
 
-## 1. 模块概述
+## 1. Module Overview
 
-TA 档案管理模块允许 TA 申请人创建和管理个人档案，包括基本信息、技能、简历和头像。
+TA profile management module allows TA applicants to create and manage personal profiles, including basic information, skills, resume, and avatar.
 
-**核心组件**：
-- `Applicant` - 申请人档案实体
-- `ApplicantDao` - 数据访问层
-- `ApplicantProfileServlet` - 当前 TA 档案 JSON 入口
-- `ApplicantAssetServlet` - 当前 TA 头像、简历、草稿简历入口
-- `ApplicantProfileService` - 档案创建、更新和同步流程
-- `ProfileAssetService` - 头像、简历、草稿简历文件处理
-- `ApplicantProfileResponseMapper` / `ApplicantProfileValidator` - 响应组装与表单校验
-- 前端页面: `jsp/ta/dashboard.jsp`
+**Core Components**:
+- `Applicant` - Applicant profile entity
+- `ApplicantDao` - Data access layer
+- `ApplicantProfileServlet` - Current TA profile JSON entry
+- `ApplicantAssetServlet` - Current TA avatar, resume, draft resume entry
+- `ApplicantProfileService` - Profile creation, update, and sync flow
+- `ProfileAssetService` - Avatar, resume, draft resume file processing
+- `ApplicantProfileResponseMapper` / `ApplicantProfileValidator` - Response assembly and form validation
+- Frontend page: `jsp/ta/dashboard.jsp`
 
 ---
 
-## 2. 实体设计
+## 2. Entity Design
 
 ### 2.1 Applicant
 
-**路径**: `backend/src/com/example/tarecruitment/profile/model/Applicant.java`
+**Path**: `backend/src/com/example/tarecruitment/profile/model/Applicant.java`
 
 ```java
 public class Applicant {
     private String applicantId;       // UUID
-    private String userId;            // 关联的 User ID
-    private String fullName;          // 姓名
-    private String studentId;         // 学号
-    private String department;        // 院系
-    private String program;           // 本科/硕士/博士
+    private String userId;            // Related User ID
+    private String fullName;          // Full name
+    private String studentId;         // Student ID
+    private String department;        // Department
+    private String program;           // Bachelor/Master/PhD
     private String gpa;              // GPA
-    private List<String> skills;     // 技能列表 (分号分隔)
-    private String resumePath;        // 简历文件路径
-    private String photoPath;         // 头像文件路径
-    private String phone;             // 电话
-    private String address;           // 地址
-    private String experience;        // 相关经验
-    private String motivation;        // 申请动机
+    private List<String> skills;     // Skills list (semicolon-separated)
+    private String resumePath;        // Resume file path
+    private String photoPath;         // Avatar file path
+    private String phone;             // Phone
+    private String address;           // Address
+    private String experience;        // Related experience
+    private String motivation;        // Application motivation
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
 ```
 
-### 2.2 CSV 格式
+### 2.2 CSV Format
 
-**文件**: `data/applicants/applicants.csv`
+**File**: `data/applicants/applicants.csv`
 
-**表头**:
+**Header**:
 ```csv
 applicantId,userId,fullName,studentId,department,program,gpa,skills,resumePath,photoPath,phone,address,experience,motivation,createdAt,updatedAt
 ```
 
-**示例**:
+**Example**:
 ```csv
 uuid-123,user-456,John Doe,2020123456,Computer Science,Master,3.8,Java;Python;Machine Learning,,photo.jpg,1234567890,London,2 years TA experience,Want to help students
 ```
 
 ---
 
-## 3. 数据访问层
+## 3. Data Access Layer
 
 ### 3.1 ApplicantDao
 
-**路径**: `backend/src/com/example/tarecruitment/profile/dao/ApplicantDao.java`
+**Path**: `backend/src/com/example/tarecruitment/profile/dao/ApplicantDao.java`
 
-**单例模式**: 是
+**Singleton**: Yes
 
-**核心方法**:
+**Core Methods**:
 
-| 方法 | 说明 |
+| Method | Description |
 |------|------|
-| `findById(String applicantId)` | 根据 ID 查找 |
-| `findByUserId(String userId)` | 根据用户 ID 查找 (关联查询) |
-| `findAll()` | 获取所有档案 |
-| `save(Applicant applicant)` | 保存档案 (新建或更新) |
-| `create(Applicant applicant)` | 创建档案 |
-| `update(Applicant applicant)` | 更新档案 |
-| `delete(String applicantId)` | 删除档案 |
+| `findById(String applicantId)` | Find by ID |
+| `findByUserId(String userId)` | Find by user ID (association query) |
+| `findAll()` | Get all profiles |
+| `save(Applicant applicant)` | Save profile (new or update) |
+| `create(Applicant applicant)` | Create profile |
+| `update(Applicant applicant)` | Update profile |
+| `delete(String applicantId)` | Delete profile |
 
-**关联查询实现**:
+**Association query implementation**:
 ```java
 public Optional<Applicant> findByUserId(String userId) {
     return readAllApplicants().stream()
@@ -92,43 +92,43 @@ public Optional<Applicant> findByUserIdOrCreate(String userId) {
     if (existing.isPresent()) {
         return existing;
     }
-    // 不自动创建，返回空
+    // Does not auto-create, returns empty
     return Optional.empty();
 }
 ```
 
 ---
 
-## 4. Web 与服务层实现
+## 4. Web and Service Layer Implementation
 
 ### 4.1 ApplicantProfileServlet
 
-**路径**: `backend/src/com/example/tarecruitment/profile/web/ApplicantProfileServlet.java`
+**Path**: `backend/src/com/example/tarecruitment/profile/web/ApplicantProfileServlet.java`
 
-**端点**: `/api/me/applicant-profile`
+**Endpoint**: `/api/me/applicant-profile`
 
-**支持的方法**:
-- `GET` - 获取当前用户档案
-- `POST` - 创建档案
-- `PUT` - 更新档案
+**Supported Methods**:
+- `GET` - Get current user profile
+- `POST` - Create profile
+- `PUT` - Update profile
 
-#### GET 处理
+#### GET Handling
 
 ```
 GET /api/me/applicant-profile
     │
     ▼
-获取当前登录用户
+Get current logged-in user
     │
     ▼
-调用 ApplicantProfileService.get(...)
+Call ApplicantProfileService.get(...)
     │
-    ├── 档案存在 → ApplicantProfileResponseMapper 组装 JSON
+    ├── Profile exists → ApplicantProfileResponseMapper assembles JSON
     │
-    └── 档案不存在 → 返回 404 和草稿简历状态
+    └── Profile does not exist → Returns 404 and draft resume status
 ```
 
-**响应格式** (JSON):
+**Response format** (JSON):
 ```json
 {
     "applicantId": "uuid-123",
@@ -148,49 +148,49 @@ GET /api/me/applicant-profile
 }
 ```
 
-#### POST/PUT 处理
+#### POST/PUT Handling
 
-**请求参数**:
-| 参数 | 类型 | 必需 | 说明 |
+**Request Parameters**:
+| Parameter | Type | Required | Description |
 |------|------|------|------|
-| fullName | String | 是 | 姓名 |
-| studentId | String | 是 | 学号 |
-| department | String | 是 | 院系 |
-| program | String | 是 | 项目 |
-| gpa | String | 否 | GPA |
-| skills | String | 否 | 技能 (逗号分隔) |
-| phone | String | 否 | 电话 |
-| address | String | 否 | 地址 |
-| experience | String | 否 | 经验 |
-| motivation | String | 否 | 动机 |
+| fullName | String | Yes | Full name |
+| studentId | String | Yes | Student ID |
+| department | String | Yes | Department |
+| program | String | Yes | Program |
+| gpa | String | No | GPA |
+| skills | String | No | Skills (comma-separated) |
+| phone | String | No | Phone |
+| address | String | No | Address |
+| experience | String | No | Experience |
+| motivation | String | No | Motivation |
 
-**处理流程**:
+**Processing Flow**:
 ```
 POST /api/me/applicant-profile
     │
     ▼
-ApplicantProfileRequestMapper 读取参数
+ApplicantProfileRequestMapper reads parameters
     │
     ▼
-ApplicantProfileValidator 校验字段
+ApplicantProfileValidator validates fields
     │
     ▼
-ApplicantProfileService 保存档案并同步账号/申请单姓名
+ApplicantProfileService saves profile and syncs account/application name
     │
     ▼
-返回统一 JSON 响应
+Returns unified JSON response
 ```
 
 ---
 
-## 5. 头像与简历上传
+## 5. Avatar and Resume Upload
 
-### 5.1 文件存储
+### 5.1 File Storage
 
-**头像目录**: `{DATA_DIR}/photos/`
-**简历目录**: `{DATA_DIR}/resumes/`
+**Avatar directory**: `{DATA_DIR}/photos/`
+**Resume directory**: `{DATA_DIR}/resumes/`
 
-**文件名生成**:
+**Filename generation**:
 ```java
 String extension = FilenameUtils.getExtension(originalFilename);
 String newFilename = userId + "_photo_" + System.currentTimeMillis() + "." + extension;
@@ -199,41 +199,41 @@ String newFilename = userId + "_resume_" + System.currentTimeMillis() + "." + ex
 
 ### 5.2 ApplicantAssetServlet
 
-**路径**: `backend/src/com/example/tarecruitment/profile/web/ApplicantAssetServlet.java`
+**Path**: `backend/src/com/example/tarecruitment/profile/web/ApplicantAssetServlet.java`
 
-**端点**:
+**Endpoints**:
 - `GET /api/me/applicant-profile/photo`
 - `GET /api/me/applicant-profile/resume`
 - `POST /api/me/applicant-profile/resume-draft`
 - `DELETE /api/me/applicant-profile/resume-draft`
 
-**实现边界**:
-- Servlet 只检查当前用户、分发资源路径和写文件响应。
-- `ProfileAssetService` 负责文件定位、保存、复制草稿、删除旧文件。
-- `ProfileAssetValidator` 负责文件大小、Content-Type 和扩展名校验。
+**Implementation boundary**:
+- Servlet only checks current user, dispatches resource path, and writes file response.
+- `ProfileAssetService` is responsible for file location, saving, copying draft, and deleting old files.
+- `ProfileAssetValidator` is responsible for file size, Content-Type, and extension validation.
 
-**安全检查**:
-- 验证用户是否登录
-- 验证文件是否属于当前用户或对应申请单
+**Security checks**:
+- Verify user is logged in
+- Verify file belongs to current user or corresponding application
 
-### 5.3 申请单关联材料访问
+### 5.3 Application-Related Material Access
 
-MO/TA/Admin 通过申请单读取申请人材料：
+MO/TA/Admin access applicant materials through application:
 
 - `GET /api/applications/{applicationId}/applicant`
 - `GET /api/applications/{applicationId}/applicant/resume`
 - `GET /api/applications/{applicationId}/applicant/photo`
 
-### 5.4 文件类型验证
+### 5.4 File Type Validation
 
 ```java
-// 头像验证
+// Avatar validation
 private boolean isValidImage(String filename) {
     String ext = FilenameUtils.getExtension(filename).toLowerCase();
     return Arrays.asList("jpg", "jpeg", "png", "gif").contains(ext);
 }
 
-// 简历验证
+// Resume validation
 private boolean isValidResume(String filename) {
     String ext = FilenameUtils.getExtension(filename).toLowerCase();
     return "pdf".equals(ext);
@@ -242,27 +242,27 @@ private boolean isValidResume(String filename) {
 
 ---
 
-## 6. 前端页面
+## 6. Frontend Pages
 
 ### 6.1 dashboard.jsp
 
-**路径**: `frontend/webapp/jsp/ta/dashboard.jsp`
+**Path**: `frontend/webapp/jsp/ta/dashboard.jsp`
 
-**功能区域**:
-1. **档案信息展示/编辑**
-   - 基本信息表单
-   - 技能标签
-2. **简历上传**
-   - PDF 文件上传
-   - 上传状态显示
-3. **头像上传**
-   - 图片预览
-   - 裁剪功能 (可选)
+**Functional areas**:
+1. **Profile information display/edit**
+   - Basic information form
+   - Skills tags
+2. **Resume upload**
+   - PDF file upload
+   - Upload status display
+3. **Avatar upload**
+   - Image preview
+   - Cropping function (optional)
 
-### 6.2 前端交互
+### 6.2 Frontend Interaction
 
 ```javascript
-// 保存档案
+// Save profile
 async function saveProfile(formData) {
     return TARecruitment.api.request(TARecruitment.routes.me.applicantProfile(), {
         method: 'POST',
@@ -273,7 +273,7 @@ async function saveProfile(formData) {
     });
 }
 
-// 上传头像
+// Upload avatar
 async function uploadPhoto(file) {
     const formData = new FormData();
     formData.append('photo', file);
@@ -290,37 +290,37 @@ async function uploadPhoto(file) {
 
 ---
 
-## 7. 权限控制
+## 7. Permission Control
 
-| 操作 | TA | MO | ADMIN |
+| Operation | TA | MO | ADMIN |
 |------|----|----|-------|
-| 查看自己档案 | ✓ | ✓ | ✓ |
-| 修改自己档案 | ✓ | ✓ | ✓ |
-| 查看他人档案 | ✗ | ✗ | ✗ |
-| 上传简历 | ✓ | ✗ | ✗ |
-| 上传头像 | ✓ | ✗ | ✗ |
+| View own profile | ✓ | ✓ | ✓ |
+| Edit own profile | ✓ | ✓ | ✓ |
+| View others' profiles | ✗ | ✗ | ✗ |
+| Upload resume | ✓ | ✗ | ✗ |
+| Upload avatar | ✓ | ✗ | ✗ |
 
 ---
 
-## 8. 错误处理
+## 8. Error Handling
 
-| 错误场景 | 响应码 | 消息 |
+| Error Scenario | Response Code | Message |
 |----------|--------|------|
-| 档案不存在 | 404 | "Applicant not found" |
-| 上传文件过大 | 400 | "File too large" |
-| 文件类型不支持 | 400 | "Invalid file type" |
-| 权限不足 | 403 | "Access denied" |
-| 服务器错误 | 500 | "Internal server error" |
+| Profile does not exist | 404 | "Applicant not found" |
+| Upload file too large | 400 | "File too large" |
+| File type not supported | 400 | "Invalid file type" |
+| Insufficient permission | 403 | "Access denied" |
+| Server error | 500 | "Internal server error" |
 
 ---
 
-## 9. 测试用例
+## 9. Test Cases
 
-**验证方式**: 使用 `scripts/dev.sh` 启动本地环境后，按以下场景手工验证；提交前可运行 `./scripts/javadocs.sh` 和前端 `node --check`。
+**Validation method**: After starting local environment with `scripts/dev.sh`, manually verify according to the following scenarios; before committing, you can run `./scripts/javadocs.sh` and frontend `node --check`.
 
-**测试场景**:
-1. TA 创建档案 → 档案正确保存
-2. TA 更新档案 → 更新生效
-3. TA 上传头像 → 文件正确存储
-4. TA 上传简历 → 文件正确存储
-5. 未登录访问 → 返回 401
+**Test scenarios**:
+1. TA creates profile → Profile saved correctly
+2. TA updates profile → Update takes effect
+3. TA uploads avatar → File saved correctly
+4. TA uploads resume → File saved correctly
+5. Unauthenticated access → Returns 401

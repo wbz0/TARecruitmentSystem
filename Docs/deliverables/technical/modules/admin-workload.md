@@ -1,38 +1,38 @@
-# 管理员 TA 工作量统计模块技术文档
+# Admin TA Workload Statistics Module Technical Documentation
 
-## 1. 模块概述
+## 1. Module Overview
 
-管理员工作量统计模块用于查看已录用 TA 的工作量。当前前端只展示 TA workload，不再提供 MO workload 模式。
+Admin workload statistics module is used to view workload of hired TAs. Currently, the frontend only displays TA workload; MO workload mode is no longer provided.
 
-**核心组件**：
+**Core Components**:
 
-- `WorkloadStatsServlet` - `/api/admin/workload-statistics` HTTP 入口
-- `WorkloadStatsService` - TA 工作量统计业务逻辑
-- `frontend/webapp/jsp/admin/dashboard.jsp` - Admin 工作量页面
-- `frontend/webapp/js/admin/admin-dashboard.js` - 页面请求、筛选、分页和 CSV 导出
+- `WorkloadStatsServlet` - `/api/admin/workload-statistics` HTTP entry
+- `WorkloadStatsService` - TA workload statistics business logic
+- `frontend/webapp/jsp/admin/dashboard.jsp` - Admin workload page
+- `frontend/webapp/js/admin/admin-dashboard.js` - Page request, filtering, pagination, and CSV export
 
 ---
 
-## 2. 统计口径
+## 2. Statistics Scope
 
-当前统计只计入满足以下条件的记录：
+Current statistics only include records meeting the following conditions:
 
-- 申请状态为 `ACCEPTED`；
-- 申请人是 TA 用户；
-- 对应职位存在；
-- 职位具备 `weeklyHours`、`workStartDate`、`workEndDate`；
-- 如果传入 `start` / `end`，按职位工作期和筛选区间的交集计算周数。
+- Application status is `ACCEPTED`;
+- Applicant is a TA user;
+- Corresponding job exists;
+- Job has `weeklyHours`, `workStartDate`, `workEndDate`;
+- If `start` / `end` is passed, calculate weeks based on intersection of job work period and filter range.
 
-响应包含：
+Response contains:
 
-| 字段 | 说明 |
-|------|------|
-| `taWorkloads` | 每位 TA 的工作量列表 |
-| `invalidJobs` | 无法统计的录用记录及原因 |
-| `totalTaCount` | 有统计记录的 TA 数 |
-| `totalAcceptedJobs` | 被计入的录用岗位数 |
-| `totalWorkWeeks` | 合计周数 |
-| `totalWorkHours` | 合计工作小时 |
+| Field | Description |
+|------|-------------|
+| `taWorkloads` | Workload list for each TA |
+| `invalidJobs` | Hired records that cannot be counted and reasons |
+| `totalTaCount` | Number of TAs with statistics records |
+| `totalAcceptedJobs` | Number of hired jobs counted |
+| `totalWorkWeeks` | Total weeks |
+| `totalWorkHours` | Total work hours |
 
 ---
 
@@ -40,18 +40,18 @@
 
 ### GET /api/admin/workload-statistics
 
-**权限**: Admin
+**Permission**: Admin
 
-**查询参数**：
+**Query Parameters**:
 
-| 参数 | 类型 | 说明 |
+| Parameter | Type | Description |
 |------|------|------|
-| `start` | String | 开始日期或日期时间，可选 |
-| `end` | String | 结束日期或日期时间，可选 |
-| `mode` | String | 可选；当前仅接受 `ta` |
-| `export` | String | 传 `csv` 时导出 TA 工作量 CSV |
+| `start` | String | Start date or datetime, optional |
+| `end` | String | End date or datetime, optional |
+| `mode` | String | Optional; currently only accepts `ta` |
+| `export` | String | When set to `csv`, exports TA workload CSV |
 
-示例响应：
+Example response:
 
 ```json
 {
@@ -77,15 +77,15 @@
 }
 ```
 
-### CSV 导出
+### CSV Export
 
-`GET /api/admin/workload-statistics?export=csv` 返回 `text/csv`，文件名为 `ta-workload-stats.csv`。
+`GET /api/admin/workload-statistics?export=csv` returns `text/csv`, filename is `ta-workload-stats.csv`.
 
 ---
 
-## 4. 前端页面
+## 4. Frontend Page
 
-Admin dashboard 调用：
+Admin dashboard calls:
 
 ```javascript
 TARecruitment.api.request(TARecruitment.routes.admin.workloadStatistics(query), {
@@ -93,10 +93,10 @@ TARecruitment.api.request(TARecruitment.routes.admin.workloadStatistics(query), 
 });
 ```
 
-页面功能：
+Page features:
 
-- TA 工作量汇总卡片；
-- 搜索、排序和分页；
-- 日期范围筛选；
-- 无效录用记录提示；
-- CSV 导出。
+- TA workload summary cards;
+- Search, sort, and pagination;
+- Date range filtering;
+- Invalid hired records notification;
+- CSV export.

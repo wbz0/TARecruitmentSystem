@@ -28,12 +28,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * WorkloadStatsServlet - 管理员 TA 录用工作量统计接口。
+ * WorkloadStatsServlet - Admin TA recruitment workload statistics endpoint.
  *
- * 访问路径：GET /api/admin/workload-statistics
- * 对应页面：admin dashboard.jsp / js/admin/admin-dashboard.js。
+ * Access path: GET /api/admin/workload-statistics
+ * Corresponding page: admin dashboard.jsp / js/admin/admin-dashboard.js.
  *
- * Servlet 只做登录、ADMIN 权限、日期参数和响应格式；统计口径放在 WorkloadStatsService。
+ * This Servlet only handles login, ADMIN permission, date parameters and response format;
+ * the statistical scope logic is in WorkloadStatsService.
  */
 @WebServlet(ApiRoutes.ADMIN_WORKLOAD_STATISTICS)
 public class WorkloadStatsServlet extends HttpServlet {
@@ -84,14 +85,14 @@ public class WorkloadStatsServlet extends HttpServlet {
 
         String mode = request.getParameter("mode");
         if (mode != null && !mode.isBlank() && !"ta".equalsIgnoreCase(mode)) {
-            // 遗留/待移除：曾预留过非 TA 工作量模式，但当前前端没有入口，也没有对应统计实现。
+            // Legacy/to be removed: previously reserved for non-TA workload mode, but current frontend has no entry and no corresponding statistical implementation.
             ApiResponses.write(response, 400, false, "Only TA workload stats are supported", null);
             return;
         }
 
         WorkloadStatsService.WorkloadReport report = buildReport(start, end);
         if ("csv".equalsIgnoreCase(request.getParameter("export"))) {
-            // 管理员页面的导出按钮使用同一统计结果，只是换成 text/csv 下载。
+            // Admin page export button uses the same statistical results, just changes to text/csv download.
             String csv = workloadStatsService.exportTaWorkloadCsv(report);
             response.setStatus(200);
             response.setContentType("text/csv;charset=UTF-8");
@@ -104,7 +105,7 @@ public class WorkloadStatsServlet extends HttpServlet {
     }
 
     private WorkloadStatsService.WorkloadReport buildReport(LocalDateTime start, LocalDateTime end) {
-        // 先把 CSV 数据整理成按 id 访问的 map，避免统计过程中反复扫描文件。
+        // First organize CSV data into a map by id to avoid repeatedly scanning files during statistics.
         Map<String, Job> jobsById = jobDao.findAll().stream()
                 .collect(Collectors.toMap(
                         Job::getJobId,
@@ -209,12 +210,12 @@ public class WorkloadStatsServlet extends HttpServlet {
         try {
             return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         } catch (Exception ignored) {
-            // 继续兼容浏览器 datetime-local 的分钟精度。
+            // Continue to be compatible with browser datetime-local's minute precision.
         }
         try {
             return LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
         } catch (Exception ignored) {
-            // 继续兼容只有日期的筛选值。
+            // Continue to be compatible with date-only filter values.
         }
         try {
             LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);

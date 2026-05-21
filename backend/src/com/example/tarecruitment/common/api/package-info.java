@@ -1,6 +1,6 @@
 /**
- * API 路由常量包。
+ * API routing constants package.
  *
- * <p>所有后端 /api/... 路径集中定义在这里，避免 Servlet 和前端文档出现分散硬编码。
+ * <p>All backend /api/... paths are centrally defined here to avoid scattered hardcoding in Servlets and frontend documentation.
  */
 package com.example.tarecruitment.common.api;

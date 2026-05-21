@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 把 Application 领域对象转换成前端页面需要的 JSON payload。
+ * Converts Application domain object to JSON payload required by frontend page.
  *
- * service 层只负责业务结果；列表字段、搜索提示字段和时间字符串在这里统一整理，
- * 这样 TA/MO/Admin 页面不会各自猜 CSV 字段含义。
+ * Service layer is only responsible for business results; list fields, search hint fields and time strings
+ * are uniformly organized here, so TA/MO/Admin pages won't each guess CSV field meanings.
  */
 public final class ApplicationResponseMapper {
 
@@ -21,10 +21,10 @@ public final class ApplicationResponseMapper {
     }
 
     /**
-     * 申请列表响应。
+     * Application list response.
      *
-     * 三类角色页面共用 applications 数组；搜索元信息只负责前端提示
-     * “是否用了关键词/是否只有近似结果”。
+     * Three types of role pages share the applications array; search metadata only handles frontend hints
+     * “whether keywords were used / whether there are only approximate results”.
      */
     public static Map<String, Object> toListPayload(List<Application> applications,
                                                     FuzzySearchUtil.SearchOutcome<Application> searchOutcome) {
@@ -45,9 +45,9 @@ public final class ApplicationResponseMapper {
     }
 
     /**
-     * 按角色决定模糊搜索覆盖哪些字段。
+     * Determine which fields fuzzy search covers based on role.
      *
-     * 这样 TA 搜岗位相关信息，MO 搜候选人相关信息，Admin 搜全量审计信息。
+     * This way TA searches job-related information, MO searches candidate-related information, Admin searches all audit information.
      */
     public static List<String> searchFieldsForRole(Application application, User.Role role) {
         List<String> fields = new ArrayList<>();
@@ -55,7 +55,7 @@ public final class ApplicationResponseMapper {
             return fields;
         }
 
-        // 搜索字段跟角色视角保持一致：TA 搜岗位，MO 搜候选人，Admin 搜全局信息。
+        // Search fields are consistent with role perspective: TA searches jobs, MO searches candidates, Admin searches global information.
         if (role == User.Role.TA) {
             fields.add(application.getJobTitle());
             fields.add(application.getCourseCode());
@@ -79,9 +79,9 @@ public final class ApplicationResponseMapper {
     }
 
     /**
-     * 单条申请响应。
+     * Single application response.
      *
-     * 这里输出的是页面字段名，不直接暴露 Application CSV 字段顺序。
+     * Here outputs page field names, not directly exposing Application CSV field order.
      */
     public static Map<String, Object> toPayload(Application app) {
         return ApiResponses.objectMap(
@@ -100,7 +100,7 @@ public final class ApplicationResponseMapper {
                 "updatedAt", app.getUpdatedAt() != null ? app.getUpdatedAt().toString() : "",
                 "reviewedAt", app.getReviewedAt() != null ? app.getReviewedAt().toString() : "",
                 "progressStage", app.getProgressStage() != null ? app.getProgressStage().name() : "UNDER_REVIEW",
-                // 阶段时间用于申请进度时间线；部分旧 CSV 没有值，前端会按空字符串处理。
+                // Stage time is used for application progress timeline; some old CSVs don't have values, frontend will handle as empty string.
                 "reviewStartedAt", app.getReviewStartedAt() != null ? app.getReviewStartedAt().toString() : "",
                 "interviewScheduledAt", app.getInterviewScheduledAt() != null ? app.getInterviewScheduledAt().toString() : "",
                 "finalDecisionAt", app.getFinalDecisionAt() != null ? app.getFinalDecisionAt().toString() : ""

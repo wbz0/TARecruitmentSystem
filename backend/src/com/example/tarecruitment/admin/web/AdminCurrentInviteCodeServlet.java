@@ -13,13 +13,13 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AdminCurrentInviteCodeServlet - 当前邀请码查询与主动刷新接口。
+ * AdminCurrentInviteCodeServlet - Current invite code query and manual refresh endpoint.
  *
- * 对应 /jsp/admin/invite.jsp 和 js/admin/admin-invite-management.js。
- * 这是当前管理员页面实际展示的邀请方式：管理员看到短码，必要时手动刷新。
+ * Corresponding to /jsp/admin/invite.jsp and js/admin/admin-invite-management.js.
+ * This is the currently visible invite method for admin page: admin sees the short code, manually refreshes when needed.
  *
- * GET  /api/admin/invitations/current-code  返回当前码和剩余秒数（需 ADMIN）
- * POST /api/admin/invitations/current-code  主动轮换，返回新码（需 ADMIN）
+ * GET  /api/admin/invitations/current-code  Returns current code and remaining seconds (requires ADMIN)
+ * POST /api/admin/invitations/current-code  Manually rotates, returns new code (requires ADMIN)
  */
 @WebServlet(ApiRoutes.ADMIN_CURRENT_INVITATION_CODE)
 public class AdminCurrentInviteCodeServlet extends HttpServlet {

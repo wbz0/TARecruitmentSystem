@@ -5,17 +5,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * SessionUtil - Session 工具类。
+ * SessionUtil - Session utility class.
  *
- * 当前登录后 session 同时保存 `user` 对象和若干基础字段。
- * 新代码优先读取 `user` 对象；字符串字段主要给 JSP 片段和旧工具方法兼容使用。
+ * After login, session saves both `user` object and some basic fields.
+ * New code preferentially reads `user` object; string fields are mainly for JSP fragments and legacy utility method compatibility.
  */
 public class SessionUtil {
 
     /**
-     * 获取当前登录用户
-     * @param request HTTP请求对象
-     * @return 用户对象，如果未登录返回null
+     * Get current logged-in user
+     * @param request HTTP request object
+     * @return user object, null if not logged in
      */
     public static User getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -26,12 +26,12 @@ public class SessionUtil {
     }
 
     /**
-     * 获取当前登录用户的ID
-     * @param request HTTP请求对象
-     * @return 用户ID，如果未登录返回null
+     * Get current logged-in user ID
+     * @param request HTTP request object
+     * @return user ID, null if not logged in
      */
     public static String getCurrentUserId(HttpServletRequest request) {
-        // 遗留兼容：旧 JSP/工具曾直接读 userId。新 Java 逻辑优先从 User 对象取值。
+        // Legacy compatibility: old JSP/tools directly read userId. New Java logic preferentially reads from User object.
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object userId = session.getAttribute("userId");
@@ -41,12 +41,12 @@ public class SessionUtil {
     }
 
     /**
-     * 获取当前登录用户的用户名
-     * @param request HTTP请求对象
-     * @return 用户名，如果未登录返回null
+     * Get current logged-in username
+     * @param request HTTP request object
+     * @return username, null if not logged in
      */
     public static String getCurrentUsername(HttpServletRequest request) {
-        // 遗留兼容：用于 JSP 页面注入显示名；账号资料接口仍以 User 对象为准。
+        // Legacy compatibility: used for JSP page injection display name; account profile API still uses User object as source of truth.
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object username = session.getAttribute("username");
@@ -56,12 +56,12 @@ public class SessionUtil {
     }
 
     /**
-     * 获取当前登录用户的角色
-     * @param request HTTP请求对象
-     * @return 角色名称，如果未登录返回null
+     * Get current logged-in user role
+     * @param request HTTP request object
+     * @return role name, null if not logged in
      */
     public static String getCurrentUserRole(HttpServletRequest request) {
-        // 遗留兼容：字符串 role 方便 JSP 判断；后端权限判断优先使用 User.Role。
+        // Legacy compatibility: string role is convenient for JSP check; backend permission check preferentially uses User.Role.
         HttpSession session = request.getSession(false);
         if (session != null) {
             Object role = session.getAttribute("role");
@@ -71,18 +71,18 @@ public class SessionUtil {
     }
 
     /**
-     * 检查用户是否已登录
-     * @param request HTTP请求对象
-     * @return true表示已登录
+     * Check if user is logged in
+     * @param request HTTP request object
+     * @return true if logged in
      */
     public static boolean isLoggedIn(HttpServletRequest request) {
         return getCurrentUser(request) != null;
     }
 
     /**
-     * 检查用户是否为TA角色
-     * @param request HTTP请求对象
-     * @return true表示是TA
+     * Check if user is TA role
+     * @param request HTTP request object
+     * @return true if TA
      */
     public static boolean isTA(HttpServletRequest request) {
         String role = getCurrentUserRole(request);
@@ -90,9 +90,9 @@ public class SessionUtil {
     }
 
     /**
-     * 检查用户是否为MO角色
-     * @param request HTTP请求对象
-     * @return true表示是MO
+     * Check if user is MO role
+     * @param request HTTP request object
+     * @return true if MO
      */
     public static boolean isMO(HttpServletRequest request) {
         String role = getCurrentUserRole(request);
@@ -100,9 +100,9 @@ public class SessionUtil {
     }
 
     /**
-     * 检查用户是否为ADMIN角色
-     * @param request HTTP请求对象
-     * @return true表示是ADMIN
+     * Check if user is ADMIN role
+     * @param request HTTP request object
+     * @return true if ADMIN
      */
     public static boolean isAdmin(HttpServletRequest request) {
         String role = getCurrentUserRole(request);
@@ -110,10 +110,10 @@ public class SessionUtil {
     }
 
     /**
-     * 检查用户是否具有特定角色
-     * @param request HTTP请求对象
-     * @param role 要检查的角色
-     * @return true表示具有该角色
+     * Check if user has specific role
+     * @param request HTTP request object
+     * @param role role to check
+     * @return true if has the role
      */
     public static boolean hasRole(HttpServletRequest request, User.Role role) {
         User user = getCurrentUser(request);
@@ -121,10 +121,10 @@ public class SessionUtil {
     }
 
     /**
-     * 检查用户是否具有特定角色（字符串形式）
-     * @param request HTTP请求对象
-     * @param roleName 要检查的角色名称
-     * @return true表示具有该角色
+     * Check if user has specific role (string form)
+     * @param request HTTP request object
+     * @param roleName role name to check
+     * @return true if has the role
      */
     public static boolean hasRole(HttpServletRequest request, String roleName) {
         String currentRole = getCurrentUserRole(request);
@@ -132,17 +132,17 @@ public class SessionUtil {
     }
 
     /**
-     * 创建或获取Session
-     * @param request HTTP请求对象
-     * @return HttpSession对象
+     * Create or get Session
+     * @param request HTTP request object
+     * @return HttpSession object
      */
     public static HttpSession getSession(HttpServletRequest request) {
         return request.getSession(true);
     }
 
     /**
-     * 销毁Session
-     * @param request HTTP请求对象
+     * Destroy Session
+     * @param request HTTP request object
      */
     public static void invalidateSession(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -152,10 +152,10 @@ public class SessionUtil {
     }
 
     /**
-     * 设置Session属性
-     * @param request HTTP请求对象
-     * @param name 属性名
-     * @param value 属性值
+     * Set Session attribute
+     * @param request HTTP request object
+     * @param name attribute name
+     * @param value attribute value
      */
     public static void setAttribute(HttpServletRequest request, String name, Object value) {
         HttpSession session = request.getSession(true);
@@ -163,10 +163,10 @@ public class SessionUtil {
     }
 
     /**
-     * 获取Session属性
-     * @param request HTTP请求对象
-     * @param name 属性名
-     * @return 属性值，如果不存在返回null
+     * Get Session attribute
+     * @param request HTTP request object
+     * @param name attribute name
+     * @return attribute value, null if not exists
      */
     public static Object getAttribute(HttpServletRequest request, String name) {
         HttpSession session = request.getSession(false);
@@ -177,9 +177,9 @@ public class SessionUtil {
     }
 
     /**
-     * 移除Session属性
-     * @param request HTTP请求对象
-     * @param name 属性名
+     * Remove Session attribute
+     * @param request HTTP request object
+     * @param name attribute name
      */
     public static void removeAttribute(HttpServletRequest request, String name) {
         HttpSession session = request.getSession(false);
@@ -189,9 +189,9 @@ public class SessionUtil {
     }
 
     /**
-     * 获取Session创建时间
-     * @param request HTTP请求对象
-     * @return 创建时间（毫秒），如果无Session返回-1
+     * Get Session creation time
+     * @param request HTTP request object
+     * @return creation time (milliseconds), -1 if no session
      */
     public static long getCreationTime(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -202,9 +202,9 @@ public class SessionUtil {
     }
 
     /**
-     * 获取Session最后访问时间
-     * @param request HTTP请求对象
-     * @return 最后访问时间（毫秒），如果无Session返回-1
+     * Get Session last access time
+     * @param request HTTP request object
+     * @return last access time (milliseconds), -1 if no session
      */
     public static long getLastAccessTime(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -215,9 +215,9 @@ public class SessionUtil {
     }
 
     /**
-     * 获取Session剩余存活时间（秒）
-     * @param request HTTP请求对象
-     * @return 剩余存活时间，如果无Session返回-1
+     * Get Session remaining active time (seconds)
+     * @param request HTTP request object
+     * @return remaining active time, -1 if no session
      */
     public static int getMaxInactiveInterval(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -228,9 +228,9 @@ public class SessionUtil {
     }
 
     /**
-     * 设置Session最大不活跃时间（秒）
-     * @param request HTTP请求对象
-     * @param interval 最大不活跃时间（秒）
+     * Set Session max inactive interval (seconds)
+     * @param request HTTP request object
+     * @param interval max inactive interval (seconds)
      */
     public static void setMaxInactiveInterval(HttpServletRequest request, int interval) {
         HttpSession session = request.getSession(true);

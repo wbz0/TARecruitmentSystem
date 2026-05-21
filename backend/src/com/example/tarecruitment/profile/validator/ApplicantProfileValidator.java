@@ -8,10 +8,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * ApplicantProfileValidator - TA 档案字段校验。
+ * ApplicantProfileValidator - TA profile field validation.
  *
- * 负责可见表单字段的必填、长度、格式和明显垃圾输入检查。
- * 学号唯一性、文件保存、账号/申请同步不在这里做。
+ * Responsible for visible form field required, length, format, and obvious spam input checks.
+ * Student ID uniqueness, file saving, and account/application synchronization are not handled here.
  */
 public final class ApplicantProfileValidator {
 
@@ -32,7 +32,7 @@ public final class ApplicantProfileValidator {
         if (skills == null || skills.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        // TA 档案技能允许逗号或分号，保存进 CSV 时再统一成分号。
+        // TA profile skills allow comma or semicolon, unified to semicolon when saving to CSV.
         return Arrays.stream(skills.split("[;,]"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -52,7 +52,7 @@ public final class ApplicantProfileValidator {
     }
 
     public static String validatePartialInput(ApplicantProfileInput input) {
-        // 局部更新只校验本次请求出现的字段，未传字段保持原值。
+        // Partial update only validates fields present in this request; fields not passed retain their original values.
         if (input.getFullNameRaw() != null) {
             String fullName = normalizeInput(input.getFullNameRaw());
             if (fullName == null) return "Full name cannot be empty.";
@@ -125,7 +125,7 @@ public final class ApplicantProfileValidator {
     }
 
     public static String validateInput(ApplicantProfileInput input, boolean requireRequiredFields) {
-        // 创建档案时要求主表单字段齐全；编辑时也可以复用同一套校验规则。
+        // Creating a profile requires all main form fields; the same validation rules can be reused during editing.
         if (requireRequiredFields && input.getFullName() == null) return "Full name is required.";
         if (input.getFullName() != null) {
             String error = validateFullName(input.getFullName());
@@ -309,7 +309,7 @@ public final class ApplicantProfileValidator {
     private static String validateLongTextField(String value, String label) {
         if (value.length() > 1200) return label + " must be 1200 characters or fewer.";
         if (value.length() < 20) return label + " should be at least 20 characters if provided.";
-        // 同时支持英文词数和中文字符数，避免中文说明被误判为“字数不够”。
+        // Supports both English word count and Chinese character count to avoid Chinese descriptions being mistakenly judged as "insufficient character count".
         if (getTextContentUnits(value) < 10) {
             return label + " should contain more detail (about 10 words/characters).";
         }

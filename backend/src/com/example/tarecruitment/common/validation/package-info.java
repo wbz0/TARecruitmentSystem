@@ -1,6 +1,6 @@
 /**
- * 通用校验包。
+ * Common validation package.
  *
- * <p>预留给跨领域复用的校验常量或帮助方法；领域特定校验仍放在各自 validator 包。
+ * <p>Reserved for cross-domain reusable validation constants or helper methods; domain-specific validations remain in their respective validator packages.
  */
 package com.example.tarecruitment.common.validation;

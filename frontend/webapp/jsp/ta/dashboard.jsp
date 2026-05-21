@@ -8,7 +8,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 档案页：表单字段由 ta-dashboard.js 保存到 /api/me/applicant-profile。 --%>
+<%-- TA profile page: form fields are saved to /api/me/applicant-profile by ta-dashboard.js. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -395,7 +395,7 @@
     </div>
 
     <script>
-        // 注入给 ta-dashboard.js 和共享侧边栏账号弹窗。
+        // Injected for ta-dashboard.js and shared sidebar account dialog.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260326a" defer></script>

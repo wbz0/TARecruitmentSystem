@@ -3,12 +3,12 @@ package com.example.tarecruitment.common.storage;
 import java.nio.file.Paths;
 
 /**
- * StoragePaths - 统一管理运行时数据目录。
+ * StoragePaths - Unified management of runtime data directory.
  *
- * 配置方式：通过 scripts/config.sh 或 scripts/config.bat 设置 TA_HIRING_DATA_DIR。
- * 代码只读取这个环境变量，不把运行时数据写进仓库。
+ * Configuration: Set TA_HIRING_DATA_DIR via scripts/config.sh or scripts/config.bat.
+ * Code only reads this environment variable, does not write runtime data into the repository.
  *
- * 数据目录结构：
+ * Data directory structure:
  * ${TA_HIRING_DATA_DIR}/
  * ├── users/
  * ├── jobs/
@@ -27,8 +27,8 @@ public final class StoragePaths {
     }
 
     /**
-     * 获取数据根目录
-     * 必须通过脚本配置 TA_HIRING_DATA_DIR 环境变量。
+     * Get data root directory
+     * TA_HIRING_DATA_DIR environment variable must be configured via script.
      */
     public static String getDataDir() {
         String dataDir = System.getenv(DATA_DIR_ENV);
@@ -36,8 +36,8 @@ public final class StoragePaths {
             return dataDir.trim();
         }
         throw new IllegalStateException(
-            "数据目录未配置。请在 config.bat 中设置 TA_HIRING_DATA_DIR 环境变量。\n" +
-            "例如：set TA_HIRING_DATA_DIR=%CATALINA_HOME%\\data"
+            "Data directory not configured. Set TA_HIRING_DATA_DIR environment variable in config.bat.\n" +
+            "Example: set TA_HIRING_DATA_DIR=%CATALINA_HOME%\\data"
         );
     }
 
@@ -66,7 +66,7 @@ public final class StoragePaths {
     }
 
     public static String getResumeDraftDir() {
-        // 草稿目录只给当前 TA 档案编辑流程使用，不会作为公开简历文件展示。
+        // Draft dir is only used for current TA profile editing flow; not exposed as public resume file.
         return Paths.get(getDataDir(), "resume-drafts").toString();
     }
 
@@ -75,7 +75,7 @@ public final class StoragePaths {
     }
 
     public static String getPhotoDraftDir() {
-        // 草稿目录只给头像/照片编辑流程使用，正式资源仍在 photos。
+        // Draft dir is only used for avatar/photo editing flow; formal resources are still in photos.
         return Paths.get(getDataDir(), "photo-drafts").toString();
     }
 

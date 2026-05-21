@@ -1,6 +1,6 @@
 /**
- * AI HTTP 入口层。
+ * AI HTTP entry layer.
  *
- * <p>提供 MO 申请人推荐和 TA 职位推荐等 /api/... 接口。
+ * <p>Provides MO applicant recommendation and TA position recommendation /api/... interfaces.
  */
 package com.example.tarecruitment.ai.web;

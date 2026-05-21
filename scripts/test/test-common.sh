@@ -1,60 +1,60 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 所有成员测试脚本共享这一个公共文件。
+# Shared helper for all contributor test scripts.
 #
-# 设计目标：
-# - 每个成员只运行自己的 test-memberX.sh；
-# - 后端测试统一用 javac/java 编译运行，不引入 JUnit/Maven；
-# - 每次测试都使用 build/member-tests/<member>/data 作为临时 TA_HIRING_DATA_DIR；
-# - 测试输出统一带 [memberX] 前缀，方便答辩展示和截图。
+# Design goals:
+# - each contributor runs only their own named test script;
+# - backend tests compile and run with javac/java directly, without JUnit or Maven;
+# - each test uses build/contributor-tests/<contributor>/data as a temporary TA_HIRING_DATA_DIR;
+# - test output consistently uses a contributor name prefix for defense demos and screenshots.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-TEST_BUILD_ROOT="$PROJECT_ROOT/build/member-tests"
+TEST_BUILD_ROOT="$PROJECT_ROOT/build/contributor-tests"
 
-# 读取本机 Tomcat 配置，主要是为了找到 servlet-api.jar。
-# 如果 config.sh 不存在，下面的 servlet_api_jar() 仍会尝试 Homebrew 常见路径。
+# Load local Tomcat config, mainly to locate servlet-api.jar.
+# If config.sh is absent, servlet_api_jar() still tries common Homebrew paths below.
 if [ -f "$PROJECT_ROOT/scripts/config.sh" ]; then
     # shellcheck disable=SC1091
     source "$PROJECT_ROOT/scripts/config.sh"
 fi
 
-# 打印阶段标题，例如“编译后端源码”“运行成员后端测试”。
+# Print a section title, such as "Compile backend sources" or "Run contributor backend test".
 print_section() {
-    local member="$1"
+    local label="$1"
     local message="$2"
-    printf '\n[%s] %s\n' "$member" "$message"
+    printf '\n[%s] %s\n' "$label" "$message"
 }
 
-# 打印单个步骤通过信息。
+# Print a single step success message.
 pass_step() {
-    local member="$1"
+    local label="$1"
     local message="$2"
-    printf '[%s] PASS - %s\n' "$member" "$message"
+    printf '[%s] PASS - %s\n' "$label" "$message"
 }
 
-# 统一失败出口：打印错误并 exit 1，让答辩脚本明确显示失败。
+# Central failure exit: print an error and exit 1 so demo scripts fail clearly.
 fail_step() {
-    local member="$1"
+    local label="$1"
     local message="$2"
-    printf '[%s] FAIL - %s\n' "$member" "$message" >&2
+    printf '[%s] FAIL - %s\n' "$label" "$message" >&2
     exit 1
 }
 
-# 检查运行测试需要的命令是否存在，例如 javac、java、node。
+# Check that a command required by the test exists, such as javac, java, or node.
 require_command() {
-    local member="$1"
+    local label="$1"
     local command_name="$2"
     if ! command -v "$command_name" >/dev/null 2>&1; then
-        fail_step "$member" "缺少命令：$command_name"
+        fail_step "$label" "Missing command: $command_name"
     fi
 }
 
-# 查找 Servlet API 依赖。
+# Find the Servlet API dependency.
 #
-# 后端源码引用 jakarta.servlet.*，直接 javac 编译时必须把 Tomcat 的
-# servlet-api.jar 放进 classpath。这里先用 config.sh，再尝试 macOS/Homebrew
-# 常见安装路径。
+# Backend sources import jakarta.servlet.*. Direct javac compilation must include
+# Tomcat's servlet-api.jar on the classpath. This uses config.sh first, then tries
+# common macOS/Homebrew install paths.
 servlet_api_jar() {
     local candidates=()
     if [ "${TOMCAT_HOME:-}" != "" ]; then
@@ -80,68 +80,71 @@ servlet_api_jar() {
     return 1
 }
 
-# 编译后端项目源码。
+# Compile backend project sources.
 #
-# 每个后端成员测试都先完整编译 backend/src，这样可以证明：
-# - 当前源码整体能通过 javac；
-# - 成员测试不是只编译自己那一个类；
-# - Servlet 相关类也能在 servlet-api.jar 帮助下通过编译。
-prepare_backend_member_test() {
-    local member="$1"
-    local build_dir="$TEST_BUILD_ROOT/$member"
+# Each backend contributor test compiles all of backend/src first. This proves that:
+# - the current source tree compiles with javac;
+# - the contributor test is not compiling only its own class;
+# - Servlet-related classes compile when servlet-api.jar is present.
+prepare_backend_contributor_test() {
+    local contributor_id="$1"
+    local label="$2"
+    local build_dir="$TEST_BUILD_ROOT/$contributor_id"
     local classes_dir="$build_dir/classes"
     local test_classes_dir="$build_dir/test-classes"
     local source_list="$build_dir/java-sources.txt"
 
-    # 后端测试至少需要 JDK 的 javac/java。
-    require_command "$member" javac
-    require_command "$member" java
+    # Backend tests need at least the JDK javac/java tools.
+    require_command "$label" javac
+    require_command "$label" java
 
     local servlet_jar
     if ! servlet_jar="$(servlet_api_jar)"; then
-        fail_step "$member" "找不到 servlet-api.jar，请检查 scripts/config.sh 里的 TOMCAT_HOME/CATALINA_HOME"
+        fail_step "$label" "servlet-api.jar not found. Check TOMCAT_HOME/CATALINA_HOME in scripts/config.sh"
     fi
 
-    # 每次运行都清理该成员自己的构建目录，避免旧 class 文件影响结果。
+    # Clean the contributor build directory on each run so stale class files cannot affect results.
     rm -rf "$build_dir"
     mkdir -p "$classes_dir" "$test_classes_dir"
     find "$PROJECT_ROOT/backend/src" -name "*.java" | sort > "$source_list"
 
     if [ ! -s "$source_list" ]; then
-        fail_step "$member" "backend/src 下没有 Java 源码"
+        fail_step "$label" "No Java sources found under backend/src"
     fi
 
-    print_section "$member" "编译后端源码"
+    print_section "$label" "Compile backend sources"
     javac -encoding UTF-8 -d "$classes_dir" -cp "$servlet_jar:$classes_dir" @"$source_list"
-    pass_step "$member" "后端源码编译通过"
+    pass_step "$label" "Backend sources compiled"
 }
 
-# 编译某个成员自己的 Java 测试类。
+# Compile one contributor's Java test class.
 #
-# 测试类放在 backend/test 下，没有 package，编译后直接进入 test-classes。
-compile_backend_member_test() {
-    local member="$1"
-    local test_source="$2"
-    local build_dir="$TEST_BUILD_ROOT/$member"
+# Test classes live under backend/test without a package and compile directly into test-classes.
+compile_backend_contributor_test() {
+    local contributor_id="$1"
+    local label="$2"
+    local test_source="$3"
+    local build_dir="$TEST_BUILD_ROOT/$contributor_id"
     local classes_dir="$build_dir/classes"
     local test_classes_dir="$build_dir/test-classes"
     local servlet_jar
     servlet_jar="$(servlet_api_jar)"
 
-    print_section "$member" "编译成员测试代码"
+    print_section "$label" "Compile contributor test code"
     javac -encoding UTF-8 -d "$test_classes_dir" -cp "$servlet_jar:$classes_dir" "$PROJECT_ROOT/$test_source"
-    pass_step "$member" "成员测试代码编译通过"
+    pass_step "$label" "Contributor test code compiled"
 }
 
-# 运行某个后端成员测试。
+# Run one backend contributor test.
 #
-# 关键点是临时设置 TA_HIRING_DATA_DIR：
-# DAO 会把 CSV 写入 build/member-tests/<member>/data，
-# 不会碰真实 Tomcat 数据目录，也不会污染演示账号。
-run_backend_member_test() {
-    local member="$1"
-    local main_class="$2"
-    local build_dir="$TEST_BUILD_ROOT/$member"
+# The key point is temporarily setting TA_HIRING_DATA_DIR:
+# DAOs write CSV files into build/contributor-tests/<contributor>/data instead of touching
+# the real Tomcat data directory or polluting demo accounts.
+run_backend_contributor_test() {
+    local contributor_id="$1"
+    local label="$2"
+    local main_class="$3"
+    local build_dir="$TEST_BUILD_ROOT/$contributor_id"
     local classes_dir="$build_dir/classes"
     local test_classes_dir="$build_dir/test-classes"
     local data_dir="$build_dir/data"
@@ -151,23 +154,24 @@ run_backend_member_test() {
     rm -rf "$data_dir"
     mkdir -p "$data_dir"
 
-    print_section "$member" "运行成员后端测试"
+    print_section "$label" "Run contributor backend test"
     TA_HIRING_DATA_DIR="$data_dir" java -cp "$servlet_jar:$classes_dir:$test_classes_dir" "$main_class"
-    pass_step "$member" "成员后端测试通过"
+    pass_step "$label" "Contributor backend test passed"
 }
 
-# 运行前端/架构 Node 测试。
+# Run frontend/architecture Node tests.
 #
-# member5/member6 的测试不是浏览器端 E2E，而是静态检查：
-# - JS 语法；
-# - 前端路由调用规范；
-# - 架构残留和文档路径。
-run_node_member_test() {
-    local member="$1"
-    local test_source="$2"
+# Sheng Yuhan and Wang Bangzhen tests are not browser E2E tests. They are static checks for:
+# - JS syntax;
+# - frontend route usage rules;
+# - architecture remnants and documentation paths.
+run_node_contributor_test() {
+    local contributor_id="$1"
+    local label="$2"
+    local test_source="$3"
 
-    require_command "$member" node
-    print_section "$member" "运行成员前端/架构测试"
+    require_command "$label" node
+    print_section "$label" "Run contributor frontend/architecture test"
     node "$PROJECT_ROOT/$test_source"
-    pass_step "$member" "成员测试通过"
+    pass_step "$label" "Contributor test passed"
 }

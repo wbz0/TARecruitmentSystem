@@ -1,8 +1,8 @@
 /*
- * AppI18n 全站静态文案字典。
+ * AppI18n global static text dictionary.
  *
- * 登录、注册、首页和各角色门户都通过 data-i18n 或 AppI18n.t 读取这里的文案。
- * 纯动态服务端错误会先走 localizeServerMessage，再退回服务端英文原文。
+ * Login, registration, homepage, and role portals all read text from here via data-i18n or AppI18n.t.
+ * Pure dynamic server-side errors first go through localizeServerMessage, then fall back to the server-side English text.
  */
 (function () {
     var STORAGE_KEY = "ta_hiring_locale";
@@ -18,7 +18,7 @@
                 },
                 locale: {
                     switchAria: "Switch language",
-                    zh: "中文",
+                    zh: "Chinese",
                     en: "English"
                 },
                 action: {
@@ -834,8 +834,8 @@
                     aiSearching: "AI...",
                     aiSearchLoading: "AI searching...",
                     aiSearchUnavailable: "AI search is currently unavailable.",
-                    aiOutOfScope: "我无法处理您的问题。我可以根据当前职位的申请人信息，帮你推荐候选人、比较申请人或解释推荐理由。",
-                    aiRecommendationTitle: "推荐建议（AI生成）",
+                    aiOutOfScope: "I cannot handle that request. I can recommend candidates, compare applicants, or explain recommendations based on the current job's applicant information.",
+                    aiRecommendationTitle: "AI recommendation",
                     aiRecommendedUnit: "AI recommendation(s)",
                     searchModeToggle: "Switch search mode",
                     job: "Job",
@@ -2577,8 +2577,8 @@
     var currentLocale = DEFAULT_LOCALE;
 
     /*
-     * 统一外部传入的语言值。
-     * 只支持 en 和 zh-CN，其他区域码统一折叠到这两个页面语言。
+     * Normalize externally supplied locale values.
+     * Only en and zh-CN are supported; other region codes fold into these page languages.
      */
     function normalizeLocale(input) {
         if (typeof input !== "string" || !input.trim()) {
@@ -2595,7 +2595,7 @@
     }
 
     /*
-     * 读取用户上次选择的语言。
+     * Read the user's last selected locale.
      */
     function readSavedLocale() {
         try {
@@ -2606,7 +2606,7 @@
     }
 
     /*
-     * 从浏览器语言中推断首选语言。
+     * Infer the preferred locale from browser languages.
      */
     function readBrowserLocale() {
         var languages = [];
@@ -2626,14 +2626,14 @@
     }
 
     /*
-     * 初始语言优先级：用户保存值 -> locale-bootstrap 标记 -> 浏览器语言 -> 英文。
+     * Initial locale priority: saved value -> locale-bootstrap marker -> browser language -> English.
      */
     function resolveInitialLocale() {
         return readSavedLocale() || normalizeLocale(document.documentElement.getAttribute("data-initial-locale") || "") || readBrowserLocale() || DEFAULT_LOCALE;
     }
 
     /*
-     * 通过点号路径读取字典值，例如 portal.taJobList.searchPlaceholder。
+     * Read a dictionary value through a dotted path, for example portal.taJobList.searchPlaceholder.
      */
     function getByPath(locale, key) {
         if (!locale || !key) {
@@ -2655,7 +2655,7 @@
     }
 
     /*
-     * 页面和动态脚本统一使用的翻译函数。
+     * Shared translation function for pages and dynamic scripts.
      */
     function t(key, fallback) {
         var localized = getByPath(currentLocale, key) || getByPath(DEFAULT_LOCALE, key);
@@ -2666,8 +2666,9 @@
     }
 
     /*
-     * 服务端英文消息到 i18n key 的映射。
-     * 遗留/待移除：如果后端未来直接返回稳定错误 code，这张英文文本映射表可以删除。
+     * Mapping from server-side English messages to i18n keys.
+     * Legacy/removable: if the backend later returns stable error codes directly,
+     * this English text mapping can be deleted.
      */
     var SERVER_MESSAGE_KEYS = {
         "please login first": "server.auth.loginRequired",
@@ -2861,18 +2862,13 @@
         "you can only search applicants for your own jobs": "server.search.ownJobsOnly",
         "only mo can use applicant ai search": "server.ai.moApplicantOnly",
         "only ta can use job ai search": "server.ai.taJobOnly",
-        "ai 搜索暂不可用，请稍后再试": "server.ai.applicantSearchUnavailable",
-        "ai 推荐暂不可用，请稍后再试": "server.ai.jobSearchUnavailable",
-        "请先完善个人档案后再使用 ai 推荐": "server.ai.profileRequired",
-        "已生成 ai 推荐结果": "server.ai.applicantRecommendationsGenerated",
-        "已生成 ai 推荐职位": "server.ai.jobRecommendationsGenerated",
         "title is required": "server.notifications.titleRequired",
         "content is required": "server.notifications.contentRequired",
         "notification not found": "server.notifications.notFound"
     };
 
     /*
-     * 服务端带变量前缀的消息映射，例如 “username already exists: xxx”。
+     * Mapping for server messages with variable prefixes, for example "username already exists: xxx".
      */
     var SERVER_MESSAGE_PREFIX_KEYS = [
         { prefix: "username already exists:", key: "server.auth.usernameExists" },
@@ -2889,7 +2885,7 @@
     ];
 
     /*
-     * 归一化服务端消息，去掉句号和多余空格后再匹配。
+     * Normalize server messages by removing trailing punctuation and extra spaces before matching.
      */
     function normalizeServerMessage(message) {
         return String(message || "")
@@ -2900,7 +2896,7 @@
     }
 
     /*
-     * 把服务端消息解析成翻译 key。
+     * Resolve a server message into a translation key.
      */
     function resolveServerMessageKey(message) {
         var normalized = normalizeServerMessage(message);
@@ -2919,8 +2915,9 @@
     }
 
     /*
-     * 动态错误本地化入口。
-     * 优先翻译已知服务端消息，未知消息保留原文，避免丢失调试信息。
+     * Dynamic error-localization entrypoint.
+     * Known server messages are translated first; unknown messages keep their original text
+     * so debugging details are not lost.
      */
     function localizeServerMessage(message, fallbackKey, fallbackText) {
         var raw = typeof message === "string" ? message.trim() : "";
@@ -2938,7 +2935,7 @@
     }
 
     /*
-     * 记住用户手动切换的语言。
+     * Remember the locale manually selected by the user.
      */
     function rememberLocale(locale) {
         try {
@@ -2949,7 +2946,7 @@
     }
 
     /*
-     * 刷新 data-i18n 标记的文本节点。
+     * Refresh text nodes marked with data-i18n.
      */
     function updateTextContent() {
         var textNodes = document.querySelectorAll("[data-i18n]");
@@ -2963,7 +2960,7 @@
     }
 
     /*
-     * 刷新 placeholder/title/aria-label/alt/value 等属性翻译。
+     * Refresh translated attributes such as placeholder, title, aria-label, alt, and value.
      */
     function updateAttribute(selector, keyAttribute, targetAttribute, defaultStoreAttribute) {
         var nodes = document.querySelectorAll(selector);
@@ -2977,7 +2974,7 @@
     }
 
     /*
-     * 同步语言切换按钮的激活态和 aria-pressed。
+     * Sync language switcher active state and aria-pressed.
      */
     function syncLocaleButtons() {
         var switchers = document.querySelectorAll("[data-locale-switch]");
@@ -2990,8 +2987,8 @@
     }
 
     /*
-     * 应用语言到页面。
-     * 末尾派发 app:locale-changed，通知动态渲染的 JS 卡片重新绘制。
+     * Apply a locale to the page.
+     * Dispatch app:locale-changed at the end so dynamically rendered JS cards can repaint.
      */
     function applyLocale(locale, persist) {
         var normalized = normalizeLocale(locale) || DEFAULT_LOCALE;
@@ -3015,7 +3012,7 @@
     }
 
     /*
-     * 绑定所有语言切换按钮。
+     * Bind all language switcher buttons.
      */
     function bindLocaleButtons() {
         var switchers = document.querySelectorAll("[data-locale-switch]");
@@ -3031,7 +3028,7 @@
     }
 
     /*
-     * 对外暴露给页面脚本的最小 i18n API。
+     * Expose the minimal i18n API used by page scripts.
      */
     window.AppI18n = {
         t: t,
@@ -3048,7 +3045,7 @@
     };
 
     /*
-     * 页面初始化：绑定按钮并应用初始语言。
+     * Page initialization: bind buttons and apply the initial locale.
      */
     function initialize() {
         bindLocaleButtons();

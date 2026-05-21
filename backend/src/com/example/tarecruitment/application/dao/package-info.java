@@ -1,6 +1,6 @@
 /**
- * 申请领域 CSV 数据访问层。
+ * Application domain CSV data access layer.
  *
- * <p>负责 applications.csv 的读写、查询和状态持久化，不处理 HTTP 层逻辑。
+ * <p>Responsible for applications.csv reading/writing, querying, and state persistence, without handling HTTP layer logic.
  */
 package com.example.tarecruitment.application.dao;

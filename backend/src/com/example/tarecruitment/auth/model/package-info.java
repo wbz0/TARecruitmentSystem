@@ -1,6 +1,6 @@
 /**
- * 认证领域数据模型。
+ * Authentication domain data model.
  *
- * <p>包含登录用户、角色枚举和账号 CSV 序列化字段。
+ * <p>Contains login user, role enum, and account CSV serialization fields.
  */
 package com.example.tarecruitment.auth.model;

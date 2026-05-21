@@ -1,6 +1,6 @@
 /*
- * 全站动效入口。
- * 页面样式通过引入本文件获得公共 forms/components/tokens 和 hover/active 动效。
+ * Site-wide motion entrypoint.
+ * Page styles import this file to get shared forms/components/tokens plus hover/active motion.
  */
 @import url("./forms.css");
 

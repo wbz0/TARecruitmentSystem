@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * AccountProfileValidator - 账号资料表单校验。
+ * AccountProfileValidator - Account profile form validation.
  *
- * 用于 /api/me/account 的显示名、实名、MO 职称和账号头像校验。
- * TA 档案 fullName 的更严格规则也在这里复用，保证账号页和档案页口径一致。
+ * Used for /api/me/account display name, real name, MO professional title, and account avatar validation.
+ * TA profile fullName stricter rules are also reused here to ensure consistency between account page and profile page.
  */
 public final class AccountProfileValidator {
 
@@ -64,7 +64,7 @@ public final class AccountProfileValidator {
         if (!hasApplicantProfile) {
             return null;
         }
-        // TA 一旦已经建立档案，账号实名必须继续符合档案 fullName 规则。
+        // Once a TA has established a profile, the account real name must continue to comply with profile fullName rules.
         if (!isNotEmpty(realName)) {
             return "Full name is required.";
         }
@@ -106,7 +106,7 @@ public final class AccountProfileValidator {
         String safeFileName = fileName != null ? fileName.trim() : "";
         int slashIndex = Math.max(safeFileName.lastIndexOf('/'), safeFileName.lastIndexOf('\\'));
         if (slashIndex >= 0 && slashIndex < safeFileName.length() - 1) {
-            // 浏览器可能提交带路径的文件名，只保留最后的文件名部分。
+            // Browser may submit file name with path; only keep the last file name part.
             safeFileName = safeFileName.substring(slashIndex + 1);
         }
 
@@ -146,7 +146,7 @@ public final class AccountProfileValidator {
         if (value == null || value.isEmpty()) {
             return false;
         }
-        // 账号资料会在侧边栏/顶栏直接展示，先拒绝明显 HTML/JS 片段。
+        // Account profile is displayed directly in sidebar/top bar; first reject obvious HTML/JS fragments.
         String text = value.toLowerCase();
         return text.matches(".*<[^>]*>.*")
                 || text.contains("javascript:")

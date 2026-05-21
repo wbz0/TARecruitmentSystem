@@ -1,7 +1,7 @@
 /**
- * TA Hiring System 后端主包。
+ * TA Hiring System backend main package.
  *
- * <p>项目采用 Servlet、JSP、原生 JavaScript、CSS 和 CSV 的轻量教学架构。
- * 业务代码按领域包组织，公共能力放在 common 包，演示数据初始化放在 demo 包。
+ * <p>The project adopts a lightweight teaching architecture with Servlet, JSP, native JavaScript, CSS, and CSV.
+ * Business code is organized by domain packages, public capabilities are placed in the common package, and demo data initialization is placed in the demo package.
  */
 package com.example.tarecruitment;

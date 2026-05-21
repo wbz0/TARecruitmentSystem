@@ -19,7 +19,7 @@ fi
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-javadoc -quiet \
+javadoc -J-Duser.language=en -J-Duser.country=US -quiet \
     -encoding UTF-8 \
     -charset UTF-8 \
     -docencoding UTF-8 \

@@ -1,6 +1,6 @@
 /*
- * TA 申请详情页样式。
- * 覆盖申请摘要、撤回按钮、个人档案提示和岗位摘要跳转卡。
+ * TA application detail page styles.
+ * Covers the application summary, withdraw button, profile prompts, and job-summary jump card.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

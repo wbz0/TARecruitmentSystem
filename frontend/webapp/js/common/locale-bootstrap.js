@@ -1,11 +1,11 @@
 (function () {
-    // 在 i18n.js 加载前先给 <html> 标记语言，避免中文页面首屏闪英文。
+    // Set language on <html> before i18n.js loads to prevent Chinese page flash to English on first render.
     var STORAGE_KEY = "ta_hiring_locale";
     var CHINESE_LOCALE = "zh-CN";
     var root = document.documentElement;
 
     /*
-     * 把浏览器或 localStorage 中的语言值折叠到项目支持的语言集合。
+     * Fold browser or localStorage language value to the set of languages supported by the project.
      */
     function normalizeLocale(input) {
         if (typeof input !== "string" || !input.trim()) {
@@ -22,19 +22,19 @@
     }
 
     /*
-     * i18n.js 加载前先读本地偏好，减少首屏语言闪烁。
+     * Read local preference before i18n.js loads to reduce first-screen language flash.
      */
     function readSavedLocale() {
         try {
             return normalizeLocale(window.localStorage.getItem(STORAGE_KEY) || "");
         } catch (error) {
-            // 隐私模式或浏览器策略禁用 localStorage 时，继续回退到浏览器语言。
+            // When privacy mode or browser policy disables localStorage, continue fallback to browser language.
             return "";
         }
     }
 
     /*
-     * 没有本地偏好时从浏览器语言推断。
+     * Infer from browser language when no local preference is available.
      */
     function readBrowserLocale() {
         var languages = [];
@@ -58,7 +58,7 @@
     root.setAttribute("data-initial-locale", locale);
 
     if (locale === CHINESE_LOCALE) {
-        // 中文资源稍后由 i18n.js 接管；短暂 pending 类用于隐藏首屏翻译闪烁。
+        // Chinese resources will be taken over by i18n.js later; brief pending class hides first-screen translation flash.
         root.classList.add("i18n-pending");
         window.setTimeout(function () {
             root.classList.remove("i18n-pending");

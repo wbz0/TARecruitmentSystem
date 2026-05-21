@@ -6,10 +6,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * DeepSeek chat-completion JSON 辅助工具。
+ * DeepSeek chat-completion JSON helper utility.
  *
- * 这里没有业务判断，只负责把不同模块共用的请求体、返回 JSON 抽取逻辑收在一起。
- * 页面看到的“职位推荐/申请人推荐”文案由各自 service 决定。
+ * This has no business logic; it only consolidates the request body and returned JSON extraction logic
+ * shared by different modules.
+ * The “job recommendation/applicant recommendation” text seen on the page is determined by each service.
  */
 final class DeepSeekChatClient {
 

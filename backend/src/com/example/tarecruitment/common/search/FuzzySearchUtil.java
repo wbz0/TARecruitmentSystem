@@ -9,16 +9,16 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * FuzzySearchUtil - 统一的关键词模糊搜索工具。
+ * FuzzySearchUtil - Unified keyword fuzzy search utility.
  *
- * 能力：
- * - 大小写归一化，空格/连字符归一化
- * - 拆词匹配
- * - 英文 typo（编辑距离 1-2）容错
- * - 中文原文匹配
+ * Capabilities:
+ * - Case normalization, space/hyphen normalization
+ * - Token matching
+ * - English typo (edit distance 1-2) tolerance
+ * - Chinese text matching
  *
- * 遗留/待移除：拼音搜索曾在早期设想里出现，但当前前端没有拼音搜索提示或入口。
- * 现在只保留中英文原文搜索和英文轻量 typo 容错。
+ * Legacy/to be removed: Pinyin search was considered in early stages, but the current frontend has no pinyin search prompts or entry points.
+ * Now only retains Chinese and English text search and English lightweight typo tolerance.
  */
 public final class FuzzySearchUtil {
 
@@ -192,7 +192,7 @@ public final class FuzzySearchUtil {
 
         boolean hasMatches = !ordered.isEmpty();
         boolean approximateOnly = hasMatches && !hasDirectMatch;
-        // approximateOnly 会传给前端，用来显示“无精确匹配，展示相近结果”的提示。
+        // approximateOnly is passed to frontend, used to display “no exact match, showing similar results” hint.
         return new SearchOutcome<>(ordered, true, approximateOnly, hasMatches);
     }
 

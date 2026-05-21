@@ -1,7 +1,7 @@
 /*
- * TA 职位详情页脚本，对应 /jsp/ta/job-detail.jsp。
+ * TA job detail page script, corresponds to /jsp/ta/job-detail.jsp.
  *
- * 读取 /api/jobs/{jobId} 展示岗位，并提交 /api/applications 创建申请。
+ * Reads /api/jobs/{jobId} to display the job and submits /api/applications to create an application.
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -60,7 +60,7 @@
     }
 
     var state = {
-        // job/currentApplication 是页面主状态。
+        // job/currentApplication is the main page state.
         jobId: "",
         loadingJob: false,
         submitting: false,

@@ -1,6 +1,6 @@
 /*
- * TA 职位列表页样式。
- * 覆盖普通搜索/AI 推荐模式、岗位卡片、空状态和相近匹配提示。
+ * TA job list page styles.
+ * Covers normal search, AI recommendation mode, job cards, empty states, and near-match hints.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

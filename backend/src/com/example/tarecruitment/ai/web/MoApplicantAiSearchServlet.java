@@ -31,8 +31,8 @@ import java.util.Optional;
 /**
  * MO dashboard applicant AI search endpoint.
  *
- * 当前前端入口在 mo-dashboard.js，不是独立 JSP。
- * 这里不做本地推荐兜底：DeepSeek 不可用时返回 503，由前端显示“AI 暂不可用”。
+ * The current frontend entry is in mo-dashboard.js, not a standalone JSP.
+ * No local fallback is provided here: when DeepSeek is unavailable, returns 503, and the frontend displays “AI temporarily unavailable”.
  * Access path: POST /api/mo/applicant-recommendations
  */
 @WebServlet(ApiRoutes.MO_APPLICANT_RECOMMENDATIONS)
@@ -153,7 +153,7 @@ public class MoApplicantAiSearchServlet extends HttpServlet {
             if (application == null) {
                 continue;
             }
-            // 前端同时需要完整申请卡片和 applicationId -> 推荐理由的快速索引。
+            // Frontend needs both complete application cards and applicationId -> recommendation reason fast lookup.
             applications.add(buildApplicationPayload(application));
             Map<String, Object> recommendation = ApiResponses.objectMap(
                     "applicationId", safeText(application.getApplicationId()),

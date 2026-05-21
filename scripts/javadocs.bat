@@ -13,7 +13,7 @@ if not exist "%TOMCAT_HOME%\lib\servlet-api.jar" goto missing_tomcat
 if exist "%OUTPUT_DIR%" rmdir /s /q "%OUTPUT_DIR%"
 mkdir "%OUTPUT_DIR%"
 
-javadoc -quiet ^
+javadoc -J-Duser.language=en -J-Duser.country=US -quiet ^
   -encoding UTF-8 ^
   -charset UTF-8 ^
   -docencoding UTF-8 ^

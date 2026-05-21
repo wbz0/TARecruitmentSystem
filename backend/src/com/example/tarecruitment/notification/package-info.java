@@ -1,6 +1,6 @@
 /**
- * 通知领域包。
+ * Notification domain package.
  *
- * <p>包含通知模型、CSV 访问和登录用户通知列表/管理员发布删除入口。
+ * <p>Contains notification model, CSV access, and logged-in user notification list/admin publish/delete entry points.
  */
 package com.example.tarecruitment.notification;

@@ -1,6 +1,6 @@
 /*
- * 门户首页样式。
- * 只服务 index.jsp 的公开入口页，不影响登录后的 TA/MO/Admin 角色门户。
+ * Portal home page styles.
+ * Serves only the public entry page in index.jsp and does not affect signed-in TA/MO/Admin portals.
  */
 @import url("../common/motion.css");
 

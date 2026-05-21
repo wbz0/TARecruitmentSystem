@@ -12,11 +12,11 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * LogoutServlet - 处理用户退出登录。
+ * LogoutServlet - Handle user logout.
  *
- * 当前前端入口：共享侧边栏退出按钮，通过 /api/auth/logout 调用。
- * 不恢复旧根路径 /logout。
- * 访问路径: /api/auth/logout
+ * Current frontend entry: shared sidebar logout button, called via /api/auth/logout.
+ * Does not restore the old root path /logout.
+ * Access path: /api/auth/logout
  */
 @WebServlet(ApiRoutes.AUTH_LOGOUT)
 public class LogoutServlet extends HttpServlet {
@@ -24,26 +24,26 @@ public class LogoutServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // 获取当前用户名用于日志
+        // Get current username for logging
         String username = SessionUtil.getCurrentUsername(request);
 
-        // 销毁会话
+        // Destroy session
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
 
-        // 判断是否为 AJAX 请求：页面 fetch 要 JSON，直接访问则回登录页。
+        // Check if AJAX request: page fetch expects JSON, direct access redirects to login page.
         String requestedWith = request.getHeader("X-Requested-With");
         boolean isAjax = "XMLHttpRequest".equals(requestedWith);
 
         if (isAjax) {
-            // AJAX请求返回JSON
+            // AJAX request returns JSON
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(200);
             response.getWriter().write("{\"success\": true, \"message\": \"Logout successful\"}");
         } else {
-            // 普通请求跳转到登录页
+            // Regular request redirects to login page
             response.sendRedirect(request.getContextPath() + "/login.jsp");
         }
 

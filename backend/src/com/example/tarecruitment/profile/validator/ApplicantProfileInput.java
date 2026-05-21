@@ -1,10 +1,10 @@
 package com.example.tarecruitment.profile.validator;
 
 /**
- * ApplicantProfileInput - TA 档案表单输入对象。
+ * ApplicantProfileInput - TA profile form input object.
  *
- * raw 字段保留 request 原始状态，便于区分“字段没传”和“字段传了空值”；
- * getter 则返回 trim 后的业务值，供 validator/service 使用。
+ * raw fields retain request original state, making it easy to distinguish between “field not passed” and “field passed with empty value”;
+ * getters return trimmed business values for validator/service use.
  */
 public final class ApplicantProfileInput {
 

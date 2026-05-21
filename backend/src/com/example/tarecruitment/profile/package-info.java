@@ -1,6 +1,6 @@
 /**
- * 账号与 TA 档案领域包。
+ * Account and TA profile domain package.
  *
- * <p>包含当前账号资料、TA 申请人档案、头像、简历和附件草稿处理。
+ * <p>Contains current account information, TA applicant profiles, avatars, resumes, and attachment draft handling.
  */
 package com.example.tarecruitment.profile;

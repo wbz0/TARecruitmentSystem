@@ -1,8 +1,8 @@
 /*
- * 管理员邀请码注册页脚本，对应 admin-invite.jsp。
+ * Admin invite code registration page script, corresponds to admin-invite.jsp.
  *
- * 当前主流程是输入管理员给出的 8 位短邀请码，然后提交到
- * /api/admin/invitations/acceptance 创建 ADMIN 账号。
+ * Current main flow: enter 8-digit short invite code from admin, then submit to
+ * /api/admin/invitations/acceptance to create ADMIN account.
  */
 (function () {
     var USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
@@ -37,7 +37,7 @@
         if (!input) return;
 
         input.addEventListener("blur", function () {
-            if (input.value.trim() === "") return; // empty blur → skip
+            if (input.value.trim() === "") return; // empty blur -> skip
             var error = getFieldError(input);
             if (error) {
                 setFieldError(input, error, true);
@@ -94,7 +94,7 @@
         var inviteCode = inviteCodeInput ? inviteCodeInput.value.replace(/\s+/g, "").toUpperCase() : "";
 
         setSubmitting(true);
-        // 这里不再提交 token；旧邮件链接 token 流程属于后端遗留接口。
+        // No longer submitting token; old email link token flow is a legacy backend interface.
         var formData = new URLSearchParams();
         formData.set("email", getTrimmedValue(emailInput).toLowerCase());
         formData.set("username", getTrimmedValue(usernameInput).toLowerCase());
@@ -302,7 +302,7 @@
     }
 
     function containsControlChars(value) {
-        return /[\u0000-]/.test(value || "");
+        return /[\u0000-\u001F\u007F]/.test(value || "");
     }
 
     function containsDangerousMarkup(value) {
@@ -352,7 +352,7 @@
         var normalized = text.toLowerCase();
         var key = "";
         if (normalized === "invite code is invalid or expired") {
-            // 当前页面只需要短邀请码错误映射；旧 token 校验错误没有可见页面入口。
+            // Current page only needs short invite code error mapping; old token verification error has no visible page entry.
             key = "server.adminInvite.codeInvalidOrExpired";
         }
         if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {

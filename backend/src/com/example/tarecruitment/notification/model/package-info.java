@@ -1,6 +1,6 @@
 /**
- * 通知领域数据模型。
+ * Notification domain data model.
  *
- * <p>Notification 表达通知展示字段、角色范围和 CSV 序列化字段。
+ * <p>Notification expresses notification display fields, role scope, and CSV serialization fields.
  */
 package com.example.tarecruitment.notification.model;

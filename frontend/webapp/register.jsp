@@ -2,7 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
-<%-- TA/MO 注册页：Admin 注册不在这里开放，必须走 admin-invite.jsp 的邀请码流程。 --%>
+<%-- TA/MO registration page: Admin registration is not available here and must go through the invite code flow at admin-invite.jsp. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -17,7 +17,7 @@
         <div class="page-utility">
             <a class="utility-link" href="<%= contextPath %>/" data-i18n="common.utility.backToPortal">Portal home</a>
             <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
                 <span class="locale-divider">/</span>
                 <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
             </div>
@@ -194,7 +194,7 @@
     </main>
 
     <script>
-        // 注入给公共 routes 工具，避免前端在不同 context path 下请求错接口。
+        // Injected as a shared routing utility to prevent frontend from requesting wrong endpoints under different context paths.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-password-toggle" defer></script>

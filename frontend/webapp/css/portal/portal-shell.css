@@ -1,6 +1,7 @@
 /*
- * 登录后门户壳层样式。
- * 负责侧边栏、顶部栏、内容滚动区和账号资料弹窗；各角色页面在自己的 CSS 中补业务区域。
+ * Signed-in portal shell styles.
+ * Covers the sidebar, topbar, scrollable content area, and account profile modal.
+ * Role pages add their business-specific areas in their own CSS files.
  */
 @import url("../common/motion.css");
 

@@ -13,11 +13,11 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AuthFilter - 权限验证过滤器
- * 用于保护需要登录才能访问的资源
+ * AuthFilter - Permission validation filter
+ * Used to protect resources that require login to access
  *
- * 权限规则集中在 AccessPolicy，避免 Servlet 与前端路由迁移时散落修改路径集合。
- * 对 AJAX 请求返回 JSON，对普通页面请求跳转或返回 403。
+ * Permission rules are centralized in AccessPolicy to avoid scattered modifications when Servlets and frontend routes migrate.
+ * Returns JSON for AJAX requests, redirects or returns 403 for normal page requests.
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {
@@ -48,29 +48,29 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 获取 session（不创建），未登录时不能因为访问受保护页面而新建空 session。
+        // Get session (do not create), should not create new empty session when accessing protected pages without login.
         HttpSession session = httpRequest.getSession(false);
 
-        // 检查用户是否已登录
+        // Check if user is logged in
         User user = null;
         if (session != null) {
             user = (User) session.getAttribute("user");
         }
 
-        // 需要登录的路径：页面请求跳登录页，前端 fetch 请求拿 401 后自行处理。
+        // Paths requiring login: page requests redirect to login page, frontend fetch requests get 401 and handle themselves.
         if (user == null) {
-            // AJAX请求返回JSON
+            // AJAX request returns JSON
             if (WebRequests.isAjax(httpRequest)) {
                 ApiResponses.unauthorized(httpResponse, "Please login first");
                 return;
             }
 
-            // 普通请求重定向到登录页
+            // Normal request redirects to login page
             httpResponse.sendRedirect(contextPath + "/login.jsp");
             return;
         }
 
-        // 验证角色权限：具体 path/method 规则集中在 AccessPolicy。
+        // Verify role permission: specific path/method rules are centralized in AccessPolicy.
         if (!AccessPolicy.canAccess(httpRequest.getMethod(), path, user.getRole())) {
             if (WebRequests.isAjax(httpRequest)) {
                 ApiResponses.forbidden(httpResponse, "You don't have permission to access this resource");
@@ -81,7 +81,7 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 放行请求
+        // Allow request to pass through
         chain.doFilter(request, response);
     }
 

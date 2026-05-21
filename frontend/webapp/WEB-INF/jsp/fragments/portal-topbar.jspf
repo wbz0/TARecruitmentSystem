@@ -1,8 +1,10 @@
 <%--
-    共享顶部栏片段。
+    Shared topbar fragment.
 
-    调用页面通过 portalRole/pageTitleKey/pageTitleFallback 控制角色品牌和页面标题。
-    顶部栏只放面包屑式标题和语言切换；用户资料与退出登录在 portal-sidebar.jspf。
+    Calling pages control the role brand and page title through
+    portalRole/pageTitleKey/pageTitleFallback.
+    The topbar only contains the breadcrumb-style title and language switcher;
+    user profile and sign-out controls live in portal-sidebar.jspf.
 --%>
 <%
     String topbarRole = portalRole == null ? "" : portalRole;
@@ -31,7 +33,7 @@
     </div>
     <div class="portal-topbar-right">
         <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+            <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
             <span class="locale-divider">/</span>
             <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
         </div>

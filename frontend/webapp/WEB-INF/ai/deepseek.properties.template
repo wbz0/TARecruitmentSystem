@@ -1,24 +1,26 @@
 # DeepSeek applicant/job AI recommendation config template
-# 用法：复制为 deepseek.local.properties，再在本地填写真实密钥。
-# 注意：*.local.properties 已被 git 忽略，真实密钥不要提交到仓库。
+# Usage: copy this file to deepseek.local.properties, then fill in the real local key.
+# Note: *.local.properties is ignored by git. Do not commit real secrets.
 #
-# 当前用途：
-# - MO dashboard 的申请人 AI 推荐
-# - TA job list 的开放职位 AI 推荐
+# Current uses:
+# - Applicant AI recommendations on the MO dashboard
+# - Open-position AI recommendations on the TA job list
 #
-# 这类推荐没有本地“假推荐”兜底：没有 key 或服务不可用时，前端会提示 AI 暂不可用。
-# 前端不会展示 prompt、candidateRef/jobRef 等内部引用，只展示后端映射后的真实申请人/职位。
+# These recommendations do not have local fake-result fallback data. Without a key,
+# or when the service is unavailable, the frontend shows that AI is unavailable.
+# The frontend does not expose prompts, candidateRef/jobRef, or other internal
+# references; it only shows the mapped real applicant/job records returned by the backend.
 
 # DeepSeek API key (required)
-# 留空或占位符会被 DeepSeekAiConfig 识别为未配置。
+# Empty values and placeholders are treated as not configured by DeepSeekAiConfig.
 deepseek.api.key=
 
-# OpenAI-compatible base URL. 结尾不要加 /，代码会做兜底清理。
+# OpenAI-compatible base URL. Do not add a trailing slash; the code also trims it defensively.
 deepseek.base-url=https://api.deepseek.com
 
-# Model name. 这里是 DeepSeek 兼容接口使用的模型名。
+# Model name used by the DeepSeek-compatible API.
 deepseek.model=deepseek-v4-flash
 
 # Request timeout (milliseconds)
-# 超时后推荐接口返回失败提示，不自动生成本地推荐列表。
+# On timeout, the recommendation endpoint returns a failure message instead of generating local fallback recommendations.
 deepseek.timeout-ms=8000

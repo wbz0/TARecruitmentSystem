@@ -1,6 +1,6 @@
 /**
- * 管理员领域数据模型。
+ * Admin domain data model.
  *
- * <p>模型类表达 CSV 字段和领域状态，不负责 HTTP 响应拼装。
+ * <p>Model classes express CSV fields and domain state, and are not responsible for HTTP response assembly.
  */
 package com.example.tarecruitment.admin.model;

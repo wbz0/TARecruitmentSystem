@@ -1,8 +1,8 @@
 /*
- * TA 申请状态页脚本，对应 /jsp/ta/application-status.jsp。
+ * TA application status page script, corresponds to /jsp/ta/application-status.jsp.
  *
- * 读取 /api/applications?keyword=...，渲染当前 TA 的申请卡片和状态时间线。
- * approximateOnly 由后端搜索返回，用来提示“无精确匹配，仅展示相近结果”。
+ * Reads /api/applications?keyword=... and renders current TA's application cards and status timeline.
+ * approximateOnly is returned by backend search to indicate "no exact match, only showing approximate results".
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -19,7 +19,7 @@
     }
 
     var state = {
-        // currentApplications 保存最近一次接口结果，语言切换时直接重绘，不重复请求。
+        // currentApplications saves the most recent API result; on language switch it re-renders directly without repeating requests.
         loading: false,
         loadError: false,
         approximateOnly: false,

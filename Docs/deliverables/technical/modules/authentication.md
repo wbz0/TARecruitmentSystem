@@ -1,28 +1,28 @@
-# 认证与权限模块技术文档
+# Authentication and Permission Module Technical Documentation
 
-## 1. 模块概述
+## 1. Module Overview
 
-认证与权限模块负责公开注册、登录、退出登录、用户名/邮箱可用性检查、Session 用户状态和全站访问控制。
+Authentication and permission module handles public registration, login, logout, username/email availability check, Session user state, and full-site access control.
 
-**核心组件**：
-- `User` - 登录账号模型和 `TA` / `MO` / `ADMIN` 角色枚举
-- `UserDao` - 基于 CSV 的账号读取、创建、更新和登录验证
+**Core Components**:
+- `User` - Login account model and `TA` / `MO` / `ADMIN` role enum
+- `UserDao` - CSV-based account read, create, update, and login verification
 - `LoginServlet` - `/api/auth/login`
 - `RegisterServlet` - `/api/auth/register`
 - `LogoutServlet` - `/api/auth/logout`
 - `CheckAvailableServlet` - `/api/auth/availability`
-- `AuthFilter` - 全站过滤器
-- `AccessPolicy` - 集中维护公开路径和角色访问策略
+- `AuthFilter` - Full-site filter
+- `AccessPolicy` - Centralized maintenance of public paths and role access policies
 
 ---
 
-## 2. 数据模型与存储
+## 2. Data Model and Storage
 
 ### 2.1 User
 
-**路径**: `backend/src/com/example/tarecruitment/auth/model/User.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/model/User.java`
 
-`User` 保存账号 ID、用户名、密码散列、邮箱、角色、展示名、头像路径和登录时间等字段。角色枚举只包含：
+`User` stores account ID, username, password hash, email, role, display name, avatar path, and login time. Role enum only contains:
 
 ```java
 public enum Role {
@@ -32,47 +32,47 @@ public enum Role {
 
 ### 2.2 UserDao
 
-**路径**: `backend/src/com/example/tarecruitment/auth/dao/UserDao.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/dao/UserDao.java`
 
-`UserDao` 只负责 `users.csv` 的读写和查询，不读取 request/session，也不拼 HTTP 响应。
+`UserDao` is only responsible for reading, writing, and querying `users.csv`; it does not read request/session, nor does it construct HTTP responses.
 
-| 方法 | 说明 |
+| Method | Description |
 |------|------|
-| `findById(String userId)` | 根据用户 ID 查找账号 |
-| `findByUsername(String username)` | 根据用户名查找账号 |
-| `findByEmail(String email)` | 根据邮箱查找账号 |
-| `verifyLogin(String usernameOrEmail, String password)` | 验证用户名/邮箱和密码 |
-| `create(User user)` | 创建账号并执行唯一性校验 |
-| `update(User user)` | 更新账号资料 |
-| `ensureDefaultDemoAccounts()` | 确保演示账号存在 |
+| `findById(String userId)` | Find account by user ID |
+| `findByUsername(String username)` | Find account by username |
+| `findByEmail(String email)` | Find account by email |
+| `verifyLogin(String usernameOrEmail, String password)` | Verify username/email and password |
+| `create(User user)` | Create account and perform uniqueness validation |
+| `update(User user)` | Update account information |
+| `ensureDefaultDemoAccounts()` | Ensure demo accounts exist |
 
 ---
 
 ## 3. Auth API
 
-所有认证接口都使用 `/api/...` 路径，页面路径仍然是 `/login.jsp`、`/register.jsp` 等 JSP。
+All authentication interfaces use `/api/...` paths; page paths remain as `/login.jsp`, `/register.jsp`, etc.
 
-| 功能 | Method | Path | 权限 |
+| Function | Method | Path | Permission |
 |------|--------|------|------|
-| 登录 | POST | `/api/auth/login` | 公开 |
-| 注册 | POST | `/api/auth/register` | 公开 |
-| 登出 | POST/GET | `/api/auth/logout` | 登录用户或公开退出入口 |
-| 用户名/邮箱可用性 | GET | `/api/auth/availability?type=&value=` | 公开 |
+| Login | POST | `/api/auth/login` | Public |
+| Register | POST | `/api/auth/register` | Public |
+| Logout | POST/GET | `/api/auth/logout` | Logged in users or public logout entry |
+| Username/Email availability | GET | `/api/auth/availability?type=&value=` | Public |
 
-### 3.1 登录
+### 3.1 Login
 
-**路径**: `backend/src/com/example/tarecruitment/auth/web/LoginServlet.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/web/LoginServlet.java`
 
-请求参数：
+Request parameters:
 
-| 参数 | 必需 | 说明 |
+| Parameter | Required | Description |
 |------|------|------|
-| `username` | 是 | 用户名或邮箱 |
-| `password` | 是 | 密码 |
-| `role` | 否 | 前端选择的登录角色，用于防止进错入口 |
-| `rememberMe` | 否 | `1` 表示延长 Session 有效期 |
+| `username` | Yes | Username or email |
+| `password` | Yes | Password |
+| `role` | No | Frontend-selected login role, used to prevent entering wrong entry |
+| `rememberMe` | No | `1` means extend Session validity |
 
-成功响应使用统一 JSON：
+Success response uses unified JSON:
 
 ```json
 {
@@ -86,62 +86,62 @@ public enum Role {
 }
 ```
 
-### 3.2 注册
+### 3.2 Register
 
-**路径**: `backend/src/com/example/tarecruitment/auth/web/RegisterServlet.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/web/RegisterServlet.java`
 
-公开注册只允许 `TA` 和 `MO`。`ADMIN` 必须通过管理员邀请流程注册。
+Public registration only allows `TA` and `MO`. `ADMIN` must register through admin invitation flow.
 
-| 参数 | 必需 | 说明 |
+| Parameter | Required | Description |
 |------|------|------|
-| `username` | 是 | 字母开头，允许字母、数字、下划线 |
-| `email` | 是 | 唯一邮箱 |
-| `password` | 是 | 包含字母和数字 |
-| `confirmPassword` | 是 | 与密码一致 |
-| `role` | 是 | `TA` 或 `MO` |
+| `username` | Yes | Letter start, letters, numbers, underscores allowed |
+| `email` | Yes | Unique email |
+| `password` | Yes | Contains letters and numbers |
+| `confirmPassword` | Yes | Must match password |
+| `role` | Yes | `TA` or `MO` |
 
-注册成功返回 `201`，不直接把旧根路径恢复为登录/注册入口。
+Registration success returns `201`; does not directly restore old root path to login/registration entry.
 
-### 3.3 退出登录
+### 3.3 Logout
 
-**路径**: `backend/src/com/example/tarecruitment/auth/web/LogoutServlet.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/web/LogoutServlet.java`
 
-共享侧边栏通过 `/api/auth/logout` 调用。AJAX 请求返回 JSON，普通浏览器请求会跳回 `login.jsp`。
+Shared sidebar calls `/api/auth/logout`. AJAX requests return JSON; normal browser requests redirect back to `login.jsp`.
 
 ---
 
-## 4. 访问控制
+## 4. Access Control
 
 ### 4.1 AuthFilter
 
-**路径**: `backend/src/com/example/tarecruitment/auth/web/AuthFilter.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/web/AuthFilter.java`
 
-`AuthFilter` 拦截所有请求，但不维护大型硬编码路径集合。它会：
+`AuthFilter` intercepts all requests but does not maintain a large hardcoded path set. It will:
 
-1. 放行静态资源。
-2. 调用 `AccessPolicy.isPublic(method, path)` 判断公开页面和公开 API。
-3. 从 Session 读取当前 `User`。
-4. 调用 `AccessPolicy.canAccess(method, path, role)` 判断角色权限。
-5. 未登录时对 API 返回统一 JSON，对页面跳转登录页。
+1. Pass through static resources.
+2. Call `AccessPolicy.isPublic(method, path)` to determine public pages and public APIs.
+3. Read current `User` from Session.
+4. Call `AccessPolicy.canAccess(method, path, role)` to determine role permissions.
+5. For unauthenticated API requests, return unified JSON; for page requests, redirect to login page.
 
 ### 4.2 AccessPolicy
 
-**路径**: `backend/src/com/example/tarecruitment/auth/web/AccessPolicy.java`
+**Path**: `backend/src/com/example/tarecruitment/auth/web/AccessPolicy.java`
 
-`AccessPolicy` 是权限策略的集中入口，新增 API 路由时应同步检查这里。
+`AccessPolicy` is the centralized entry for permission strategy; when adding new API routes, check here synchronously.
 
-| 角色 | 可访问范围 |
-|------|------------|
-| 未登录 | 首页、登录页、注册页、管理员邀请注册页、公开职位浏览、公开认证 API |
-| TA | TA 页面、TA API、申请 API、当前用户资料 API、通知 API |
-| MO | MO 页面、部分 TA 视角页面、MO API、TA 推荐/分析 API、申请 API、账号资料 API、通知 API、职位写操作 |
-| ADMIN | Admin 页面和 Admin API |
+| Role | Accessible Scope |
+|------|-----------------|
+| Unauthenticated | Homepage, login page, registration page, admin invitation registration page, public job browsing, public authentication API |
+| TA | TA pages, TA API, application API, current user profile API, notification API |
+| MO | MO pages, partial TA perspective pages, MO API, TA recommendation/analysis API, application API, account profile API, notification API, job write operations |
+| ADMIN | Admin pages and Admin API |
 
 ---
 
-## 5. 前端调用方式
+## 5. Frontend Call Method
 
-前端不直接拼 `contextPath + "/api/..."`。登录、注册、登出和可用性检查都通过公共路由工具生成路径：
+Frontend does not directly concatenate `contextPath + "/api/..."`. Login, registration, logout, and availability checks all generate paths via common route utility:
 
 ```javascript
 const loginUrl = TARecruitment.routes.auth.login();
@@ -161,29 +161,29 @@ TARecruitment.api.request(loginUrl, {
 
 ---
 
-## 6. 错误处理
+## 6. Error Handling
 
-认证 API 使用统一结构：
+Authentication API uses unified structure:
 
 ```json
 { "success": false, "message": "Invalid username/email or password" }
 ```
 
-常见状态码：
+Common status codes:
 
-| 状态码 | 场景 |
+| Status Code | Scenario |
 |--------|------|
-| 400 | 参数格式错误 |
-| 401 | 未登录或登录失败 |
-| 403 | 角色不匹配或权限不足 |
-| 409 | 注册用户名或邮箱重复 |
-| 500 | 服务器异常 |
+| 400 | Parameter format error |
+| 401 | Not logged in or login failed |
+| 403 | Role mismatch or insufficient permission |
+| 409 | Duplicate registration username or email |
+| 500 | Server exception |
 
 ---
 
-## 7. 测试
+## 7. Testing
 
-当前轻量检查入口为：
+Current lightweight check entry is:
 
 ```bash
 bash -n scripts/dev.sh scripts/javadocs.sh
@@ -191,4 +191,4 @@ find frontend/webapp/js -name "*.js" -print0 | xargs -0 -n1 node --check
 ./scripts/javadocs.sh
 ```
 
-如需完整运行验证，可执行 `scripts/dev.sh` 部署到本地 Tomcat 后按登录、注册、退出和角色跳转流程手工检查。
+For complete run verification, execute `scripts/dev.sh` to deploy to local Tomcat, then manually check login, registration, logout, and role redirect flows.

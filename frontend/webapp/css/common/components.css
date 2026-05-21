@@ -1,6 +1,6 @@
 /*
- * 公共组件样式。
- * 适用于跨页面复用的隐藏状态、按钮、通用卡片和 i18n 初始化状态。
+ * Shared component styles.
+ * Covers reusable hidden states, buttons, common cards, and i18n initialization states.
  */
 @import url("./tokens.css");
 

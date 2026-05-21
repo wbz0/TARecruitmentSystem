@@ -1,6 +1,6 @@
 /**
- * 通用工具包。
+ * Common utilities package.
  *
- * <p>放置日志、安全 token 等不属于具体业务领域的轻量工具。
+ * <p>Contains lightweight utilities for logging, security tokens, etc. that do not belong to specific business domains.
  */
 package com.example.tarecruitment.common.util;

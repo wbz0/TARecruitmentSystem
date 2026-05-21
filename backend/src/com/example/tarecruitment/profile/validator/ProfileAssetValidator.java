@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * ProfileAssetValidator - TA 档案附件校验。
+ * ProfileAssetValidator - TA profile asset validation.
  *
- * 校验简历和档案照片的类型、扩展名、大小。实际保存路径由 ProfileAssetService 负责。
+ * Validates resume and profile photo type, extension, and size. Actual save path is handled by ProfileAssetService.
  */
 public final class ProfileAssetValidator {
 
@@ -70,7 +70,7 @@ public final class ProfileAssetValidator {
 
         String contentType = filePart.getContentType();
         String fileName = extractFileName(filePart);
-        // 同时检查 Content-Type 和扩展名，降低伪装文件被当作简历/图片保存的风险。
+        // Check both Content-Type and extension to reduce risk of disguised files being saved as resume/photo.
         if (contentType == null || !allowedContentTypes.contains(contentType.toLowerCase())) {
             return "Invalid file type. Only " + allowedDescription + " files are allowed.";
         }

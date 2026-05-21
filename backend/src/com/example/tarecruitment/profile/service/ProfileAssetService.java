@@ -13,10 +13,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 /**
- * ProfileAssetService - TA 档案附件服务。
+ * ProfileAssetService - TA profile attachment service.
  *
- * 负责简历、简历草稿、照片三类文件的保存、定位、删除和响应信息组装。
- * 对外只返回相对路径（例如 resumes/xxx.pdf），真实根目录由 TA_HIRING_DATA_DIR 决定。
+ * Responsible for saving, locating, deleting and assembling response information for resume, resume draft, and photo files.
+ * Externally only returns relative paths (e.g., resumes/xxx.pdf), real root directory is determined by TA_HIRING_DATA_DIR.
  */
 public class ProfileAssetService {
 
@@ -37,9 +37,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 确保三类附件目录存在。
+     * Ensures the three attachment directories exist.
      *
-     * 本地脚本首次运行或 TA_HIRING_DATA_DIR 指向新目录时，需要自动创建。
+     * Auto-created when local script runs first time or TA_HIRING_DATA_DIR points to a new directory.
      */
     public void ensureDirectories() {
         ensureDirectoryExists(StoragePaths.getResumeDir());
@@ -48,7 +48,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 保存正式简历，返回写入 Applicant CSV 的相对路径。
+     * Save formal resume, return relative path to write to Applicant CSV.
      */
     public String saveResumeFile(Part filePart, String userId) throws IOException {
         String fileName = ProfileAssetValidator.extractFileName(filePart);
@@ -60,7 +60,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 保存头像照片，返回写入 Applicant CSV 的相对路径。
+     * Save profile photo, return relative path to write to Applicant CSV.
      */
     public String savePhotoFile(Part filePart, String userId) throws IOException {
         String fileName = ProfileAssetValidator.extractFileName(filePart);
@@ -72,9 +72,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 保存简历草稿。
+     * Save resume draft.
      *
-     * 草稿先挂在 session 上，只有用户最终保存 TA 档案时才复制为正式简历。
+     * Draft is first attached to session, only copied to formal resume when user finally saves TA profile.
      */
     public String saveDraftFile(Part filePart, String userId) throws IOException {
         String fileName = ProfileAssetValidator.extractFileName(filePart);
@@ -86,9 +86,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 把会话中的草稿简历复制到正式简历目录。
+     * Copy draft resume from session to formal resume directory.
      *
-     * 复制而不是移动，是为了让后续保存失败时仍能保留本次上传草稿。
+     * Copy instead of move, so that if save fails later, the uploaded draft can still be retained.
      */
     public String copyDraftResumeToFinal(String draftRelativePath, String userId, String originalFileName) throws IOException {
         File draftFile = resolveStoredFile(draftRelativePath);
@@ -106,9 +106,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 构造头像响应资源。
+     * Construct photo response resource.
      *
-     * 返回 Optional.empty 表示前端应使用默认头像，不把缺文件当成 500。
+     * Returning Optional.empty means frontend should use default avatar, not treat missing file as 500.
      */
     public Optional<FileResource> photoResource(Applicant applicant) throws IOException {
         if (applicant == null || !isNotEmpty(applicant.getPhotoPath())) {
@@ -120,16 +120,16 @@ public class ProfileAssetService {
         }
         String contentType = Files.probeContentType(file.toPath());
         if (!isNotEmpty(contentType) || !contentType.startsWith("image/")) {
-            // 本地文件系统有时无法识别 webp/jpg，按扩展名做兜底，避免头像无法显示。
+            // Local filesystem sometimes cannot recognize webp/jpg, fallback by extension to avoid avatar display failure.
             contentType = detectPhotoContentType(file.getName());
         }
         return Optional.of(new FileResource(file, contentType, null, "no-store"));
     }
 
     /**
-     * 构造简历响应资源。
+     * Construct resume response resource.
      *
-     * PDF 尽量内嵌预览，Word 文档交给浏览器下载，避免 iframe 预览失败。
+     * PDF tries inline preview, Word documents let browser download to avoid iframe preview failure.
      */
     public Optional<FileResource> resumeResource(Applicant applicant) throws IOException {
         if (applicant == null || !isNotEmpty(applicant.getResumePath())) {
@@ -144,15 +144,15 @@ public class ProfileAssetService {
             contentType = detectResumeContentType(file.getName());
         }
         boolean isPdf = "application/pdf".equalsIgnoreCase(contentType);
-        // PDF 可以内嵌预览；doc/docx 交给浏览器下载。
+        // PDF can be embedded preview; doc/docx let browser download.
         String disposition = (isPdf ? "inline" : "attachment") + "; filename=\"" + file.getName() + "\"";
         return Optional.of(new FileResource(file, contentType, disposition, "no-store"));
     }
 
     /**
-     * 把草稿简历信息存到当前会话。
+     * Store draft resume info to current session.
      *
-     * 这类状态不进入 CSV，因为用户可能只上传文件但尚未保存档案表单。
+     * This type of state does not enter CSV, because user may only upload file but not yet saved profile form.
      */
     public void storeDraftResumeState(HttpSession session, String draftResumePath, String originalFileName) {
         if (session == null) {
@@ -163,9 +163,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 清理草稿简历会话状态。
+     * Clear draft resume session state.
      *
-     * deleteFile=true 用于取消/保存完成场景，避免废弃草稿长期留在数据目录。
+     * deleteFile=true for cancel/save complete scenario, to avoid abandoned draft occupying data directory for long.
      */
     public void clearDraftResumeState(HttpSession session, boolean deleteFile) {
         if (session == null) {
@@ -173,7 +173,7 @@ public class ProfileAssetService {
         }
         String draftResumePath = getDraftResumePath(session);
         if (deleteFile && isNotEmpty(draftResumePath)) {
-            // 草稿只属于当前会话；用户取消或保存成功后应清理，避免占用数据目录。
+            // Draft only belongs to current session; should be cleared after user cancels or saves successfully, to avoid occupying data directory.
             deleteStoredFile(draftResumePath);
         }
         session.removeAttribute(SESSION_DRAFT_RESUME_PATH);
@@ -201,15 +201,15 @@ public class ProfileAssetService {
     }
 
     /**
-     * 把 CSV/session 中保存的相对路径解析到数据目录。
+     * Resolve relative path saved in CSV/session to data directory.
      *
-     * 业务层只保存相对路径，避免暴露或固化本机绝对路径。
+     * Business layer only saves relative paths, to avoid exposing or hardening local absolute paths.
      */
     public File resolveStoredFile(String relativePath) {
         if (!isNotEmpty(relativePath)) {
             return null;
         }
-        // 只拼接项目数据目录下的相对路径，不接受外部绝对路径作为业务文件位置。
+        // Only concatenate relative paths under project data directory, does not accept external absolute paths as business file location.
         return new File(StoragePaths.getDataDir(), relativePath);
     }
 
@@ -234,9 +234,9 @@ public class ProfileAssetService {
     }
 
     /**
-     * 生成用户可读文件名。
+     * Generate user-readable filename.
      *
-     * 存储名里含 userId 和时间戳，页面展示时尽量剥掉这些技术前缀。
+     * Storage name contains userId and timestamp, when displaying on page try to strip these technical prefixes.
      */
     public String buildDisplayFileName(String relativePath, String fallbackName) {
         String safeFallbackName = fallbackName != null ? fallbackName.trim() : "";
@@ -253,13 +253,13 @@ public class ProfileAssetService {
         if (!isNotEmpty(fileName)) {
             return "";
         }
-        // 存储名带 userId 和时间戳；展示给用户时尽量还原原始文件名。
+        // Storage name has userId and timestamp; when showing to user, try to restore original filename.
         String normalizedName = fileName.replaceFirst("^(draft_)?[^_]+_\\d+_", "");
         return isNotEmpty(normalizedName) ? normalizedName : fileName;
     }
 
     /**
-     * 如果新旧路径不同，删除被替换的旧附件。
+     * If new and old paths are different, delete the replaced old attachment.
      */
     private void cleanupReplacedFile(String previousPath, String currentPath) {
         if (!isNotEmpty(previousPath)) {
@@ -272,19 +272,19 @@ public class ProfileAssetService {
     }
 
     /**
-     * 生成实际存储文件名。
+     * Generate actual stored filename.
      *
-     * 格式中包含 userId 和时间戳，既便于排查归属，也避免同名上传互相覆盖。
+     * Format contains userId and timestamp, both for easy ownership tracing and avoiding same-name uploads overwriting each other.
      */
     private String buildStoredFileName(String originalFileName, String userId, String prefix, String defaultExtension, String fallbackBaseName) {
-        // 文件名保留原扩展名和可读 basename，同时加 userId/时间戳避免互相覆盖。
+        // Filename preserves original extension and readable basename, while adding userId/timestamp to avoid overwriting.
         String extension = extractExtension(originalFileName, defaultExtension);
         String safeBaseName = sanitizeBaseName(originalFileName, fallbackBaseName);
         return prefix + userId + "_" + System.currentTimeMillis() + "_" + safeBaseName + extension;
     }
 
     /**
-     * 保留原扩展名；缺失时使用调用方传入的默认扩展名。
+     * Preserve original extension; use caller's default extension when missing.
      */
     private String extractExtension(String fileName, String defaultExtension) {
         String safeDefaultExtension = isNotEmpty(defaultExtension) ? defaultExtension.toLowerCase() : ".bin";
@@ -299,7 +299,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 清理文件名主体，防止路径分隔符或特殊字符进入数据目录文件名。
+     * Clean filename body, prevent path separators or special characters from entering data directory filename.
      */
     private String sanitizeBaseName(String fileName, String fallbackBaseName) {
         String safeFileName = fileName != null ? fileName.trim() : "";
@@ -322,7 +322,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 头像 content type 兜底。
+     * Avatar content type fallback.
      */
     private String detectPhotoContentType(String fileName) {
         String safeName = fileName != null ? fileName.toLowerCase() : "";
@@ -336,7 +336,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 简历 content type 兜底。
+     * Resume content type fallback.
      */
     private String detectResumeContentType(String fileName) {
         String safeName = fileName != null ? fileName.toLowerCase() : "";
@@ -346,7 +346,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 单目录创建失败不立即抛出，后续写文件时会返回更具体的 IO 错误。
+     * Does not immediately throw on single directory creation failure, later file write will return more specific IO error.
      */
     private void ensureDirectoryExists(String dirPath) {
         File dir = new File(dirPath);
@@ -356,7 +356,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * 附件必须存在且是普通文件，目录或缺失文件都不能作为响应资源。
+     * Attachment must exist and be a regular file; directory or missing file cannot be used as response resource.
      */
     private boolean isUsableFile(File file) {
         return file != null && file.exists() && file.isFile();
@@ -367,7 +367,7 @@ public class ProfileAssetService {
     }
 
     /**
-     * Servlet 写文件响应所需的最小资源描述。
+     * Minimum resource description needed by Servlet to write file response.
      */
     public static final class FileResource {
         private final File file;

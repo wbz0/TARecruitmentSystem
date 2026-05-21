@@ -1,6 +1,6 @@
 /**
- * 认证与访问控制领域包。
+ * Authentication and access control domain package.
  *
- * <p>包含账号注册、登录、登出、会话用户模型和全站访问策略。
+ * <p>Contains account registration, login, logout, session user model, and site-wide access policies.
  */
 package com.example.tarecruitment.auth;

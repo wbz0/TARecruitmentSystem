@@ -1,6 +1,6 @@
 /*
- * 注册页共享样式。
- * register.jsp 和 admin-invite.jsp 共用这套表单和提示布局。
+ * Shared registration page styles.
+ * register.jsp and admin-invite.jsp share this form and hint layout.
  */
 @import url("./login.css?v=20260513-password-toggle");
 

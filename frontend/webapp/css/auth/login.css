@@ -1,6 +1,6 @@
 /*
- * 登录页样式。
- * 覆盖 login.jsp 的角色选择、密码显示按钮和登录错误提示。
+ * Login page styles.
+ * Covers role selection, password visibility controls, and login error messages in login.jsp.
  */
 @import url("../common/motion.css");
 

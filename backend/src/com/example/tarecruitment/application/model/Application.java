@@ -7,42 +7,43 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * Application 实体 - TA 对某个职位的一次申请。
+ * Application entity - A TA's application for a specific job.
  *
- * 这个类同时承担 CSV 序列化/反序列化，因此字段顺序是持久化契约。
- * jobTitle/courseCode/moName 等字段是冗余显示字段，用来让历史申请列表不依赖实时职位表。
+ * This class also handles CSV serialization/deserialization, so field order is the persistence contract.
+ * jobTitle/courseCode/moName etc. are redundant display fields, used to keep historical application list
+ * independent of the real-time job table.
  */
 public class Application {
 
-    private String applicationId;        // 申请ID
-    private String jobId;                // 申请的职位ID
-    private String applicantId;          // 申请人ID
-    private String applicantName;       // 申请人姓名
-    private String applicantEmail;      // 申请人邮箱
-    private String jobTitle;            // 职位标题（冗余存储，便于显示）
-    private String courseCode;           // 课程代码（冗余存储）
-    private String moId;                // 发布职位的MO ID
-    private String moName;              // MO姓名
-    private Status status;              // 申请状态
-    private String coverLetter;         // 求职信
-    private LocalDateTime appliedAt;    // 申请时间
-    private LocalDateTime updatedAt;    // 更新时间
-    private LocalDateTime reviewedAt;  // 审核时间
-    /** 申请流程阶段，与 {@link #status} 解耦：status 表示最终结果汇总，阶段表示当前进度。 */
+    private String applicationId;        // Application ID
+    private String jobId;                // Job ID applied for
+    private String applicantId;          // Applicant ID
+    private String applicantName;       // Applicant name
+    private String applicantEmail;      // Applicant email
+    private String jobTitle;            // Job title (redundant storage for display)
+    private String courseCode;           // Course code (redundant storage)
+    private String moId;                // MO ID who posted the job
+    private String moName;              // MO name
+    private Status status;              // Application status
+    private String coverLetter;         // Cover letter
+    private LocalDateTime appliedAt;    // Application time
+    private LocalDateTime updatedAt;    // Update time
+    private LocalDateTime reviewedAt;  // Review time
+    /** Application process stage, decoupled from {@link #status}: status represents final result summary, stage represents current progress. */
     private ProgressStage progressStage;
-    private LocalDateTime reviewStartedAt;      // 材料审核开始
-    private LocalDateTime interviewScheduledAt; // 面试已安排
-    private LocalDateTime finalDecisionAt;    // 最终决定时间（录用/拒绝/撤回）
+    private LocalDateTime reviewStartedAt;      // Material review started
+    private LocalDateTime interviewScheduledAt; // Interview scheduled
+    private LocalDateTime finalDecisionAt;    // Final decision time (accept/reject/withdraw)
 
     public enum Status {
-        PENDING,    // 待审核
-        ACCEPTED,  // 已接受
-        REJECTED,  // 已拒绝
-        WITHDRAWN  // 已撤回
+        PENDING,    // Pending review
+        ACCEPTED,  // Accepted
+        REJECTED,  // Rejected
+        WITHDRAWN  // Withdrawn
     }
 
     /**
-     * 流程阶段：提交后即进入审核中，结束后为已完成。
+     * Process stage: enters review after submission, completed when finished.
      */
     public enum ProgressStage {
         UNDER_REVIEW,
@@ -213,12 +214,13 @@ public class Application {
     }
 
     /**
-     * 转换为CSV格式存储
+     * Convert to CSV format for storage.
      *
-     * 字段顺序就是持久化协议；新增字段只能追加在末尾。
+     * Field order is the persistence contract; new fields can only be appended at the end.
      */
     public String toCsv() {
-        // 新列只能追加在末尾，不能插入中间，否则旧 CSV 数据会被错列读取。
+        // New columns can only be appended at the end, not inserted in the middle,
+        // otherwise old CSV data will be misread by column offset.
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return String.join(",",
             escapeCsv(applicationId),
@@ -243,12 +245,13 @@ public class Application {
     }
 
     /**
-     * 从CSV格式解析
+     * Parse from CSV format.
      *
-     * 解析时允许旧行缺少尾部字段，避免历史演示数据因为新增进度列而失效。
+     * Parsing allows old rows to lack trailing fields to avoid historical demo data
+     * becoming invalid due to new progress columns.
      */
     public static Application fromCsv(String csvLine) {
-        // 兼容旧 CSV：早期文件只有前 14 列，没有 progressStage 和阶段时间。
+        // Compatible with old CSV: early files only have 14 columns, no progressStage and stage times.
         String[] parts = CsvCodec.split(csvLine);
         if (parts.length < 5) {
             return null;
@@ -304,7 +307,7 @@ public class Application {
             app.setFinalDecisionAt(LocalDateTime.parse(parts[17], formatter));
         }
 
-        // 遗留兼容：旧 CSV 仅有 14 列（至 reviewedAt），需按 status 推断流程阶段。
+        // Legacy compatibility: old CSV has only 14 columns (up to reviewedAt), need to infer progress stage from status.
         if (parts.length <= 14) {
             applyLegacyProgressInference(app);
         }
@@ -314,7 +317,7 @@ public class Application {
     }
 
     /**
-     * 旧版 CSV 无阶段列时，根据 status / reviewedAt 推断阶段与时间。
+     * When old CSV has no stage column, infer stage and time from status / reviewedAt.
      */
     private static void applyLegacyProgressInference(Application app) {
         if (app.getStatus() != null && app.getStatus() != Status.PENDING) {
@@ -331,7 +334,7 @@ public class Application {
     }
 
     /**
-     * 统一待处理申请的进度阶段。
+     * Normalize pending application's progress stage.
      */
     private static void normalizePendingProgress(Application app) {
         if (app == null || app.getStatus() != Status.PENDING) {

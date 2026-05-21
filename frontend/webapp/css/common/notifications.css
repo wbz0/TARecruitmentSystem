@@ -1,6 +1,6 @@
 /*
- * 通知页共享样式。
- * TA/MO 只读公告列表和 Admin 发布/删除公告页共用本文件。
+ * Shared notification page styles.
+ * TA/MO read-only announcement lists and Admin publish/delete pages share this file.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

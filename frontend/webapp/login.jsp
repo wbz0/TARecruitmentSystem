@@ -3,7 +3,7 @@
     UserDao.getInstance();
     String contextPath = request.getContextPath();
 %>
-<%-- 登录页：只渲染表单和全局 contextPath；登录校验与跳转逻辑在 js/auth/login.js。 --%>
+<%-- Login page: only renders the form and global contextPath; login validation and redirect logic is in js/auth/login.js. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -18,7 +18,7 @@
         <div class="page-utility">
             <a class="utility-link" href="<%= contextPath %>/" data-i18n="common.utility.backToPortal">Portal home</a>
             <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
                 <span class="locale-divider">/</span>
                 <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
             </div>
@@ -124,7 +124,7 @@
     </main>
 
     <script>
-        // 注入给 ta-recruitment.js 和 login.js，用于生成部署相关的 /api/... 路径。
+        // Injected for ta-recruitment.js and login.js, used to generate deployment-related /api/... paths.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js?v=20260513-password-toggle" defer></script>

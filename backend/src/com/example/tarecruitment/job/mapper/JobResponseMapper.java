@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JobResponseMapper - 职位对象到前端 JSON payload 的转换层。
+ * JobResponseMapper - Conversion layer from job object to frontend JSON payload.
  *
- * 页面 JS 只消费这里输出的字段名；Job 模型里的 CSV 细节不要直接暴露给前端。
+ * Page JS only consumes field names output here; CSV details in Job model should not be directly exposed to frontend.
  */
 public final class JobResponseMapper {
 
@@ -24,22 +24,22 @@ public final class JobResponseMapper {
     }
 
     /**
-     * 详情页默认以当前时间计算职位生效状态。
+     * Detail page calculates job effective status with current time by default.
      */
     public static Map<String, Object> toPayload(Job job, long applicantCount, UserDao userDao) {
         return toPayload(job, applicantCount, LocalDateTime.now(), userDao);
     }
 
     /**
-     * 转换单个职位为前端 JSON。
+     * Convert single job to frontend JSON.
      *
-     * referenceTime 用于测试或列表批量转换时固定时间，避免同一批结果
-     * 因多次 LocalDateTime.now() 产生不一致的状态。
+     * referenceTime is used in testing or list batch conversion to fix time, avoiding inconsistency
+     * from multiple LocalDateTime.now() calls producing inconsistent status.
      */
     public static Map<String, Object> toPayload(Job job, long applicantCount, LocalDateTime referenceTime, UserDao userDao) {
         Map<String, Object> data = new LinkedHashMap<>();
         Job.Status effectiveStatus = job.getEffectiveStatus(referenceTime);
-        // status 输出生效状态：超过 deadline 的 OPEN 会在前端显示为 CLOSED。
+        // status outputs effective status: OPEN past deadline displays as CLOSED on frontend.
         data.put("jobId", safeText(job.getJobId()));
         data.put("moId", safeText(job.getMoId()));
         data.put("moName", resolveMoDisplayName(job, userDao));
@@ -63,10 +63,10 @@ public final class JobResponseMapper {
     }
 
     /**
-     * 转换职位列表 payload。
+     * Convert job list payload.
      *
-     * jobs 数组是页面主体数据；keywordApplied/approximateOnly/hasMatches
-     * 只用于搜索提示，不改变列表结构。
+     * jobs array is main page data; keywordApplied/approximateOnly/hasMatches
+     * only used for search prompts, do not change list structure.
      */
     public static Map<String, Object> toListPayload(List<Job> jobs,
                                                      FuzzySearchUtil.SearchOutcome<Job> searchOutcome,
@@ -75,14 +75,14 @@ public final class JobResponseMapper {
                                                      UserDao userDao) {
         List<Map<String, Object>> jobPayloads = new ArrayList<>();
         for (Job job : jobs) {
-            // 列表页也显示申请人数，因此这里补一次 applicationDao 计数。
+            // List page also shows applicant count, so add applicationDao count here.
             long applicantCount = applicationDao.countByJobId(job.getJobId());
             jobPayloads.add(toPayload(job, applicantCount, referenceTime, userDao));
         }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("jobs", jobPayloads);
         data.put("total", jobs.size());
-        // 搜索元信息给前端决定“无精确匹配/拼写容错”提示，不影响 jobs 数组格式。
+        // Search metadata gives frontend “no exact match/spell check” hint; does not affect jobs array format.
         data.put("keywordApplied", searchOutcome != null && searchOutcome.isKeywordApplied());
         data.put("approximateOnly", searchOutcome != null && searchOutcome.isApproximateOnly());
         data.put("hasMatches", searchOutcome != null && searchOutcome.hasMatches());
@@ -90,22 +90,22 @@ public final class JobResponseMapper {
     }
 
     /**
-     * 创建/更新接口只需要把 jobId 返给前端用于后续刷新或跳转。
+     * Create/update API only needs to return jobId to frontend for subsequent refresh or redirect.
      */
     public static Map<String, Object> idPayload(Job job) {
         return ApiResponses.objectMap("jobId", job.getJobId());
     }
 
     /**
-     * 构建 MO 展示名。
+     * Build MO display name.
      *
-     * 优先使用账号资料里的实名和职称；旧 CSV 中存的 moName 只作为兼容兜底。
+     * Prefer using real name and professional title from account profile; old moName in CSV only as compatibility fallback.
      */
     public static String buildMoDisplayName(User user, String fallbackName) {
         if (user == null) {
             return fallbackName != null ? fallbackName : "";
         }
-        // MO 展示名优先实名+职称，保证 TA 看到的是老师身份，而不是登录用户名。
+        // MO display name prefers realName+title to ensure TA sees teacher identity, not login username.
         String realName = safeText(user.getRealName()).trim();
         String professionalTitle = safeText(user.getProfessionalTitle()).trim();
         if (!realName.isEmpty()) {
@@ -123,7 +123,7 @@ public final class JobResponseMapper {
     }
 
     /**
-     * 按 moId 查询最新账号资料，避免职位 CSV 里的旧名字长期显示。
+     * Query latest account info by moId to avoid old names from job CSV showing for long.
      */
     private static String resolveMoDisplayName(Job job, UserDao userDao) {
         if (job == null) {

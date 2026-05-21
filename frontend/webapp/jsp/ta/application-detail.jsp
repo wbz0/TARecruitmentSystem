@@ -8,7 +8,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 申请详情页：从 URL id 读取申请详情、岗位摘要和撤回动作。 --%>
+<%-- TA application detail page: reads application from URL id with job summary and withdraw action. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -113,7 +113,7 @@
     </div>
 
     <script>
-        // 注入给 ta-application-detail.js；applicationId 从查询参数读取，不在 JSP 里解析。
+        // Injected for ta-application-detail.js; applicationId is read from query parameters, not parsed in JSP.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>

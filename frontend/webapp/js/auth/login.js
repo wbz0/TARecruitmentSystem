@@ -1,8 +1,10 @@
 /*
- * 登录页脚本，对应 login.jsp。
+ * Login page script, corresponds to login.jsp.
  *
- * 负责角色选择、前端基础校验、密码显示切换，并提交到 /api/auth/login。
- * 登录成功后的跳转地址由后端 LoginServlet 返回，前端只做兜底跳回 login.jsp。
+ * Handles role selection, frontend basic validation, password visibility toggle,
+ * and submits to /api/auth/login.
+ * After successful login, redirect address is returned by backend LoginServlet;
+ * frontend has a fallback redirect to login.jsp.
  */
 (function () {
     var USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
@@ -57,7 +59,7 @@
     });
 
     function submitLogin(username, password, role) {
-        // API 路径必须通过 TARecruitment.routes 生成，保证部署在 /groupproject 下也可用。
+        // API path must be generated via TARecruitment.routes to work when deployed under /groupproject.
         var formData = new URLSearchParams();
         formData.set("username", username);
         formData.set("password", password);

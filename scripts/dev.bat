@@ -15,6 +15,14 @@ set WEBAPP_DIR=%PROJECT_ROOT%frontend\webapp
 set BUILD_DIR=%PROJECT_ROOT%build
 set TARGET_DIR=%CATALINA_HOME%\webapps\%APP_NAME%
 set FRONTEND_DIR=%PROJECT_ROOT%frontend\webapp
+if not defined TOMCAT_HTTP_PORT (
+    set "HTTP_PORT=8080"
+) else (
+    set "HTTP_PORT=%TOMCAT_HTTP_PORT%"
+)
+set "LOGIN_URL=http://localhost:%HTTP_PORT%/%APP_NAME%/login.jsp"
+if not defined PORT_RELEASE_TIMEOUT_SECONDS set "PORT_RELEASE_TIMEOUT_SECONDS=10"
+if not defined STARTUP_TIMEOUT_SECONDS set "STARTUP_TIMEOUT_SECONDS=120"
 
 echo ========================================
 echo   Dev Script - All in One
@@ -92,7 +100,21 @@ if not exist "%CATALINA_HOME%" (
 echo   Stopping Tomcat (if running)...
 call "%CATALINA_HOME%\bin\shutdown.bat"
 
-timeout /t 2 /nobreak >nul
+call :KillTomcatProcesses
+
+call :WaitForPortRelease
+if errorlevel 1 (
+    call :KillPortListeners
+)
+
+call :WaitForPortRelease
+if errorlevel 1 (
+    echo [ERROR] Port %HTTP_PORT% is still occupied after kill attempts.
+    call :ShowStartupDiagnostics
+    exit /b 1
+)
+
+echo   Port %HTTP_PORT% is free.
 
 echo   Deploying to Tomcat...
 
@@ -148,6 +170,17 @@ if not exist "%CATALINA_HOME%" (
 )
 
 call "%CATALINA_HOME%\bin\startup.bat"
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Failed to execute Tomcat startup.bat
+    exit /b 1
+)
+
+call :WaitForStartupVerification
+if errorlevel 1 (
+    echo [ERROR] Tomcat did not pass startup verification.
+    call :ShowStartupDiagnostics
+    exit /b 1
+)
 
 echo.
 echo ========================================
@@ -155,11 +188,35 @@ echo   All Done!
 echo ========================================
 echo.
 echo Access URLs:
-echo   - Home: http://localhost:8080/%APP_NAME%/
-echo   - Login: http://localhost:8080/%APP_NAME%/login.jsp
+echo   - Home: http://localhost:%HTTP_PORT%/%APP_NAME%/
+echo   - Login: %LOGIN_URL%
 echo.
-echo Tomcat Manager: http://localhost:8080/manager/html
+echo Tomcat Manager: http://localhost:%HTTP_PORT%/manager/html
 echo.
 
 endlocal
 pause
+exit /b 0
+
+:KillTomcatProcesses
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$pids = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*org.apache.catalina.startup.Bootstrap*' } | Select-Object -ExpandProperty ProcessId; if ($pids) { Write-Host ('  Killing old Tomcat process(es): ' + ($pids -join ' ')); $pids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }"
+exit /b 0
+
+:KillPortListeners
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$pids = Get-NetTCPConnection -LocalPort %HTTP_PORT% -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique; if ($pids) { Write-Host ('  Port %HTTP_PORT% is still occupied. Killing listener process(es): ' + ($pids -join ' ')); $pids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }"
+exit /b 0
+
+:WaitForPortRelease
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline = (Get-Date).AddSeconds([int]'%PORT_RELEASE_TIMEOUT_SECONDS%'); $stable = 0; while ((Get-Date) -lt $deadline) { $listeners = Get-NetTCPConnection -LocalPort %HTTP_PORT% -State Listen -ErrorAction SilentlyContinue; if (-not $listeners) { $stable++; if ($stable -ge 2) { exit 0 } } else { $stable = 0 }; Start-Sleep -Seconds 1 }; exit 1"
+exit /b %ERRORLEVEL%
+
+:WaitForStartupVerification
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$deadline = (Get-Date).AddSeconds([int]'%STARTUP_TIMEOUT_SECONDS%'); while ((Get-Date) -lt $deadline) { $listener = Get-NetTCPConnection -LocalPort %HTTP_PORT% -State Listen -ErrorAction SilentlyContinue; if ($listener) { try { $status = (Invoke-WebRequest -Uri '%LOGIN_URL%' -UseBasicParsing -TimeoutSec 5).StatusCode } catch { $status = 'no response' }; if ($status -eq 200) { Write-Host '  Port %HTTP_PORT% is listening.'; Write-Host '  %LOGIN_URL% returned 200.'; exit 0 }; Write-Host ('  Waiting for %LOGIN_URL% to return 200 (current: ' + $status + ')') } else { Write-Host '  Waiting for port %HTTP_PORT% to start listening...' }; Start-Sleep -Seconds 2 }; exit 1"
+exit /b %ERRORLEVEL%
+
+:ShowStartupDiagnostics
+echo   Expected port: %HTTP_PORT%
+echo   Expected URL: %LOGIN_URL%
+echo.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$listeners = Get-NetTCPConnection -LocalPort %HTTP_PORT% -State Listen -ErrorAction SilentlyContinue; Write-Host 'Current port listener:'; if ($listeners) { $listeners | Format-Table -AutoSize } else { Write-Host '  No listener on port %HTTP_PORT%' }; $log = Join-Path '%CATALINA_HOME%' 'logs\catalina.out'; if (Test-Path $log) { Write-Host ''; Write-Host 'Last Tomcat log lines:'; Get-Content $log -Tail 80 }"
+exit /b 0

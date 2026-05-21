@@ -16,16 +16,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * WorkloadStatsService - 管理员 TA 录用工作量统计服务。
+ * WorkloadStatsService - Admin TA recruitment workload statistics service.
  *
- * 被 WorkloadStatsServlet 调用，对应管理员 dashboard.jsp/admin-dashboard.js 上的工作量统计区。
- * 这里只做统计计算，不读 request/session，也不直接写 JSON。
+ * Called by WorkloadStatsServlet, corresponding to the workload statistics section
+ * on the admin dashboard.jsp/admin-dashboard.js.
+ * This service only performs statistical calculations, does not read request/session,
+ * and does not directly write JSON.
  *
- * 统计口径：
- * - 只统计 ACCEPTED 申请；
- * - 申请人必须是 TA 用户；
- * - 职位必须包含 weeklyHours、workStartDate、workEndDate；
- * - 日期筛选按职位工作期与筛选区间的交集计算。
+ * Statistics scope:
+ * - Only counts ACCEPTED applications;
+ * - Applicant must be a TA user;
+ * - Job must include weeklyHours, workStartDate, workEndDate;
+ * - Date filtering is calculated based on the intersection of job work period and filter range.
  */
 public class WorkloadStatsService {
 
@@ -255,7 +257,7 @@ public class WorkloadStatsService {
         List<InvalidJob> invalidJobs = new ArrayList<>();
 
         for (Application application : safeApplications) {
-            // 只有已录用的申请才会产生 TA 工作量；被拒绝、撤回、审核中的申请都不计入。
+            // Only accepted applications contribute to TA workload; rejected, withdrawn, or pending applications are not counted.
             if (application == null || application.getStatus() != Application.Status.ACCEPTED) {
                 continue;
             }
@@ -268,7 +270,7 @@ public class WorkloadStatsService {
             Job job = safeJobsById.get(application.getJobId());
             String invalidReason = validateJobForWorkload(job);
             if (invalidReason != null) {
-                // 统计页需要把“为什么没法计算”的记录展示出来，方便管理员回头修岗位数据。
+                // The statistics page needs to show records where workload cannot be calculated, so admin can fix job data.
                 invalidJobs.add(new InvalidJob(
                         safeText(application.getApplicationId(), ""),
                         safeText(application.getApplicantId(), ""),
@@ -282,7 +284,7 @@ public class WorkloadStatsService {
 
             int countedWeeks = calculateCountedWeeks(job.getWorkStartDate(), job.getWorkEndDate(), rangeStart, rangeEnd);
             if (countedWeeks <= 0) {
-                // 日期筛选区间和岗位工作期没有交集时，不算作本次报表范围内的工作量。
+                // When the date filter range has no overlap with the job work period, it is not counted as workload within this report range.
                 continue;
             }
 
@@ -322,7 +324,7 @@ public class WorkloadStatsService {
                 ? report
                 : new WorkloadReport(Collections.emptyList(), Collections.emptyList());
         StringBuilder csv = new StringBuilder();
-        // CSV 导出给管理员离线查看，字段顺序要和前端表格展示口径一致。
+        // CSV export is for admin offline viewing; field order must match the frontend table display.
         csv.append("taId,taName,acceptedJobCount,totalWorkWeeks,totalWorkHours,jobId,jobTitle,courseCode,weeklyHours,workStartDate,workEndDate,countedWeeks,countedHours\n");
         for (TaWorkloadStats stats : safeReport.getTaWorkloads()) {
             for (TaJobWorkload job : stats.getJobs()) {
@@ -347,7 +349,7 @@ public class WorkloadStatsService {
 
     private String resolveTaDisplayName(Application application, User applicant, Map<String, String> taRealNamesByUserId) {
         if (applicant != null) {
-            // 展示名优先取 TA 档案全名，其次账号实名，最后才退回申请快照或用户名。
+            // Display name priority: TA profile full name > account real name > application snapshot or username.
             String profileFullName = safeText(taRealNamesByUserId.get(applicant.getUserId()), "");
             if (!profileFullName.isBlank()) {
                 return profileFullName;
@@ -375,7 +377,7 @@ public class WorkloadStatsService {
         if (job == null) {
             return "Job record not found";
         }
-        // 工作量统计依赖结构化字段；旧版 workload 文本无法可靠换算成小时和周数。
+        // Workload statistics depends on structured fields; old workload text cannot be reliably converted to hours and weeks.
         Double weeklyHours = job.getWeeklyHours();
         if (weeklyHours == null) {
             return "Missing weekly hours";
@@ -408,7 +410,7 @@ public class WorkloadStatsService {
             return 0;
         }
         long overlapDays = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
-        // 不足一周按一周计，和管理员页面“按周统计工时”的展示一致。
+        // Less than a week counts as a full week, consistent with the admin page's “weekly workload” display.
         return Math.max(1, (int) Math.ceil(overlapDays / 7.0));
     }
 

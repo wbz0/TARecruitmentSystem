@@ -1,27 +1,27 @@
-# AI 推荐模块技术文档
+# AI Recommendation Module Technical Documentation
 
-## 1. 模块概述
+## 1. Module Overview
 
-AI 模块只保留前端正常可见的推荐搜索能力：
+AI module only retains front-end visible recommendation search capability:
 
-1. **MO 申请人推荐**：MO 在岗位管理页中根据岗位和可选关键词搜索候选人。
-2. **TA 职位推荐**：TA 在职位列表页中根据个人档案和可选关键词搜索开放职位。
+1. **MO Applicant Recommendation**: MO searches for candidates based on job and optional keywords on job management page.
+2. **TA Job Recommendation**: TA searches for open jobs based on personal profile and optional keywords on job list page.
 
-详情页单个岗位/申请的额外 AI 分析链路已删除，不再保留相关客户端、配置、本地分析兜底或对应 API。
+Detail page individual job/application's extra AI analysis chain has been removed; related client, configuration, local analysis fallback, and corresponding API are no longer retained.
 
-**核心组件**：
+**Core Components**:
 
-- `DeepSeekAiConfig` - 推荐搜索配置读取
-- `DeepSeekApplicantSearchClient` - MO 申请人推荐客户端
-- `DeepSeekTaJobSearchClient` - TA 职位推荐客户端
-- `MoApplicantAiSearchService` - MO 申请人推荐服务
-- `TaJobAiSearchService` - TA 职位推荐服务
-- `MoApplicantAiSearchServlet` - MO 推荐搜索 API
-- `TaJobAiSearchServlet` - TA 推荐搜索 API
+- `DeepSeekAiConfig` - Recommendation search configuration read
+- `DeepSeekApplicantSearchClient` - MO applicant recommendation client
+- `DeepSeekTaJobSearchClient` - TA job recommendation client
+- `MoApplicantAiSearchService` - MO applicant recommendation service
+- `TaJobAiSearchService` - TA job recommendation service
+- `MoApplicantAiSearchServlet` - MO recommendation search API
+- `TaJobAiSearchServlet` - TA recommendation search API
 
 ---
 
-## 2. 分层架构
+## 2. Layered Architecture
 
 ```text
 AI Recommendation Servlets
@@ -31,47 +31,47 @@ AI Recommendation Servlets
   -> ApiResponses
 ```
 
-| 层次 | 职责 |
-|------|------|
-| `ai/web` | 校验当前用户角色、读取参数、加载领域对象、写统一 JSON |
-| `ai/service` | 构造推荐上下文、脱敏、整理 AI 返回结果和推荐业务规则 |
-| `ai/client` | 读取配置、调用 DeepSeek 兼容 API、解析返回文本 |
-| `common/api` | 统一维护 `/api/...` 路由常量 |
+| Layer | Responsibility |
+|-------|----------------|
+| `ai/web` | Validate current user role, read parameters, load domain objects, write unified JSON |
+| `ai/service` | Build recommendation context, desensitize, organize AI return results and recommendation business rules |
+| `ai/client` | Read configuration, call DeepSeek compatible API, parse returned text |
+| `common/api` | Unified maintenance of `/api/...` route constants |
 
 ---
 
 ## 3. API
 
-| 功能 | Method | Path | 权限 |
+| Function | Method | Path | Permission |
 |------|--------|------|------|
-| MO 申请人推荐 | POST | `/api/mo/applicant-recommendations` | MO |
-| TA 职位推荐 | POST | `/api/ta/job-recommendations` | TA |
+| MO applicant recommendation | POST | `/api/mo/applicant-recommendations` | MO |
+| TA job recommendation | POST | `/api/ta/job-recommendations` | TA |
 
-### 3.1 MO 申请人推荐
+### 3.1 MO Applicant Recommendation
 
-`MoApplicantAiSearchServlet` 需要 `jobId`，可选 `query`。后端只会基于当前 MO 自己发布的职位和对应申请生成推荐上下文。
+`MoApplicantAiSearchServlet` requires `jobId`, optional `query`. Backend only generates recommendation context based on jobs posted by current MO and corresponding applications.
 
-### 3.2 TA 职位推荐
+### 3.2 TA Job Recommendation
 
-`TaJobAiSearchServlet` 可选 `query`。后端会读取当前 TA 档案，并排除非开放职位和当前 TA 已申请的职位。
+`TaJobAiSearchServlet` optional `query`. Backend reads current TA profile, excludes non-open jobs and jobs already applied by current TA.
 
 ---
 
-## 4. 配置
+## 4. Configuration
 
-模板文件：
+Template file:
 
 ```text
 frontend/webapp/WEB-INF/ai/deepseek.properties.template
 ```
 
-本地配置文件：
+Local configuration file:
 
 ```text
 frontend/webapp/WEB-INF/ai/deepseek.local.properties
 ```
 
-`DeepSeekAiConfig` 的读取优先级是：本地 properties 文件、System Property、Environment Variable。
+`DeepSeekAiConfig` reading priority is: local properties file, System Property, Environment Variable.
 
 ```properties
 deepseek.api.key=your-actual-api-key
@@ -82,11 +82,11 @@ deepseek.timeout-ms=8000
 
 ---
 
-## 5. 前端调用方式
+## 5. Frontend Call Method
 
-所有 AI API URL 都通过 `TARecruitment.routes` 生成。
+All AI API URLs are generated via `TARecruitment.routes`.
 
-TA 职位推荐：
+TA job recommendation:
 
 ```javascript
 TARecruitment.api.request(TARecruitment.routes.ta.jobRecommendations(), {
@@ -99,7 +99,7 @@ TARecruitment.api.request(TARecruitment.routes.ta.jobRecommendations(), {
 });
 ```
 
-MO 申请人推荐：
+MO applicant recommendation:
 
 ```javascript
 TARecruitment.api.request(TARecruitment.routes.mo.applicantRecommendations(), {
@@ -114,21 +114,21 @@ TARecruitment.api.request(TARecruitment.routes.mo.applicantRecommendations(), {
 
 ---
 
-## 6. 错误处理
+## 6. Error Handling
 
-| 场景 | 响应 |
+| Scenario | Response |
 |------|------|
-| 未登录 | 401 JSON |
-| 角色不匹配 | 403 JSON |
-| 缺少 `jobId` | 400 JSON |
-| 职位或档案不存在 | 404 JSON |
-| DeepSeek 推荐不可用 | 503 JSON，不返回本地假推荐 |
+| Not logged in | 401 JSON |
+| Role mismatch | 403 JSON |
+| Missing `jobId` | 400 JSON |
+| Job or profile not found | 404 JSON |
+| DeepSeek recommendation unavailable | 503 JSON, no local fake recommendation returned |
 
 ---
 
-## 7. 测试
+## 7. Testing
 
-推荐检查：
+Recommendation check:
 
 ```bash
 bash -n scripts/dev.sh scripts/javadocs.sh

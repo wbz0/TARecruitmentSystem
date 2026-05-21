@@ -20,11 +20,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * JobService - 职位业务服务。
+ * JobService - Job business service.
  *
- * 被 JobServlet 调用，对外 API 是 /api/jobs 和 /api/jobs/{jobId}。
- * 这里负责列表筛选、MO 创建/更新/删除职位、状态生效规则和响应 payload 组装；
- * Servlet 只读取 HTTP 参数并把 ServiceResult 写回前端。
+ * Called by JobServlet, external API is /api/jobs and /api/jobs/{jobId}.
+ * Here responsible for list filtering, MO create/update/delete jobs, status effective rules and response payload assembly;
+ * Servlet only reads HTTP parameters and writes ServiceResult back to frontend.
  */
 public class JobService {
 
@@ -48,17 +48,17 @@ public class JobService {
     }
 
     /**
-     * 查询职位列表，并把前端筛选条件统一应用到 CSV 数据上。
+     * Query job list and uniformly apply frontend filter conditions to CSV data.
      *
-     * 参数来自 TA 职位列表和 MO dashboard；返回 payload 会包含职位展示字段、
-     * 模糊搜索元数据和申请人数等前端卡片需要的信息。
+     * Parameters come from TA job list and MO dashboard; returned payload contains job display fields,
+     * fuzzy search metadata and applicant count that frontend cards need.
      */
     public ServiceResult list(String courseCode, String status, String keyword, String moId) {
         List<Job> jobs = jobDao.findAll();
-        // effectiveNow 用于计算动态状态，例如截止时间过后自动显示 CLOSED。
+        // effectiveNow is used for calculating dynamic status, e.g. auto-show CLOSED after deadline passes.
         LocalDateTime effectiveNow = LocalDateTime.now();
 
-        // 课程、状态、MO 三个筛选条件来自 TA 职位列表和 MO dashboard 的查询控件。
+        // Course, status, MO three filter conditions come from TA job list and MO dashboard query controls.
         String courseCodeText = trim(courseCode);
         if (!courseCodeText.isEmpty()) {
             jobs = jobs.stream()
@@ -74,7 +74,7 @@ public class JobService {
                         .filter(j -> j.getEffectiveStatus(effectiveNow) == jobStatus)
                         .collect(Collectors.toList());
             } catch (IllegalArgumentException e) {
-                // 非法状态不报 500，直接返回空列表，前端可以按“没有结果”处理。
+                // Invalid status does not report 500; directly return empty list, frontend can treat as “no results”.
                 jobs = new ArrayList<>();
             }
         }
@@ -87,7 +87,7 @@ public class JobService {
         }
 
         FuzzySearchUtil.SearchOutcome<Job> searchOutcome = jobDao.searchWithMetadata(keyword, jobs);
-        // approximateOnly 会告诉前端：关键词有效，但没有精确命中，只返回拼写容错结果。
+        // approximateOnly tells frontend: keyword valid but no exact match, only returns spell-checking results.
         List<Job> visibleJobs = searchOutcome.getItems();
         return ServiceResult.ok(
                 "Jobs retrieved successfully",
@@ -96,10 +96,10 @@ public class JobService {
     }
 
     /**
-     * 查询单个职位详情。
+     * Query single job detail.
      *
-     * 详情页额外展示 applicantCount，所以这里会跨 ApplicationDao 统计；
-     * Job 模型本身仍只表示职位 CSV 数据。
+     * Detail page additionally shows applicantCount, so crosses ApplicationDao to count here;
+     * Job model itself still only represents job CSV data.
      */
     public ServiceResult detail(String jobId) {
         String jobIdText = trim(jobId);
@@ -114,15 +114,15 @@ public class JobService {
 
         Job job = jobOpt.get();
         long applicantCount = applicationDao.countByJobId(job.getJobId());
-        // 详情页需要 applicantCount 展示竞争情况；它不是 Job CSV 的字段。
+        // Detail page needs applicantCount to show competition; not a Job CSV field.
         return ServiceResult.ok("Job retrieved successfully", JobResponseMapper.toPayload(job, applicantCount, userDao));
     }
 
     /**
-     * MO 创建职位。
+     * MO creates job.
      *
-     * 该方法负责权限、字段校验、默认值补齐和 Job 模型组装；
-     * Servlet 只传入白名单表单字段，避免 HTTP 细节进入业务层。
+     * This method is responsible for permission, field validation, default value filling and Job model assembly;
+     * Servlet only passes whitelist form fields, avoiding HTTP details entering business layer.
      */
     public ServiceResult create(User currentUser, Map<String, String> parameters) {
         if (currentUser == null) {
@@ -132,7 +132,7 @@ public class JobService {
             return ServiceResult.forbidden("Only MO can post jobs");
         }
 
-        // create 使用白名单字段，避免表单传入未知参数直接写进 CSV。
+        // create uses whitelist fields to avoid unknown request parameters directly written to CSV.
         String title = parameter(parameters, "title");
         String courseCode = parameter(parameters, "courseCode");
         String courseName = parameter(parameters, "courseName");
@@ -153,7 +153,7 @@ public class JobService {
 
         Job job = new Job();
         job.setMoId(currentUser.getUserId());
-        // 存一份发布者展示名，后续账号资料改名时响应 mapper 仍会优先取最新账号名。
+        // Save a snapshot of publisher display name; when account profile changes later, response mapper still prefers latest account name.
         job.setMoName(JobResponseMapper.buildMoDisplayName(currentUser, currentUser.getUsername()));
         job.setTitle(trim(title));
         job.setCourseCode(trim(courseCode));
@@ -178,10 +178,10 @@ public class JobService {
     }
 
     /**
-     * MO 更新自己发布的职位。
+     * MO updates their own published job.
      *
-     * 这里采用“只覆盖请求携带字段”的 PATCH 风格，虽然 HTTP method 是 PUT；
-     * 前端编辑弹窗可以只提交有值字段，不会把未提交字段清空。
+     * Here adopts “only overwrite fields carried by request” PATCH style, although HTTP method is PUT;
+     * frontend edit dialog can submit only fields with values, will not clear unsubmitted fields.
      */
     public ServiceResult update(User currentUser, String jobId, Map<String, String> parameters) {
         if (currentUser == null) {
@@ -199,7 +199,7 @@ public class JobService {
 
         Job job = jobOpt.get();
         if (!job.getMoId().equals(currentUser.getUserId())) {
-            // Job 写操作只允许发布该职位的 MO，ADMIN 不能从这个业务接口代改。
+            // Job write operation only allowed for MO who published the job; ADMIN cannot modify from this business interface.
             return ServiceResult.forbidden("You can only update your own jobs");
         }
 
@@ -214,9 +214,9 @@ public class JobService {
     }
 
     /**
-     * MO 删除自己发布的职位。
+     * MO deletes their own published job.
      *
-     * 删除前先读取职位确认归属，防止 MO 通过手写 jobId 删除他人岗位。
+     * Before delete, read job to confirm ownership, prevent MO from deleting others' jobs by writing jobId.
      */
     public ServiceResult delete(User currentUser, String jobId) {
         if (currentUser == null) {
@@ -245,13 +245,13 @@ public class JobService {
     }
 
     /**
-     * 把编辑弹窗提交的字段逐项应用到现有 Job。
+     * Apply fields submitted by edit dialog to existing Job item by item.
      *
-     * 每个字段先做单项校验，再写回模型；日期字段最后再整体校验，
-     * 因为截止时间、开始时间、结束时间之间存在相互依赖。
+     * Each field does single validation first, then writes back to model; date fields do overall validation last,
+     * because deadline, start time, end time have interdependencies.
      */
     private String applyUpdateFields(Job job, Map<String, String> parameters) {
-        // PATCH 风格更新：只校验并覆盖本次请求携带的字段，空 map 不会清空职位。
+        // PATCH style update: only validate and overwrite fields carried by this request, empty map does not clear job.
         String title = parameter(parameters, "title");
         if (title != null) {
             String titleText = title.trim();
@@ -345,7 +345,7 @@ public class JobService {
         }
 
         if (deadline != null || workStartDate != null || workEndDate != null) {
-            // 只要改动任一日期，就用更新后的整体时间表重新校验一次前后关系。
+            // If any date is changed, re-validate the overall schedule relationship once with updated timeline.
             String error = JobValidator.validateWorkSchedule(job.getDeadline(), job.getWorkStartDate(), job.getWorkEndDate(), true);
             if (error != null) return error;
         }
@@ -361,17 +361,17 @@ public class JobService {
     }
 
     /**
-     * 读取参数时保留 null 语义。
+     * When reading parameters, retain null semantics.
      *
-     * null 表示“前端没有提交这个字段”，空字符串表示“提交了但值为空”，
-     * 更新流程需要区分这两种情况。
+     * null means “frontend did not submit this field”, empty string means “submitted but value is empty”,
+     * update flow needs to distinguish these two cases.
      */
     private String parameter(Map<String, String> parameters, String name) {
         return parameters != null && parameters.containsKey(name) ? parameters.get(name) : null;
     }
 
     /**
-     * 查询类参数统一按空字符串处理，便于筛选逻辑串联。
+     * Query parameters are uniformly processed as empty string for easy filter logic chaining.
      */
     private String trim(String value) {
         return value != null ? value.trim() : "";
