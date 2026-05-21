@@ -1,0 +1,212 @@
+/*
+ * 公共表单样式。
+ * 登录、注册、档案、岗位发布等页面共用字段、错误提示和按钮基础外观。
+ */
+@import url("./components.css");
+
+.field,
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
+.field-label-row {
+    min-height: 20px;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.field label,
+.field-group label,
+.field-label {
+    margin: 0;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+}
+
+.field-tag {
+    color: var(--ui-brand);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.field-hint {
+    margin: 0;
+    padding: 0 2px;
+    color: var(--ui-text-tertiary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.field input,
+.field select,
+.field textarea,
+.field-group input,
+.field-group select,
+.field-group textarea,
+.search-row input {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-surface-muted);
+    color: var(--ui-text-primary);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.field input,
+.field select,
+.field-group input,
+.field-group select,
+.search-row input {
+    height: 46px;
+    line-height: 1;
+    padding: 0 14px;
+}
+
+.field textarea,
+.field-group textarea {
+    min-height: 124px;
+    resize: vertical;
+    padding: 12px 14px;
+    line-height: 1.55;
+}
+
+.field select,
+.field-group select {
+    appearance: none;
+    padding-right: 38px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--ui-text-tertiary) 50%),
+        linear-gradient(135deg, var(--ui-text-tertiary) 50%, transparent 50%);
+    background-position:
+        calc(100% - 18px) calc(50% - 2px),
+        calc(100% - 13px) calc(50% - 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.field input::placeholder,
+.field textarea::placeholder,
+.field-group input::placeholder,
+.field-group textarea::placeholder,
+.search-row input::placeholder {
+    color: var(--ui-text-tertiary);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus,
+.search-row input:focus {
+    background: var(--ui-surface);
+    border-color: var(--ui-brand);
+    box-shadow: var(--ui-shadow-focus);
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled,
+.field-group input:disabled,
+.field-group select:disabled,
+.field-group textarea:disabled {
+    color: var(--ui-text-secondary);
+    background: #ece8df;
+    cursor: not-allowed;
+}
+
+.field input.is-invalid,
+.field select.is-invalid,
+.field textarea.is-invalid {
+    background: var(--status-rejected-soft);
+    border-color: color-mix(in srgb, var(--status-rejected) 45%, white);
+}
+
+.field input.is-invalid:focus,
+.field select.is-invalid:focus,
+.field textarea.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(180, 35, 50, 0.16);
+}
+
+.field-feedback {
+    display: none;
+    margin: 5px 2px 0;
+    color: var(--status-rejected);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.field-feedback.is-visible {
+    display: block;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-form label {
+    margin: 0;
+    padding: 0 2px;
+    color: var(--ui-text-secondary);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 700;
+}
+
+.search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-actions,
+.filter-actions,
+.invite-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 760px) {
+    .field-grid,
+    .search-row {
+        grid-template-columns: 1fr;
+    }
+
+    .search-submit,
+    .form-actions .primary-btn,
+    .form-actions .ghost-btn,
+    .filter-actions .primary-btn,
+    .filter-actions .ghost-btn,
+    .filter-actions .inline-btn {
+        width: 100%;
+    }
+}
