@@ -8,7 +8,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "A";
 %>
-<%-- Admin 邀请码页：展示并刷新当前短邀请码，不展示旧邮件邀请列表。 --%>
+<%-- Admin invite code page: displays and refreshes the current short invite code; does not show the old email invitation list. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -72,7 +72,7 @@
     </div>
 
     <script>
-        // 注入给 admin-invite-management.js 的公共路由工具。
+        // Injected for admin-invite-management.js as a shared routing utility.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>

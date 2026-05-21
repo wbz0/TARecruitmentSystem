@@ -1,6 +1,6 @@
 /**
- * 申请领域 HTTP 入口层。
+ * Application domain HTTP entry layer.
  *
- * <p>ApplicationServlet 负责 /api/applications... 路由入口，实际业务流程下沉到 service。
+ * <p>ApplicationServlet handles /api/applications... routing entry, with actual business logic delegated to service layer.
  */
 package com.example.tarecruitment.application.web;

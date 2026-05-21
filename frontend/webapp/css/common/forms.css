@@ -1,6 +1,6 @@
 /*
- * 公共表单样式。
- * 登录、注册、档案、岗位发布等页面共用字段、错误提示和按钮基础外观。
+ * Shared form styles.
+ * Login, registration, profile, and job-posting pages share base field, error, and button styling.
  */
 @import url("./components.css");
 

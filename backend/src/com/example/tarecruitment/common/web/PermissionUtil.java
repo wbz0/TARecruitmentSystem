@@ -6,63 +6,63 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * PermissionUtil - 权限检查工具类。
+ * PermissionUtil - Permission check utility class.
  *
- * 主要服务旧 Servlet 中的快速角色/资源校验。新接口优先把路由访问规则放在
- * AccessPolicy 和各 domain Servlet 中，让权限判断更靠近具体 API。
+ * Mainly serves quick role/resource validation in old Servlets. New interfaces prefer putting route access rules in
+ * AccessPolicy and each domain Servlet, keeping permission logic closer to specific APIs.
  */
 public class PermissionUtil {
 
     /**
-     * 检查用户是否为资源所有者
-     * @param request HTTP请求对象
-     * @param ownerId 资源所有者ID
-     * @return true表示是所有者或是管理员
+     * Check if user is resource owner
+     * @param request HTTP request object
+     * @param ownerId resource owner ID
+     * @return true if owner or admin
      */
     public static boolean isOwnerOrAdmin(HttpServletRequest request, String ownerId) {
         User user = SessionUtil.getCurrentUser(request);
         if (user == null) {
             return false;
         }
-        // ADMIN可以操作所有资源
+        // ADMIN can operate all resources
         if (user.getRole() == User.Role.ADMIN) {
             return true;
         }
-        // 检查是否为资源所有者
+        // Check if resource owner
         String currentUserId = user.getUserId();
         return currentUserId != null && currentUserId.equals(ownerId);
     }
 
     /**
-     * 检查用户是否可以访问指定资源
-     * @param request HTTP请求对象
-     * @param resourceOwnerId 资源所有者ID
-     * @return true表示可以访问
+     * Check if user can access specified resource
+     * @param request HTTP request object
+     * @param resourceOwnerId resource owner ID
+     * @return true if accessible
      */
     public static boolean canAccessResource(HttpServletRequest request, String resourceOwnerId) {
         User user = SessionUtil.getCurrentUser(request);
         if (user == null) {
             return false;
         }
-        // ADMIN和MO可以访问所有资源
+        // ADMIN and MO can access all resources
         if (user.getRole() == User.Role.ADMIN || user.getRole() == User.Role.MO) {
             return true;
         }
-        // TA只能访问自己的资源
+        // TA can only access own resources
         return user.getUserId().equals(resourceOwnerId);
     }
 
     /**
-     * 验证AJAX请求的权限，如果无权访问则返回错误响应
-     * @param request HTTP请求对象
-     * @param response HTTP响应对象
-     * @param resourceOwnerId 资源所有者ID
-     * @return true表示有权限，false表示无权限（已发送错误响应）
+     * Validate AJAX request permissions, return error response if access denied
+     * @param request HTTP request object
+     * @param response HTTP response object
+     * @param resourceOwnerId resource owner ID
+     * @return true if authorized, false if unauthorized (error response already sent)
      */
     public static boolean validateOwnerAccess(HttpServletRequest request,
                                                HttpServletResponse response,
                                                String resourceOwnerId) throws IOException {
-        // 遗留/待移除：这个方法会直接写 response。新 Servlet 应优先用 ApiResponses 明确返回。
+        // Legacy/pending removal: this method directly writes response. New Servlets should prefer ApiResponses for explicit returns.
         if (!canAccessResource(request, resourceOwnerId)) {
             if (isAjaxRequest(request)) {
                 response.setContentType("application/json;charset=UTF-8");
@@ -77,16 +77,16 @@ public class PermissionUtil {
     }
 
     /**
-     * 验证用户角色权限，如果无权访问则返回错误响应
-     * @param request HTTP请求对象
-     * @param response HTTP响应对象
-     * @param requiredRoles 需要的角色数组
-     * @return true表示有权限，false表示无权限（已发送错误响应）
+     * Validate user role permissions, return error response if access denied
+     * @param request HTTP request object
+     * @param response HTTP response object
+     * @param requiredRoles required role array
+     * @return true if authorized, false if unauthorized (error response already sent)
      */
     public static boolean validateRoleAccess(HttpServletRequest request,
                                               HttpServletResponse response,
                                               User.Role... requiredRoles) throws IOException {
-        // 遗留/待移除：这个方法混合了权限判断和响应输出。新接口建议拆开判断和输出。
+        // Legacy/pending removal: this method mixes permission check and response output. New interfaces should separate check and output.
         User user = SessionUtil.getCurrentUser(request);
         if (user == null) {
             if (isAjaxRequest(request)) {
@@ -105,7 +105,7 @@ public class PermissionUtil {
             }
         }
 
-        // 无权访问
+        // No permission
         if (isAjaxRequest(request)) {
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -117,35 +117,35 @@ public class PermissionUtil {
     }
 
     /**
-     * 检查是否为AJAX请求
+     * Check if AJAX request
      */
     public static boolean isAjaxRequest(HttpServletRequest request) {
         return WebRequests.isAjax(request);
     }
 
     /**
-     * 返回未授权的JSON错误响应
+     * Return unauthorized JSON error response
      */
     public static void sendUnauthorized(HttpServletResponse response, String message) throws IOException {
         ApiResponses.unauthorized(response, message);
     }
 
     /**
-     * 返回禁止访问的JSON错误响应
+     * Return forbidden JSON error response
      */
     public static void sendForbidden(HttpServletResponse response, String message) throws IOException {
         ApiResponses.forbidden(response, message);
     }
 
     /**
-     * 返回成功响应的JSON
+     * Return success response JSON
      */
     public static void sendSuccess(HttpServletResponse response, String message) throws IOException {
         ApiResponses.ok(response, message, null);
     }
 
     /**
-     * 返回错误响应的JSON
+     * Return error response JSON
      */
     public static void sendError(HttpServletResponse response, String error, String message) throws IOException {
         ApiResponses.write(response, HttpServletResponse.SC_BAD_REQUEST, false, message, ApiResponses.objectMap("error", error));

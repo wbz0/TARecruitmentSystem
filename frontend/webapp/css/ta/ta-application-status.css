@@ -1,6 +1,6 @@
 /*
- * TA 申请状态页样式。
- * 覆盖申请卡片、状态 chip、时间线和搜索结果空状态。
+ * TA application status page styles.
+ * Covers application cards, status chips, timelines, and empty search-result states.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

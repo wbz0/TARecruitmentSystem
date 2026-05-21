@@ -23,15 +23,15 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 /**
- * ApplicantAssetServlet - 当前 TA 档案附件 API。
+ * ApplicantAssetServlet - Current TA profile asset API.
  *
- * 路径：
- * - GET    /api/me/applicant-profile/photo：返回档案照片。
- * - GET    /api/me/applicant-profile/resume：返回正式简历。
- * - POST   /api/me/applicant-profile/resume-draft：先上传待保存简历草稿。
- * - DELETE /api/me/applicant-profile/resume-draft：丢弃待保存简历草稿。
+ * Paths:
+ * - GET    /api/me/applicant-profile/photo: Returns profile photo.
+ * - GET    /api/me/applicant-profile/resume: Returns formal resume.
+ * - POST   /api/me/applicant-profile/resume-draft: First uploads pending resume draft to save.
+ * - DELETE /api/me/applicant-profile/resume-draft: Discards pending resume draft.
  *
- * 这里处理二进制文件和会话里的草稿状态；档案字段保存仍在 ApplicantProfileServlet。
+ * This handles binary files and draft state in session; profile field saving is still in ApplicantProfileServlet.
  */
 @WebServlet(urlPatterns = {
         ApiRoutes.ME_APPLICANT_RESUME_DRAFT,
@@ -109,7 +109,7 @@ public class ApplicantAssetServlet extends HttpServlet {
             }
 
             HttpSession session = request.getSession();
-            // 一个会话只保留一份待保存简历，新的草稿会替换旧草稿。
+            // Only one pending resume is kept per session; new draft replaces old draft.
             assetService.clearDraftResumeState(session, true);
             String originalFileName = ProfileAssetValidator.extractFileName(filePart);
             String draftResumePath = assetService.saveDraftFile(filePart, currentUser.getUserId());

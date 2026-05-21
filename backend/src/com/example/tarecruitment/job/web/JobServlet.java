@@ -18,22 +18,22 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * JobServlet - 职位 API 入口。
+ * JobServlet - Job API entry.
  *
- * 路径：
- * - GET    /api/jobs：TA 职位列表、MO dashboard 列表。
- * - GET    /api/jobs/{jobId}：TA/MO 职位详情。
- * - POST   /api/jobs：MO 发布职位。
- * - PUT    /api/jobs/{jobId}：MO 更新自己发布的职位。
- * - DELETE /api/jobs/{jobId}：MO 删除自己发布的职位。
+ * Paths:
+ * - GET    /api/jobs: TA job list, MO dashboard list.
+ * - GET    /api/jobs/{jobId}: TA/MO job detail.
+ * - POST   /api/jobs: MO publishes job.
+ * - PUT    /api/jobs/{jobId}: MO updates their own published job.
+ * - DELETE /api/jobs/{jobId}: MO deletes their own published job.
  *
- * Servlet 保持薄：只解析路径/参数、取得当前用户、调用 JobService、写统一 JSON。
+ * Servlet remains thin: only parses path/parameters, gets current user, calls JobService, writes unified JSON.
  */
 @WebServlet(urlPatterns = {ApiRoutes.JOBS, ApiRoutes.JOBS + "/*"})
 public class JobServlet extends HttpServlet {
 
     private static final String[] JOB_FIELDS = {
-            // POST 创建职位只接受这些前端表单字段，避免无关 request 参数进入业务对象。
+            // POST job creation only accepts these frontend form fields, avoiding irrelevant request parameters entering business object.
             "title",
             "courseCode",
             "courseName",
@@ -57,11 +57,11 @@ public class JobServlet extends HttpServlet {
     }
 
     /**
-     * 查询职位列表或单个职位详情。
+     * Query job list or single job detail.
      *
-     * 前端来源：
-     * - TA 职位列表页请求列表和详情；
-     * - MO dashboard 请求自己发布的职位列表。
+     * Frontend sources:
+     * - TA job list page requests list and detail;
+     * - MO dashboard requests list of their own published jobs.
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -72,7 +72,7 @@ public class JobServlet extends HttpServlet {
                 return;
             }
 
-            // 列表筛选参数来自 TA job-list.js 和 MO dashboard.js。
+            // List filter parameters come from TA job-list.js and MO dashboard.js.
             write(response, jobService.list(
                     request.getParameter("courseCode"),
                     request.getParameter("status"),
@@ -86,10 +86,10 @@ public class JobServlet extends HttpServlet {
     }
 
     /**
-     * 创建职位，只接受 /api/jobs 根路径 POST。
+     * Create job, only accepts POST to /api/jobs root path.
      *
-     * 权限、字段校验和 CSV 写入都在 JobService 中处理，这里只负责
-     * 收集白名单参数并转交。
+     * Permission, field validation and CSV write are all handled in JobService, here only responsible for
+     * collecting whitelist parameters and forwarding.
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -106,16 +106,16 @@ public class JobServlet extends HttpServlet {
     }
 
     /**
-     * 更新职位详情。
+     * Update job detail.
      *
-     * 该接口由 MO dashboard 的编辑弹窗调用，PUT body 需要 mapper 手动解析，
-     * 避免不同 Servlet 容器对 PUT 表单参数支持不一致。
+     * This API is called by MO dashboard edit dialog, PUT body needs mapper manual parsing,
+     * to avoid inconsistent PUT form parameter support across different Servlet containers.
      */
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
             String jobId = JobRequestMapper.pathJobId(request.getPathInfo());
-            // PUT 请求体是 x-www-form-urlencoded，request.getParameter 在部分容器里不会自动解析。
+            // PUT request body is x-www-form-urlencoded; request.getParameter may not auto-parse in some containers.
             Map<String, String> parameters = JobRequestMapper.formParameters(request);
             write(response, jobService.update(getCurrentUser(request), jobId, parameters));
         } catch (Exception e) {
@@ -125,10 +125,10 @@ public class JobServlet extends HttpServlet {
     }
 
     /**
-     * 删除职位。
+     * Delete job.
      *
-     * 是否允许删除由 JobService 根据当前登录用户和职位发布者判断，
-     * Servlet 不直接做业务权限推断。
+     * Whether delete is allowed is determined by JobService based on current logged-in user and job publisher,
+     * Servlet does not directly do business permission inference.
      */
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -141,14 +141,14 @@ public class JobServlet extends HttpServlet {
     }
 
     /**
-     * 把 service 层结果转成统一 { success, message, data } JSON。
+     * Convert service layer result to unified { success, message, data } JSON.
      */
     private void write(HttpServletResponse response, ServiceResult result) throws IOException {
         ApiResponses.write(response, result.getStatusCode(), result.isSuccess(), result.getMessage(), result.getData());
     }
 
     /**
-     * 只从 session 取当前用户，不在 Servlet 内重复写登录/角色逻辑。
+     * Only get current user from session, do not duplicate login/role logic in Servlet.
      */
     private User getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

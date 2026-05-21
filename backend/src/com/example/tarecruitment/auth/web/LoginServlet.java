@@ -17,13 +17,13 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * LoginServlet - 处理用户登录。
+ * LoginServlet - Handles user login.
  *
- * 当前前端入口：login.jsp / js/auth/login.js。
- * 访问路径: /api/auth/login
+ * Current frontend entry: login.jsp / js/auth/login.js.
+ * Access path: /api/auth/login
  *
- * 该项目使用 CSV 存储，没有 SQL 查询；这里的防护重点是参数长度、格式、
- * 明显危险标记和角色匹配校验。
+ * This project uses CSV storage, no SQL queries; the focus here is parameter length, format,
+ * obvious danger markers and role matching validation.
  */
 @WebServlet(ApiRoutes.AUTH_LOGIN)
 public class LoginServlet extends HttpServlet {
@@ -36,7 +36,7 @@ public class LoginServlet extends HttpServlet {
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9_]{2,19}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
-    // 简单的日志方法
+    // Simple logging method
     private void logInfo(String message) {
         Logger.i("LoginServlet", message);
     }
@@ -63,20 +63,20 @@ public class LoginServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
 
         try {
-            // 获取并验证输入
+            // Get and validate input
             String loginIdentifier = request.getParameter("username");
             String password = request.getParameter("password");
             String requestedRole = normalizeRequestedRole(request.getParameter("role"));
             boolean rememberMe = "1".equals(request.getParameter("rememberMe"));
 
-            // 前端登录页会传入用户选择的角色，用来避免 TA/MO/Admin 误进错入口。
+            // Frontend login page passes user-selected role to avoid TA/MO/Admin entering wrong entry by mistake.
             if (INVALID_ROLE.equals(requestedRole)) {
                 logInfo("Validation failed: Invalid role parameter");
                 ApiResponses.write(response, 400, false, "Invalid role parameter", null);
                 return;
             }
 
-            // 输入验证
+            // Input validation
             String validationError = validateInput(loginIdentifier, password);
             if (validationError != null) {
                 logInfo("Validation failed: " + validationError);
@@ -84,11 +84,11 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
 
-            // 去除输入首尾空格
+            // Trim input
             loginIdentifier = loginIdentifier.trim();
             password = password.trim();
 
-            // 验证登录
+            // Verify login
             logInfo("Attempting login for identifier: " + loginIdentifier +
                 (requestedRole != null ? ", requestedRole: " + requestedRole : ""));
             Optional<User> userOpt = userDao.verifyLogin(loginIdentifier, password);
@@ -105,16 +105,16 @@ public class LoginServlet extends HttpServlet {
 
                 logInfo("Login successful for identifier: " + loginIdentifier + ", role: " + user.getRole());
 
-                // 创建会话
+                // Create session
                 HttpSession session = request.getSession(true);
-                // 同时保存 User 对象和基础字段：User 给后端权限判断，字段给 JSP 片段显示。
+                // Also save User object and basic fields: User for backend permission judgment, fields for JSP fragment display.
                 session.setAttribute("user", user);
                 session.setAttribute("userId", user.getUserId());
                 session.setAttribute("username", user.getUsername());
                 session.setAttribute("role", user.getRole().name());
 
                 if (rememberMe) {
-                    int maxAge = 30 * 24 * 60 * 60; // 30 天
+                    int maxAge = 30 * 24 * 60 * 60; // 30 days
                     session.setMaxInactiveInterval(maxAge);
                     Cookie sessionCookie = new Cookie("JSESSIONID", session.getId());
                     sessionCookie.setMaxAge(maxAge);
@@ -122,10 +122,10 @@ public class LoginServlet extends HttpServlet {
                     sessionCookie.setHttpOnly(true);
                     response.addCookie(sessionCookie);
                 } else {
-                    session.setMaxInactiveInterval(30 * 60); // 30分钟超时
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes timeout
                 }
 
-                // 返回成功响应
+                // Return success response
                 String redirectPage = determineRedirectPage(user.getRole());
                 ApiResponses.write(response, 200, true, "Login successful",
                         ApiResponses.objectMap(
@@ -144,14 +144,14 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * 验证用户输入
-     * @return 错误信息，如果验证通过返回null
+     * Validate user input
+     * @return Error message, or null if validation passes
      */
     private String validateInput(String loginIdentifier, String password) {
         String identifierText = loginIdentifier != null ? loginIdentifier.trim() : "";
         String passwordText = password != null ? password.trim() : "";
 
-        // 验证用户名或邮箱
+        // Validate username or email
         if (identifierText.isEmpty()) {
             return "Username or email is required";
         }
@@ -169,7 +169,7 @@ public class LoginServlet extends HttpServlet {
             return "Invalid username format";
         }
 
-        // 验证密码
+        // Validate password
         if (passwordText.isEmpty()) {
             return "Password is required";
         }
@@ -228,11 +228,11 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * 规范化并验证前端传入的登录角色
+     * Normalize and validate login role passed from frontend
      * @return TA/MO/ADMIN/null/INVALID_ROLE
      */
     private String normalizeRequestedRole(String role) {
-        // 空角色表示旧前端或直接 API 调用；非空但非法时明确拒绝。
+        // Empty role means old frontend or direct API call; non-empty but invalid should be explicitly rejected.
         if (role == null) {
             return null;
         }
@@ -250,10 +250,10 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * 根据用户角色确定跳转页面
+     * Determine redirect page based on user role
      */
     private String determineRedirectPage(User.Role role) {
-        // 这里返回带 /groupproject 的历史路径，前端会按部署 context 做跳转兜底。
+        // Returns path with /groupproject historical path here; frontend will do deployment context fallback.
         switch (role) {
             case TA:
                 return "/groupproject/jsp/ta/dashboard.jsp";

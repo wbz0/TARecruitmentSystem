@@ -1,10 +1,10 @@
 package com.example.tarecruitment.common.service;
 
 /**
- * service 层返回给 Servlet 的轻量结果对象。
+ * Lightweight result object returned from service layer to Servlet.
  *
- * 它表达 HTTP 入口最终需要的状态码、成功标记、消息和数据，
- * 但本身不依赖 common.web，保持 service 层不直接写 response。
+ * It expresses the status code, success flag, message, and data ultimately needed by the HTTP endpoint,
+ * but does not depend on common.web, keeping the service layer from directly writing response.
  */
 public final class ServiceResult {
 

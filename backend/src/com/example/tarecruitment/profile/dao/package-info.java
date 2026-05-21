@@ -1,6 +1,6 @@
 /**
- * 档案领域 CSV 数据访问层。
+ * Profile domain CSV data access layer.
  *
- * <p>ApplicantDao 负责 TA 档案 CSV 的读取、创建、更新和查询。
+ * <p>ApplicantDao handles TA profile CSV reading, creation, update, and querying.
  */
 package com.example.tarecruitment.profile.dao;

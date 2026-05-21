@@ -1,22 +1,22 @@
 /*
- * Portal i18n 动态文案补丁。
+ * Portal i18n dynamic text patches.
  *
- * 这里集中处理页面运行中才生成的提示、按钮文案和服务端错误翻译。
- * 遗留/待移除：如果某些 key 已迁回 i18n.js 且没有动态生成入口，可以从这里删掉重复映射。
+ * Centralized handling of prompts, button text and server error translations generated during page runtime.
+ * Legacy/pending removal: if certain keys have been migrated back to i18n.js and have no dynamic generation entry, the duplicate mapping can be removed from here.
  */
 (function () {
     "use strict";
     var CHINESE_LOCALE = "zh-CN";
 
     /*
-     * 判断全站 AppI18n 是否已经加载。
+     * Check if global AppI18n has been loaded.
      */
     function hasI18n() {
         return window.AppI18n && typeof window.AppI18n.t === "function";
     }
 
     /*
-     * 动态文案读取兜底。
+     * Dynamic text read fallback.
      */
     function t(key, fallback) {
         if (hasI18n()) {
@@ -26,7 +26,7 @@
     }
 
     /*
-     * 英文动态数量文案需要复数后缀，中文不需要。
+     * English dynamic plural text needs plural suffix, Chinese does not.
      */
     function useEnglishPluralSuffix() {
         if (!hasI18n() || typeof window.AppI18n.getLocale !== "function") {
@@ -36,7 +36,7 @@
     }
 
     /*
-     * 读取当前语言，用于动态脚本选择中文补丁还是英文原文。
+     * Read current language for dynamic scripts to choose Chinese patch or English original.
      */
     function currentLocale() {
         if (window.AppI18n && typeof window.AppI18n.getLocale === "function") {
@@ -50,158 +50,158 @@
     }
 
     /*
-     * 中文动态文案补丁。
-     * 这里主要覆盖 JS 运行时才拼出来的消息，不替代 i18n.js 的静态字典。
+     * Chinese dynamic text patches.
+     * Mainly covers messages assembled at JS runtime, does not replace i18n.js static dictionary.
      */
     var localZhByKey = {
-        "portal.dynamic.currentCompleteness": "当前完整度：",
-        "portal.dynamic.checkingProfile": "正在检查档案...",
-        "portal.dynamic.creatingProfile": "正在创建档案...",
-        "portal.dynamic.profileAlreadyExists": "当前账号已存在档案，正在加载已保存内容...",
-        "portal.dynamic.fixHighlightedFields": "请先修正高亮字段后再试。",
-        "portal.dynamic.noProfileFound": "尚未找到档案，请先填写下方表单。",
-        "portal.dynamic.unableCheckProfile": "暂时无法检查已有档案，你仍可以尝试创建。",
-        "portal.dynamic.unableCreateProfile": "无法创建档案，请检查表单后重试。",
-        "portal.dynamic.unableUpdateProfile": "无法更新档案，请检查表单后重试。",
-        "portal.dynamic.profileCreatedUploadingResume": "档案创建成功，正在上传你选择的简历...",
-        "portal.dynamic.profileCreatedResumeFailed": "档案创建成功，但简历上传失败，请稍后重试。",
-        "portal.dynamic.profileCreatedSuccess": "档案创建成功，已在下方显示你的已保存信息。",
-        "portal.dynamic.profileCreatedResumeFailed": "档案创建成功，但简历上传失败，请稍后重试。",
-        "portal.dynamic.profileUpdatedSuccess": "档案更新成功。",
-        "portal.dynamic.savingChanges": "保存中...",
-        "portal.dynamic.profileReadonly": "你的档案已创建，当前以只读模式显示。",
-        "portal.dynamic.currentResumePrefix": "当前已上传简历：",
-        "portal.dynamic.noResumeUploaded": "尚未上传简历。",
-        "portal.dynamic.noResumeSelected": "尚未选择简历文件。",
-        "portal.dynamic.chooseResumeFirst": "请先选择简历文件。",
-        "portal.dynamic.resumeRequiredToSave": "请先上传简历，再保存档案。",
-        "portal.dynamic.choosePhotoFirst": "请先选择照片文件。",
-        "portal.dynamic.photoReadyToSave": "照片已选择，点击保存更改后生效。",
-        "portal.dynamic.savedPhotoRemoved": "当前照片已移除，点击保存更改后生效。",
-        "portal.dynamic.photoReady": "照片已就绪",
-        "portal.dynamic.resumeDraftUploading": "正在上传简历草稿：",
-        "portal.dynamic.resumeDraftSaved": "简历草稿已上传，点击保存更改后生效。",
-        "portal.dynamic.resumeDraftReplaceSaved": "新简历已上传，点击保存更改后会替换当前简历。",
-        "portal.dynamic.pendingResumePrefix": "待保存简历：",
-        "portal.dynamic.pendingResumeCreateSuffix": " 填写其他信息后点击保存更改即可创建档案。",
-        "portal.dynamic.pendingResumeReplaceSuffix": " 点击保存更改后将替换当前简历。",
-        "portal.dynamic.resumeDiscardFailed": "暂时无法丢弃待保存简历，请稍后重试。",
-        "portal.dynamic.createProfileThenUpload": "请先创建档案，再上传简历。",
-        "portal.dynamic.createProfileAutoUpload": "请先创建档案。创建成功后会自动上传当前已选文件。",
-        "portal.dynamic.resumeReadyAfterCreate": "简历文件已就绪，将在档案创建后自动上传。",
-        "portal.dynamic.resumeReadyReplace": "简历文件已就绪，点击上传以替换当前简历。",
-        "portal.dynamic.resumeWillUploadAfterCreate": "将在档案创建后上传",
-        "portal.dynamic.replaceUploadedResume": "替换已上传简历",
-        "portal.dynamic.uploading": "上传中",
-        "portal.dynamic.uploadCompleted": "上传完成",
-        "portal.dynamic.uploadAborted": "上传已中止。",
-        "portal.dynamic.uploadInterrupted": "上传被中断，请重试。",
-        "portal.dynamic.uploadNetworkError": "上传简历时网络异常，请稍后再试。",
-        "portal.dynamic.resumeUploadSuccess": "简历上传成功。",
-        "portal.dynamic.resumeUpdateSuccess": "简历更新成功。",
-        "portal.dynamic.resumeUploadFailed": "简历上传失败，请稍后重试。",
-        "portal.dynamic.invalidResumeFormat": "文件格式无效，请上传 PDF、DOC 或 DOCX 文件。",
-        "portal.dynamic.resumeTooLarge": "文件超过 10MB，请选择更小的文件。",
-        "portal.dynamic.invalidPhotoFormat": "照片格式无效，请上传 JPG、PNG 或 WEBP 文件。",
-        "portal.dynamic.photoTooLarge": "照片超过 5MB，请选择更小的文件。",
-        "portal.dynamic.noSpecificSkills": "未列出具体技能。",
-        "portal.dynamic.unableLoadJobs": "暂时无法加载职位。",
-        "portal.dynamic.unableLoadJobsRetry": "暂时无法加载职位，请稍后重试。",
-        "portal.dynamic.noJobsForFilters": "当前筛选条件下没有职位。",
-        "portal.dynamic.noJobsAvailable": "当前暂无可用职位。",
-        "portal.dynamic.showing": "显示",
-        "portal.dynamic.jobUnit": "职位",
-        "portal.dynamic.unableLoadPositionsTitle": "无法加载职位",
-        "portal.dynamic.refreshAfterNetworkCheck": "请检查网络后点击刷新重试。",
-        "portal.dynamic.noPositionsPublishedTitle": "暂未发布职位",
-        "portal.dynamic.positionsAppearAfterPublish": "MO 发布新职位后将显示在这里。",
-        "portal.dynamic.noMatchingPositionsTitle": "没有匹配的职位",
-        "portal.dynamic.broadenKeywordHint": "可尝试放宽关键词或清除部分筛选条件。",
-        "portal.dynamic.noExtraTags": "无额外标签",
-        "portal.dynamic.viewDetails": "查看详情",
-        "portal.dynamic.applyNow": "立即申请",
+        "portal.dynamic.currentCompleteness": "Current completeness:",
+        "portal.dynamic.checkingProfile": "Checking profile...",
+        "portal.dynamic.creatingProfile": "Creating profile...",
+        "portal.dynamic.profileAlreadyExists": "A profile already exists for this account, loading your saved content...",
+        "portal.dynamic.fixHighlightedFields": "Please fix highlighted fields before trying again.",
+        "portal.dynamic.noProfileFound": "No profile found yet. Please complete the form below.",
+        "portal.dynamic.unableCheckProfile": "Unable to check existing profile right now. You can still try creating one.",
+        "portal.dynamic.unableCreateProfile": "Unable to create profile. Please check the form and try again.",
+        "portal.dynamic.unableUpdateProfile": "Unable to update profile. Please check the form and try again.",
+        "portal.dynamic.profileCreatedUploadingResume": "Profile created successfully. Uploading your selected resume...",
+        "portal.dynamic.profileCreatedResumeFailed": "Profile created successfully, but resume upload failed. Please try again later.",
+        "portal.dynamic.profileCreatedSuccess": "Profile created successfully. Your saved information is now displayed below.",
+        "portal.dynamic.profileCreatedResumeFailed": "Profile created successfully, but resume upload failed. Please try again later.",
+        "portal.dynamic.profileUpdatedSuccess": "Profile updated successfully.",
+        "portal.dynamic.savingChanges": "Saving...",
+        "portal.dynamic.profileReadonly": "Your profile has been created and is currently displayed in read-only mode.",
+        "portal.dynamic.currentResumePrefix": "Current uploaded resume:",
+        "portal.dynamic.noResumeUploaded": "No resume uploaded yet.",
+        "portal.dynamic.noResumeSelected": "No resume file selected.",
+        "portal.dynamic.chooseResumeFirst": "Please select a resume file first.",
+        "portal.dynamic.resumeRequiredToSave": "Please upload your resume before saving your profile.",
+        "portal.dynamic.choosePhotoFirst": "Please select a photo file first.",
+        "portal.dynamic.photoReadyToSave": "Photo selected. Save changes to apply it.",
+        "portal.dynamic.savedPhotoRemoved": "Current photo removed. Save changes to apply it.",
+        "portal.dynamic.photoReady": "Photo ready",
+        "portal.dynamic.resumeDraftUploading": "Uploading resume draft:",
+        "portal.dynamic.resumeDraftSaved": "Resume draft uploaded. Save changes to apply it.",
+        "portal.dynamic.resumeDraftReplaceSaved": "New resume uploaded. Save changes to replace the current resume.",
+        "portal.dynamic.pendingResumePrefix": "Pending resume:",
+        "portal.dynamic.pendingResumeCreateSuffix": " Fill in other information and click Save changes to create profile.",
+        "portal.dynamic.pendingResumeReplaceSuffix": " Click Save changes to replace current resume.",
+        "portal.dynamic.resumeDiscardFailed": "Unable to discard pending resume. Please try again later.",
+        "portal.dynamic.createProfileThenUpload": "Please create profile first, then upload resume.",
+        "portal.dynamic.createProfileAutoUpload": "Please create profile first. The selected resume will upload automatically after successful creation.",
+        "portal.dynamic.resumeReadyAfterCreate": "Resume file is ready and will upload automatically after profile creation.",
+        "portal.dynamic.resumeReadyReplace": "Resume file is ready. Click upload to replace the current resume.",
+        "portal.dynamic.resumeWillUploadAfterCreate": "Will upload after profile creation",
+        "portal.dynamic.replaceUploadedResume": "Replace uploaded resume",
+        "portal.dynamic.uploading": "Uploading",
+        "portal.dynamic.uploadCompleted": "Upload completed",
+        "portal.dynamic.uploadAborted": "Upload aborted.",
+        "portal.dynamic.uploadInterrupted": "Upload interrupted. Please try again.",
+        "portal.dynamic.uploadNetworkError": "Network error during resume upload. Please try again later.",
+        "portal.dynamic.resumeUploadSuccess": "Resume uploaded successfully.",
+        "portal.dynamic.resumeUpdateSuccess": "Resume updated successfully.",
+        "portal.dynamic.resumeUploadFailed": "Resume upload failed. Please try again later.",
+        "portal.dynamic.invalidResumeFormat": "Invalid file format. Please upload PDF, DOC or DOCX file.",
+        "portal.dynamic.resumeTooLarge": "File exceeds 10MB. Please select a smaller file.",
+        "portal.dynamic.invalidPhotoFormat": "Invalid photo format. Please upload JPG, PNG or WEBP file.",
+        "portal.dynamic.photoTooLarge": "Photo exceeds 5MB. Please select a smaller file.",
+        "portal.dynamic.noSpecificSkills": "No specific skills listed.",
+        "portal.dynamic.unableLoadJobs": "Unable to load positions right now.",
+        "portal.dynamic.unableLoadJobsRetry": "Unable to load positions right now. Please try again later.",
+        "portal.dynamic.noJobsForFilters": "No positions under current filter conditions.",
+        "portal.dynamic.noJobsAvailable": "No positions available right now.",
+        "portal.dynamic.showing": "Showing",
+        "portal.dynamic.jobUnit": "position",
+        "portal.dynamic.unableLoadPositionsTitle": "Unable to load positions",
+        "portal.dynamic.refreshAfterNetworkCheck": "Please check network and click refresh to retry.",
+        "portal.dynamic.noPositionsPublishedTitle": "No positions published yet",
+        "portal.dynamic.positionsAppearAfterPublish": "When MO publishes new positions, they will appear here.",
+        "portal.dynamic.noMatchingPositionsTitle": "No matching positions",
+        "portal.dynamic.broadenKeywordHint": "Try broadening keywords or clearing some filter conditions.",
+        "portal.dynamic.noExtraTags": "No extra tags",
+        "portal.dynamic.viewDetails": "View details",
+        "portal.dynamic.applyNow": "Apply now",
         "portal.dynamic.moShort": "MO",
-        "portal.dynamic.submitting": "提交中...",
-        "portal.dynamic.applicationSubmitted": "申请已提交。",
-        "portal.dynamic.applicationSubmittedRedirect": "申请提交成功，正在跳转到申请状态页...",
-        "portal.dynamic.failedSubmitApplication": "提交申请失败，请重试。",
-        "portal.dynamic.currentAccountCannotSubmit": "当前账号无法在此页面提交申请。",
-        "portal.dynamic.onlyTaSubmit": "仅 TA 账号可提交申请。",
-        "portal.dynamic.alreadyApplied": "你已申请过该职位。",
-        "portal.dynamic.jobNoLongerAvailable": "该职位不存在，可能已被移除。",
-        "portal.dynamic.jobNotAccepting": "该职位当前不接受新申请。",
-        "portal.dynamic.positionCurrently": "该职位当前状态为",
-        "portal.dynamic.newApplicationsDisabled": "。已关闭新申请。",
-        "portal.dynamic.jobNotFound": "职位不存在，可能已被移除。",
-        "portal.dynamic.applicationUnavailable": "申请不可用",
-        "portal.dynamic.applicationStatusPrefix": "申请状态：",
-        "portal.dynamic.applicationAlreadySubmitted": "已提交过申请。",
-        "portal.dynamic.applicationStopped": "已停止申请",
-        "portal.dynamic.networkErrorSubmitApplication": "提交申请时网络异常。",
-        "portal.dynamic.taOnlyPage": "该页面仅 TA 账号可访问。",
-        "portal.dynamic.unableLoadApplications": "无法加载你的申请数据。",
-        "portal.dynamic.unableLoadApplicationsNow": "暂时无法加载申请数据。",
-        "portal.dynamic.noApplicationsSubmitted": "你还没有提交任何申请。",
-        "portal.dynamic.noApplicationsMatchFilters": "当前筛选条件下没有申请记录。",
-        "portal.dynamic.applicationUnit": "申请",
-        "portal.dynamic.unableLoadApplicationsTitle": "无法加载申请",
-        "portal.dynamic.noMatchingApplicationsTitle": "没有匹配的申请",
-        "portal.dynamic.noApplicationsYetTitle": "暂无申请",
-        "portal.dynamic.statusAppearsAfterApply": "你申请职位后，状态会显示在这里。",
-        "portal.dynamic.clearFiltersToBroaden": "尝试清除状态或关键词筛选来扩大结果范围。",
-        "portal.dynamic.applicationWithdrawnSuccess": "申请已成功撤回。",
-        "portal.dynamic.unableWithdrawApplication": "无法撤回该申请。",
-        "portal.dynamic.networkErrorWithdrawApplication": "撤回申请时网络异常。",
-        "portal.dynamic.appliedAt": "申请时间",
-        "portal.dynamic.coverLetterColon": "求职信：",
-        "portal.dynamic.noCoverLetterProvided": "未提供求职信。",
-        "portal.dynamic.viewJob": "查看职位",
-        "portal.dynamic.withdraw": "撤回",
-        "portal.dynamic.onlyMoPublish": "仅 MO 账号可发布职位。",
-        "portal.dynamic.failedPublishJob": "发布职位失败，请检查输入后重试。",
-        "portal.dynamic.jobPostedSuccess": "职位发布成功。",
-        "portal.dynamic.networkErrorPostingJob": "发布职位时网络异常。",
-        "portal.dynamic.unableLoadPostings": "暂时无法加载发布列表。",
-        "portal.dynamic.noJobsPostedYet": "你尚未发布职位。",
-        "portal.dynamic.youHavePosted": "你已发布",
-        "portal.dynamic.noPostingsYetTitle": "尚无发布记录",
-        "portal.dynamic.publishFirstTaPosition": "使用表单发布你的第一个 TA 职位。",
-        "portal.dynamic.reviewApplicants": "审核申请人",
-        "portal.dynamic.untitledPosition": "未命名职位",
-        "portal.dynamic.overviewPartialLoad": "部分概览数据加载失败，已展示可用结果。",
-        "portal.dynamic.unableLoadOverview": "暂时无法加载概览数据。",
-        "portal.dynamic.moOnlyPage": "该页面仅 MO 账号可访问。",
-        "portal.dynamic.noActivityYet": "暂无活动。",
-        "portal.dynamic.tracking": "跟踪",
-        "portal.dynamic.noRecentActivityTitle": "暂无最近活动",
-        "portal.dynamic.latestUpdatesAppear": "当 TA 申请你的职位后，最新动态会显示在这里。",
-        "portal.dynamic.newApplicationReceived": "收到新申请",
-        "portal.dynamic.offerAccepted": "录用已确认",
-        "portal.dynamic.applicationRejected": "申请已拒绝",
-        "portal.dynamic.applicationWithdrawn": "申请已撤回",
-        "portal.dynamic.applicationUpdated": "申请已更新",
-        "portal.dynamic.unknownApplicant": "未知申请人",
-        "portal.dynamic.failedLoadApplicationTotals": "加载申请总量失败。",
-        "portal.dynamic.failedLoadMoWorkloads": "加载 MO 工作量失败。",
-        "portal.dynamic.networkErrorLoadingDashboard": "加载仪表盘时网络异常。",
-        "portal.dynamic.exporting": "导出中...",
-        "portal.dynamic.csvExportedSuccess": "CSV 导出成功。",
-        "portal.dynamic.unableExportCsv": "无法导出 CSV。",
-        "portal.dynamic.noMoWorkloadSelectedRange": "所选时间范围内无 MO 工作量数据。",
-        "portal.dynamic.loaded": "已加载",
-        "portal.dynamic.moWorkloadItemUnit": "条 MO 工作量记录",
-        "portal.dynamic.noStatusData": "暂无状态数据。",
-        "portal.dynamic.noMoWorkloadData": "暂无 MO 工作量数据。",
-        "portal.dynamic.noWorkloadDataYetTitle": "暂无工作量数据",
-        "portal.dynamic.adjustTimeRangeHint": "请调整时间范围或等待更多申请活动。",
-        "portal.dynamic.sessionExpiredRedirect": "会话已过期，正在跳转到登录页...",
-        "portal.dynamic.networkErrorTryAgain": "网络异常，请重试。",
-        "portal.dynamic.networkErrorMoment": "网络异常，请稍后再试。"
+        "portal.dynamic.submitting": "Submitting...",
+        "portal.dynamic.applicationSubmitted": "Application submitted.",
+        "portal.dynamic.applicationSubmittedRedirect": "Application submitted successfully. Redirecting to application status page...",
+        "portal.dynamic.failedSubmitApplication": "Failed to submit application. Please try again.",
+        "portal.dynamic.currentAccountCannotSubmit": "Current account cannot submit applications on this page.",
+        "portal.dynamic.onlyTaSubmit": "Only TA accounts can submit applications.",
+        "portal.dynamic.alreadyApplied": "You have already applied for this position.",
+        "portal.dynamic.jobNoLongerAvailable": "This position does not exist. It may have been removed.",
+        "portal.dynamic.jobNotAccepting": "This position is not accepting new applications.",
+        "portal.dynamic.positionCurrently": "This position is currently",
+        "portal.dynamic.newApplicationsDisabled": ". New applications are disabled.",
+        "portal.dynamic.jobNotFound": "Position does not exist. It may have been removed.",
+        "portal.dynamic.applicationUnavailable": "Application unavailable",
+        "portal.dynamic.applicationStatusPrefix": "Application status:",
+        "portal.dynamic.applicationAlreadySubmitted": "Already submitted an application.",
+        "portal.dynamic.applicationStopped": "Application stopped",
+        "portal.dynamic.networkErrorSubmitApplication": "Network error when submitting application.",
+        "portal.dynamic.taOnlyPage": "This page is only accessible to TA accounts.",
+        "portal.dynamic.unableLoadApplications": "Unable to load your application data.",
+        "portal.dynamic.unableLoadApplicationsNow": "Unable to load application data right now.",
+        "portal.dynamic.noApplicationsSubmitted": "You have not submitted any applications yet.",
+        "portal.dynamic.noApplicationsMatchFilters": "No application records under current filter conditions.",
+        "portal.dynamic.applicationUnit": "application",
+        "portal.dynamic.unableLoadApplicationsTitle": "Unable to load applications",
+        "portal.dynamic.noMatchingApplicationsTitle": "No matching applications",
+        "portal.dynamic.noApplicationsYetTitle": "No applications yet",
+        "portal.dynamic.statusAppearsAfterApply": "Status will appear here after you apply for a position.",
+        "portal.dynamic.clearFiltersToBroaden": "Try clearing status or keyword filters to broaden results.",
+        "portal.dynamic.applicationWithdrawnSuccess": "Application withdrawn successfully.",
+        "portal.dynamic.unableWithdrawApplication": "Unable to withdraw this application.",
+        "portal.dynamic.networkErrorWithdrawApplication": "Network error when withdrawing application.",
+        "portal.dynamic.appliedAt": "Application time",
+        "portal.dynamic.coverLetterColon": "Cover letter:",
+        "portal.dynamic.noCoverLetterProvided": "No cover letter provided.",
+        "portal.dynamic.viewJob": "View position",
+        "portal.dynamic.withdraw": "Withdraw",
+        "portal.dynamic.onlyMoPublish": "Only MO accounts can publish positions.",
+        "portal.dynamic.failedPublishJob": "Failed to publish position. Please check input and try again.",
+        "portal.dynamic.jobPostedSuccess": "Position published successfully.",
+        "portal.dynamic.networkErrorPostingJob": "Network error when publishing position.",
+        "portal.dynamic.unableLoadPostings": "Unable to load posting list right now.",
+        "portal.dynamic.noJobsPostedYet": "You have not published any positions yet.",
+        "portal.dynamic.youHavePosted": "You have published",
+        "portal.dynamic.noPostingsYetTitle": "No posting records yet",
+        "portal.dynamic.publishFirstTaPosition": "Use the form to publish your first TA position.",
+        "portal.dynamic.reviewApplicants": "Review applicants",
+        "portal.dynamic.untitledPosition": "Untitled position",
+        "portal.dynamic.overviewPartialLoad": "Some overview data failed to load. Available results are displayed.",
+        "portal.dynamic.unableLoadOverview": "Unable to load overview data right now.",
+        "portal.dynamic.moOnlyPage": "This page is only accessible to MO accounts.",
+        "portal.dynamic.noActivityYet": "No activity yet.",
+        "portal.dynamic.tracking": "Tracking",
+        "portal.dynamic.noRecentActivityTitle": "No recent activity",
+        "portal.dynamic.latestUpdatesAppear": "When TAs apply for your positions, latest updates will appear here.",
+        "portal.dynamic.newApplicationReceived": "New application received",
+        "portal.dynamic.offerAccepted": "Offer accepted",
+        "portal.dynamic.applicationRejected": "Application rejected",
+        "portal.dynamic.applicationWithdrawn": "Application withdrawn",
+        "portal.dynamic.applicationUpdated": "Application updated",
+        "portal.dynamic.unknownApplicant": "Unknown applicant",
+        "portal.dynamic.failedLoadApplicationTotals": "Failed to load application totals.",
+        "portal.dynamic.failedLoadMoWorkloads": "Failed to load MO workloads.",
+        "portal.dynamic.networkErrorLoadingDashboard": "Network error when loading dashboard.",
+        "portal.dynamic.exporting": "Exporting...",
+        "portal.dynamic.csvExportedSuccess": "CSV exported successfully.",
+        "portal.dynamic.unableExportCsv": "Unable to export CSV.",
+        "portal.dynamic.noMoWorkloadSelectedRange": "No MO workload data in selected time range.",
+        "portal.dynamic.loaded": "Loaded",
+        "portal.dynamic.moWorkloadItemUnit": "MO workload record",
+        "portal.dynamic.noStatusData": "No status data yet.",
+        "portal.dynamic.noMoWorkloadData": "No MO workload data yet.",
+        "portal.dynamic.noWorkloadDataYetTitle": "No workload data yet",
+        "portal.dynamic.adjustTimeRangeHint": "Please adjust the time range or wait for more application activity.",
+        "portal.dynamic.sessionExpiredRedirect": "Session expired. Redirecting to login page...",
+        "portal.dynamic.networkErrorTryAgain": "Network error. Please try again.",
+        "portal.dynamic.networkErrorMoment": "Network error. Please try again in a moment."
     };
 
     /*
-     * 按 key 解析动态中文文案。
-     * 优先用 AppI18n 正式字典，localZhByKey 只是动态补丁兜底。
+     * Resolve dynamic Chinese text by key.
+     * Prefers AppI18n formal dictionary; localZhByKey is only dynamic patch fallback.
      */
     function resolveByKey(key, fallbackText) {
         if (hasI18n()) {
@@ -217,8 +217,8 @@
     }
 
     /*
-     * 静态英文文本到 i18n key 的映射。
-     * 遗留/待移除：这些文本逐步迁移到 JSP 的 data-i18n 后，可删对应映射。
+     * Static English text to i18n key mapping.
+     * Legacy/pending removal: as these texts are gradually migrated to JSP data-i18n, corresponding mappings can be removed.
      */
     function textMap() {
         return {
@@ -326,9 +326,9 @@
             "Loading applications...": { key: "portal.taApplicationStatus.loadingApplications" },
 
             "Application detail": { key: "portal.taApplicationDetail.title" },
-            "← My applications": { key: "portal.taApplicationDetail.backToList" },
+            "< Back to My applications": { key: "portal.taApplicationDetail.backToList" },
             "Applied position details": { key: "portal.taApplicationDetail.jobTeaserTitle" },
-            "View details →": { key: "portal.taApplicationDetail.viewDetailsCta" },
+            "View details ->": { key: "portal.taApplicationDetail.viewDetailsCta" },
             "Out of 4.0": { key: "portal.taApplicationDetail.gpaScale" },
             "Application progress": { key: "portal.taApplicationDetail.progressTitle" },
             "My skills": { key: "portal.taApplicationDetail.mySkills" },
@@ -551,7 +551,7 @@
     var mapping = textMap();
 
     /*
-     * 动态句式映射，用于数量、上传文件名、状态等运行时拼接文本。
+     * Dynamic pattern mapping for runtime-composed text like quantities, upload filenames, statuses.
      */
     function dynamicPatternMap() {
         return [
@@ -601,7 +601,7 @@
                 }
             },
             {
-                regex: /^Found (\d+) applicant\(s\)$/,
+                regex: /^Found (\d+) applicant(s?)$/,
                 handler: function (match) {
                     return t("portal.dynamic.found", "Found") + " " + match[1] + " " +
                         t("portal.dynamic.applicantsSuffix", "applicant(s)");
@@ -638,7 +638,7 @@
     var dynamicPatterns = dynamicPatternMap();
 
     /*
-     * 尝试匹配动态句式。
+     * Try matching dynamic patterns.
      */
     function tryDynamicPattern(text) {
         for (var i = 0; i < dynamicPatterns.length; i += 1) {
@@ -652,7 +652,7 @@
     }
 
     /*
-     * 翻译单段原始文本。
+     * Translate single raw text segment.
      */
     function translateRawText(text) {
         var entry = mapping[text];
@@ -663,7 +663,7 @@
     }
 
     /*
-     * 替换一个文本节点，跳过 script/style。
+     * Replace one text node, skipping script/style.
      */
     function replaceTextNode(node) {
         if (!node || !node.nodeValue) {
@@ -687,7 +687,7 @@
     }
 
     /*
-     * 遍历一个 DOM 子树中的文本节点。
+     * Traverse text nodes in a DOM subtree.
      */
     function translateNodeTree(root) {
         if (!root) {
@@ -702,7 +702,7 @@
     }
 
     /*
-     * 翻译整个文档 body。
+     * Translate entire document body.
      */
     function translateDocument() {
         if (!hasI18n()) {
@@ -712,7 +712,7 @@
     }
 
     /*
-     * 监听动态插入的节点，补翻译 JS 渲染出来的卡片和提示。
+     * Observe dynamically inserted nodes to supplement translation of JS-rendered cards and prompts.
      */
     function observeMutations() {
         if (!window.MutationObserver || !document.body) {
@@ -743,7 +743,7 @@
     }
 
     /*
-     * 语言切换后重新翻译动态文本。
+     * Re-translate dynamic text after language switch.
      */
     function bindLocaleEvent() {
         document.addEventListener("app:locale-changed", function () {
@@ -754,7 +754,7 @@
     }
 
     /*
-     * 初始化动态翻译补丁。
+     * Initialize dynamic translation patches.
      */
     function initialize() {
         translateDocument();

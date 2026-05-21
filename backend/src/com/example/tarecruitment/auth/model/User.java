@@ -7,10 +7,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * User 实体 - 登录账号。
+ * User entity - Login account.
  *
- * 支持三种角色：TA、MO、ADMIN。这个类也负责 CSV 序列化，
- * 因此新增字段只能追加在末尾，不能破坏旧 CSV 列顺序。
+ * Supports three roles: TA, MO, ADMIN. This class also handles CSV serialization,
+ * so new fields can only be appended at the end and cannot break old CSV column order.
  */
 public class User {
 
@@ -133,10 +133,10 @@ public class User {
     }
 
     /**
-     * 转换为CSV格式存储
+     * Convert to CSV format for storage
      */
     public String toCsv() {
-        // displayName/realName/professionalTitle/avatarPath 是账号资料页新增字段，追加在旧字段后。
+        // displayName/realName/professionalTitle/avatarPath are new fields added after old fields for account profile page.
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         return String.join(",",
             escapeCsv(userId),
@@ -154,10 +154,10 @@ public class User {
     }
 
     /**
-     * 从CSV格式解析
+     * Parse from CSV format
      */
     public static User fromCsv(String csvLine) {
-        // 兼容旧 CSV：早期第 10 列可能直接是 avatarPath，而不是 professionalTitle。
+        // Compatible with old CSV: early 10th column may be avatarPath directly, not professionalTitle.
         String[] parts = CsvCodec.split(csvLine);
         if (parts.length < 6) {
             return null;
@@ -198,7 +198,7 @@ public class User {
     }
 
     private static boolean looksLikeAvatarPath(String value) {
-        // 遗留兼容：判断旧 CSV 的第 10 列到底是头像路径还是职称。
+        // Legacy compatibility: determine whether the old CSV's 10th column is avatar path or professional title.
         if (value == null || value.isEmpty()) {
             return false;
         }

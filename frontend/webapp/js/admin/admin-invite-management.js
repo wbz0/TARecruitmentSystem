@@ -1,8 +1,9 @@
 /*
- * 管理员邀请码面板脚本，对应 /jsp/admin/invite.jsp。
+ * Admin invite code panel script, corresponds to /jsp/admin/invite.jsp.
  *
- * 调用 /api/admin/invitations/current-code 读取或刷新当前短邀请码，
- * 并在前端做倒计时展示。真正的有效期校验以 InviteCodeService 为准。
+ * Calls /api/admin/invitations/current-code to read or refresh the current short invite code,
+ * and displays a countdown on the frontend.
+ * The actual validity verification is done by InviteCodeService.
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -17,7 +18,7 @@
     if (!codeDisplay) return;
 
     var countdownInterval = null;
-    // 后端返回真实秒数前的临时占位；正常加载后会被 secondsRemaining 覆盖。
+    // Temporary placeholder before backend returns actual seconds; will be overwritten by secondsRemaining after normal load.
     var currentSeconds = 30;
 
     fetchCurrentCode();
@@ -48,7 +49,7 @@
     }
 
     /*
-     * 读取当前邀请码；401 说明管理员登录态失效，直接回登录页。
+     * Fetch current invite code; 401 means admin session expired, redirect to login page.
      */
     function fetchCurrentCode() {
         hideError();
@@ -76,7 +77,7 @@
     }
 
     /*
-     * 后端返回 code 和剩余秒数，前端只负责格式化和倒计时展示。
+     * Backend returns code and remaining seconds; frontend only handles formatting and countdown display.
      */
     function renderCode(code, seconds) {
         if (codeDisplay) {
@@ -88,15 +89,15 @@
     }
 
     /*
-     * 8 位短码按 4+4 显示，真实提交值仍由后端接口返回。
+     * 8-digit short code displayed as 4+4; actual submission value is returned by backend API.
      */
     function formatCode(code) {
-        if (typeof code !== "string" || code.length !== 8) return code || "—";
+        if (typeof code !== "string" || code.length !== 8) return code || "-";
         return code.slice(0, 4) + " " + code.slice(4);
     }
 
     /*
-     * 倒计时到 0 后自动重新拉取，避免页面停留在过期邀请码上。
+     * Auto-refresh when countdown reaches 0 to avoid displaying expired invite code.
      */
     function startCountdown(seconds) {
         clearInterval(countdownInterval);
@@ -115,7 +116,7 @@
     }
 
     /*
-     * 进度条按 10 分钟窗口计算；窗口长度需要与 InviteCodeService 保持一致。
+     * Progress bar calculated based on 10-minute window; window length must stay consistent with InviteCodeService.
      */
     function updateCountdownUI() {
         var pct = Math.max(0, currentSeconds / 600) * 100;
@@ -128,7 +129,7 @@
     }
 
     /*
-     * 邀请码面板自己的错误区域，避免影响 dashboard 其它提示。
+     * Invite code panel's own error area, does not affect other dashboard notifications.
      */
     function showError(msg) {
         if (codeError) {
@@ -138,7 +139,7 @@
     }
 
     /*
-     * 每次请求前清空旧错误，防止刷新成功后仍显示失败文案。
+     * Clear old error before each request to prevent stale error message after successful refresh.
      */
     function hideError() {
         if (codeError) {
@@ -148,7 +149,7 @@
     }
 
     /*
-     * 独立页面脚本的 i18n 兜底。
+     * i18n fallback for standalone page scripts.
      */
     function t(key, fallback) {
         if (i18n) return i18n.t(key, fallback);

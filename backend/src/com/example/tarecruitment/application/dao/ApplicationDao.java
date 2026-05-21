@@ -14,10 +14,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * ApplicationDao - 申请数据访问对象。
+ * ApplicationDao - Application data access object.
  *
- * 只负责 applications.csv 的读写和简单查询，不读取 request/session，
- * 也不决定角色权限。CSV 列顺序必须和 Application.toCsv/fromCsv 保持一致。
+ * Only responsible for reading/writing applications.csv and simple queries,
+ * does not read request/session, nor decides role permissions.
+ * CSV column order must be consistent with Application.toCsv/fromCsv.
  */
 public class ApplicationDao {
 
@@ -46,7 +47,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 初始化申请数据文件
+     * Initialize application data file
      */
     private void initApplicationFile() {
         File appFile = new File(APPLICATION_FILE);
@@ -67,7 +68,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 读取所有申请
+     * Read all applications
      */
     private List<Application> readAllApplications() {
         initApplicationFile();
@@ -105,11 +106,11 @@ public class ApplicationDao {
     }
 
     /**
-     * 写入所有申请
+     * Write all applications
      */
     private void writeAllApplications(List<Application> applications) {
         try {
-            // 先写临时文件再原子替换，降低写入中断时破坏整个 CSV 的风险。
+            // Write to temporary file first, then atomically replace to reduce risk of corrupting entire CSV when write is interrupted.
             Path targetPath = Path.of(APPLICATION_FILE);
             Path parent = targetPath.getParent();
             if (parent != null) {
@@ -126,7 +127,7 @@ public class ApplicationDao {
                     StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.ATOMIC_MOVE);
         } catch (java.nio.file.AtomicMoveNotSupportedException e) {
-            // 某些文件系统不支持 ATOMIC_MOVE，退回普通覆盖；仍然保持先写临时文件。
+            // Some filesystems don't support ATOMIC_MOVE, fallback to normal overwrite; still keep temporary file write first.
             try {
                 Path targetPath = Path.of(APPLICATION_FILE);
                 Path parent = targetPath.getParent();
@@ -147,7 +148,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据ID查找申请
+     * Find application by ID
      */
     public Optional<Application> findById(String applicationId) {
         return readAllApplications().stream()
@@ -156,7 +157,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据职位ID查找所有申请
+     * Find all applications by job ID
      */
     public List<Application> findByJobId(String jobId) {
         return readAllApplications().stream()
@@ -165,7 +166,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据申请人ID查找所有申请
+     * Find all applications by applicant ID
      */
     public List<Application> findByApplicantId(String applicantId) {
         return readAllApplications().stream()
@@ -174,7 +175,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据MO ID查找所有申请（MO查看哪些人申请了自己的职位）
+     * Find all applications by MO ID (MO views who applied for their jobs)
      */
     public List<Application> findByMoId(String moId) {
         return readAllApplications().stream()
@@ -183,7 +184,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据状态查找申请
+     * Find applications by status
      */
     public List<Application> findByStatus(Application.Status status) {
         return readAllApplications().stream()
@@ -192,7 +193,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据职位ID和申请人ID查找申请（检查是否已申请）
+     * Find application by job ID and applicant ID (check if already applied)
      */
     public Optional<Application> findByJobIdAndApplicantId(String jobId, String applicantId) {
         return readAllApplications().stream()
@@ -201,14 +202,14 @@ public class ApplicationDao {
     }
 
     /**
-     * 检查申请人是否已申请某职位
+     * Check if applicant has already applied for a job
      */
     public boolean hasApplied(String jobId, String applicantId) {
         return findByJobIdAndApplicantId(jobId, applicantId).isPresent();
     }
 
     /**
-     * 保存申请（新建或更新）
+     * Save application (create or update)
      */
     public Application save(Application application) {
         List<Application> applications = readAllApplications();
@@ -229,14 +230,14 @@ public class ApplicationDao {
     }
 
     /**
-     * 创建新申请
+     * Create new application
      */
     public Application create(Application application) {
         return save(application);
     }
 
     /**
-     * 更新申请
+     * Update application
      */
     public Application update(Application application) {
         List<Application> applications = readAllApplications();
@@ -252,7 +253,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 删除申请
+     * Delete application
      */
     public boolean delete(String applicationId) {
         List<Application> applications = readAllApplications();
@@ -266,14 +267,14 @@ public class ApplicationDao {
     }
 
     /**
-     * 获取所有申请
+     * Get all applications
      */
     public List<Application> findAll() {
         return new ArrayList<>(readAllApplications());
     }
 
     /**
-     * 更新申请状态
+     * Update application status
      */
     public boolean updateStatus(String applicationId, Application.Status status) {
         Optional<Application> appOpt = findById(applicationId);
@@ -295,35 +296,35 @@ public class ApplicationDao {
     }
 
     /**
-     * 接受申请
+     * Accept application
      */
     public boolean accept(String applicationId) {
         return updateStatus(applicationId, Application.Status.ACCEPTED);
     }
 
     /**
-     * 拒绝申请
+     * Reject application
      */
     public boolean reject(String applicationId) {
         return updateStatus(applicationId, Application.Status.REJECTED);
     }
 
     /**
-     * 撤回申请
+     * Withdraw application
      */
     public boolean withdraw(String applicationId) {
         return updateStatus(applicationId, Application.Status.WITHDRAWN);
     }
 
     /**
-     * 获取申请数量
+     * Get application count
      */
     public long count() {
         return readAllApplications().size();
     }
 
     /**
-     * 根据职位ID获取申请数量
+     * Get application count by job ID
      */
     public long countByJobId(String jobId) {
         return readAllApplications().stream()
@@ -332,7 +333,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据申请人ID获取申请数量
+     * Get application count by applicant ID
      */
     public long countByApplicantId(String applicantId) {
         return readAllApplications().stream()
@@ -341,7 +342,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据状态获取申请数量
+     * Get application count by status
      */
     public long countByStatus(Application.Status status) {
         return readAllApplications().stream()
@@ -350,7 +351,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 获取指定职位已接受申请数量
+     * Get the count of accepted applications for the specified job
      */
     public long countAcceptedByJobId(String jobId) {
         return readAllApplications().stream()
@@ -359,25 +360,25 @@ public class ApplicationDao {
     }
 
     /**
-     * 清空所有申请（仅用于测试）
+     * Delete all applications (for testing only)
      */
     public void deleteAll() {
-        // 仅测试/演示数据重置使用，生产页面没有清空申请的入口。
+        // Only used for test/demo data reset; production pages have no entry to clear applications.
         writeAllApplications(new ArrayList<>());
     }
 
     /**
-     * 批量创建申请（仅用于测试初始化）
+     * Batch create applications (for testing initialization only)
      */
     public void batchCreate(List<Application> applications) {
-        // 仅 DemoDataSeeder/测试初始化使用，前端不会批量创建申请。
+        // Only used by DemoDataSeeder/test initialization; frontend does not batch create applications.
         List<Application> existingApps = readAllApplications();
         existingApps.addAll(applications);
         writeAllApplications(existingApps);
     }
 
     /**
-     * 获取职位的待审核申请数量
+     * Get pending application count for a job
      */
     public long countPendingByJobId(String jobId) {
         return readAllApplications().stream()
@@ -386,7 +387,7 @@ public class ApplicationDao {
     }
 
     /**
-     * 根据课程代码查找申请
+     * Find applications by course code
      */
     public List<Application> findByCourseCode(String courseCode) {
         return readAllApplications().stream()

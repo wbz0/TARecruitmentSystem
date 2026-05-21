@@ -1,8 +1,8 @@
 /*
- * MO dashboard 脚本，对应 /jsp/mo/dashboard.jsp。
+ * MO dashboard script, corresponds to /jsp/mo/dashboard.jsp.
  *
- * 一页内同时处理岗位发布/编辑、我的岗位列表、申请审核、候选人详情和 AI 推荐。
- * API 统一通过 TARecruitment.routes 生成，避免回退到旧 /jobs 或 /apply 路径。
+ * Handles job posting/edit, my job list, application review, candidate details, and AI recommendations in one page.
+ * APIs are generated through TARecruitment.routes to avoid falling back to old /jobs or /apply paths.
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -11,8 +11,8 @@
     var UNSUPPORTED_SKILL_SEPARATOR_PATTERN = /[;；、|]/;
 
     /*
-     * 岗位管理主状态：
-     * jobs 是“我的发布”列表数据；submitting/deleting/editing 控制按钮禁用和弹窗状态。
+     * Job management main state:
+     * jobs is “my postings” list data; submitting/deleting/editing control button disabled and modal state.
      */
     var state = {
         jobs: [],
@@ -22,11 +22,11 @@
     };
 
     /*
-     * 申请人子视图状态。
-     * MO 从某个职位卡片进入申请人列表后，列表、详情、AI 推荐和审核动作都依赖这里。
+     * Applicant sub-view state.
+     * When MO enters applicant list from a job card, list, detail, AI recommendations, and review actions all depend on this.
      */
     var svState = {
-        // Selection view state：MO 在“我的发布”里查看某个岗位的申请和 AI 推荐时使用。
+        // Selection view state: MO viewing job applications and AI recommendations from “my postings”.
         loading: false,
         jobId: "",
         jobTitle: "",
@@ -43,8 +43,8 @@
     };
 
     /*
-     * 编辑弹窗实时校验状态。
-     * touched/dirty/feedback 分离，方便只在用户交互后显示对应字段错误。
+     * Edit modal realtime validation state.
+     * touched/dirty/feedback separation makes it easy to show field errors only after user interaction.
      */
     var editFieldValidationState = {
         touchedByKey: {},
@@ -1330,8 +1330,8 @@
     // Applicant Sub-View
     // ==========================================
     /*
-     * 初始化“我的发布 -> 申请人列表”子视图。
-     * 子视图不再是独立导航页，而是从职位卡片进入的嵌套流程。
+     * Initialize “My Postings -> Applicant List” sub-view.
+     * Sub-view is no longer an independent navigation page, but a nested flow entered from job cards.
      */
     function initApplicantSubView() {
         if (!panelApplicants || !subviewBackBtn || !subviewSearchForm) return;
@@ -1365,8 +1365,8 @@
     }
 
     /*
-     * 打开某个职位的申请人子视图。
-     * 会重置搜索/AI/详情状态，再按 jobId 加载该岗位的申请。
+     * Open applicant sub-view for a job.
+     * Resets search/AI/detail state, then loads applications for that job by jobId.
      */
     function openApplicantSubView(jobId, jobTitle) {
         svState.jobId = jobId;
@@ -1395,7 +1395,7 @@
     }
 
     /*
-     * 关闭申请人子视图，回到“我的发布”列表。
+     * Close applicant sub-view, return to “My Postings” list.
      */
     function closeApplicantSubView() {
         if (panelApplicants) panelApplicants.classList.add("hidden");
@@ -1404,7 +1404,7 @@
     }
 
     /*
-     * 从申请详情返回申请人列表。
+     * Return to applicant list from application detail.
      */
     function svShowListView() {
         svState.viewMode = "list";
@@ -1415,8 +1415,8 @@
     }
 
     /*
-     * 切换到单个申请详情。
-     * 标题显示候选人名字，搜索区隐藏，避免详情页误触发列表搜索。
+     * Switch to single application detail.
+     * Title shows candidate name, search area hidden to prevent detail page from accidentally triggering list search.
      */
     function svShowDetailView(applicationId) {
         svState.viewMode = "detail";
@@ -1436,8 +1436,8 @@
     }
 
     /*
-     * 加载当前职位下的申请列表。
-     * 后端 /api/applications 返回 MO 可见申请，再在前端按当前 jobId 过滤成子视图数据。
+     * Load application list for current job.
+     * Backend /api/applications returns MO-visible applications, then filtered by current jobId on frontend to sub-view data.
      */
     function loadSvApplications() {
         if (svState.loading || svState.aiSearchLoading) return;
@@ -1484,9 +1484,9 @@
     }
 
     /*
-     * 申请人 AI 推荐搜索。
-     * 请求 /api/mo/applicant-recommendations，后端返回真实申请人列表和推荐理由；
-     * 不在前端补造候选人。
+     * Applicant AI recommendation search.
+     * Requests /api/mo/applicant-recommendations, backend returns real applicant list and recommendation reasons;
+     * No fabricated candidates on frontend.
      */
     function runSvAiSearch() {
         if (svState.loading || svState.aiSearchLoading) return;
@@ -1531,7 +1531,7 @@
 
                 if (data.action === "out_of_scope") {
                     showSvMessage(
-                        localizeServerMessage(data.message || payload.message, "portal.moApplicantSelection.aiOutOfScope", "我无法处理您的问题。我可以根据当前职位的申请人信息，帮你推荐候选人、比较申请人或解释推荐理由。"),
+                        localizeServerMessage(data.message || payload.message, "portal.moApplicantSelection.aiOutOfScope", "I cannot process your request. Based on current job applicant information, I can help recommend candidates, compare applicants, or explain recommendation reasons."),
                         "error"
                     );
                     renderSvList();
@@ -1565,8 +1565,8 @@
     }
 
     /*
-     * 清掉 AI 推荐标记。
-     * 普通搜索重新加载时必须重置，避免旧推荐理由贴到新列表上。
+     * Clear AI recommendation markers.
+     * Must reset when normal search reloads to avoid old recommendation reasons being applied to new list.
      */
     function clearSvAiRecommendationState() {
         svState.aiSearchActive = false;
@@ -1574,7 +1574,7 @@
     }
 
     /*
-     * 切换子视图搜索模式，只更新控件，不自动发请求。
+     * Toggle sub-view search mode, only updates controls, does not auto-send request.
      */
     function setSvSearchMode(mode) {
         svState.searchMode = mode === "ai" ? "ai" : "search";
@@ -1582,8 +1582,8 @@
     }
 
     /*
-     * 把后端推荐理由整理成 applicationId -> reason 的 map。
-     * 兼容 recommendationsByApplicationId 和 recommendations 数组两种响应形态。
+     * Organize backend recommendation reasons into applicationId -> reason map.
+     * Compatible with both recommendationsByApplicationId and recommendations array response formats.
      */
     function buildSvRecommendationMap(data) {
         var map = {};
@@ -1611,8 +1611,8 @@
     }
 
     /*
-     * 同步子视图搜索框、AI toggle 和按钮文案。
-     * 详情模式下隐藏搜索表单，避免列表和详情交互混在一起。
+     * Sync sub-view search box, AI toggle, and button text.
+     * Hide search form in detail mode to avoid mixing list and detail interactions.
      */
     function updateSvSearchControls() {
         var busy = svState.loading || svState.aiSearchLoading;
@@ -1652,8 +1652,8 @@
     }
 
     /*
-     * 补充加载申请人的档案快照。
-     * 单条详情失败不阻断列表，页面会继续展示 Application 里已有的基本信息。
+     * Supplement load applicant profile snapshot.
+     * Single detail failure does not block list; page continues to display basic info already in Application.
      */
     function loadSvApplicantDetails(applications) {
         if (!Array.isArray(applications) || applications.length === 0) return Promise.resolve();
@@ -1672,8 +1672,8 @@
     }
 
     /*
-     * 渲染申请人列表或详情。
-     * viewMode=detail 时直接委托给 renderSvDetail。
+     * Render applicant list or detail.
+     * When viewMode=detail, delegates directly to renderSvDetail.
      */
     function renderSvList() {
         if (!subviewList) return;
@@ -1710,8 +1710,8 @@
     }
 
     /*
-     * 给候选人头像容器异步挂载照片。
-     * 失败时保持首字母头像，不把图片加载失败暴露成错误提示。
+     * Asynchronously mount photo to candidate avatar container.
+     * On failure, keep initial letter avatar without exposing image load failure as error message.
      */
     function attachApplicantPhoto(avatarEl, applicationId) {
         if (!avatarEl || !applicationId) return;
@@ -1726,8 +1726,8 @@
     }
 
     /*
-     * 创建申请人列表项。
-     * AI 推荐理由只在 AI 搜索结果中展示；普通列表保持申请状态和技能摘要。
+     * Create applicant list item.
+     * AI recommendation reason only displayed in AI search results; normal list keeps application status and skills summary.
      */
     function createSvApplicantItem(application) {
         var item = document.createElement("article");
@@ -1747,7 +1747,7 @@
         var recommendationMarkup = recommendation
             ? "<div class=\"course-applicant-ai-note\">" +
                 "<p class=\"course-applicant-ai-note-title\">" +
-                    escapeHtml(t("portal.moApplicantSelection.aiRecommendationTitle", "推荐建议（AI生成）")) +
+                    escapeHtml(t("portal.moApplicantSelection.aiRecommendationTitle", "Recommendation (AI Generated)")) +
                 "</p>" +
                 "<p class=\"course-applicant-ai-note-copy\">" + escapeHtml(recommendation) + "</p>" +
               "</div>"
@@ -1781,7 +1781,7 @@
     }
 
     /*
-     * 渲染单个申请详情。
+     * Render single application detail.
      */
     function renderSvDetail(applicationId) {
         if (!subviewList || !applicationId) return;
@@ -1813,8 +1813,8 @@
     }
 
     /*
-     * 创建申请详情卡片。
-     * 卡片合并 Application 基本信息和申请人档案快照，并在 PENDING 状态下显示审核动作。
+     * Create application detail card.
+     * Card merges Application basic info and applicant profile snapshot, shows review actions in PENDING state.
      */
     function createSvApplicationCard(application, detail) {
         var card = document.createElement("article");
@@ -1891,7 +1891,7 @@
     }
 
     /*
-     * 详情页顶部的岗位/课程/申请时间小指标。
+     * Job/course/application time mini metrics at top of detail page.
      */
     function buildSvMetaStat(cls, iconHtml, label, value) {
         return "<div class=\"application-meta-stat " + escapeHtml(cls) + "\">" +
@@ -1904,8 +1904,8 @@
     }
 
     /*
-     * 构造申请人档案详情块。
-     * detail 为空时展示不可用提示，不阻断 MO 对申请状态的查看。
+     * Build applicant profile detail block.
+     * When detail is empty, show unavailable message without blocking MO from viewing application status.
      */
     function buildSvDetailBlock(detail, applicationId, profileUpdatedAt) {
         var profileTitle = t("portal.moApplicantSelection.applicantProfile", "Applicant profile");
@@ -1970,7 +1970,7 @@
     }
 
     /*
-     * 档案键值对小项。
+     * Profile key-value item.
      */
     function buildSvDetailItem(label, value) {
         return "<div class=\"detail-item\">" +
@@ -1980,8 +1980,8 @@
     }
 
     /*
-     * PENDING 申请才显示接受/拒绝按钮。
-     * progressStage 当前只用于展示进度，不改变这里的最终决策入口。
+     * Only show accept/reject buttons for PENDING applications.
+     * progressStage currently only used for display, does not change final decision entry here.
      */
     function buildSvReviewActionsHtml(status, progressStage, applicationId, reviewingThis) {
         if (status !== "PENDING") return "";
@@ -2004,8 +2004,8 @@
     }
 
     /*
-     * 处理 MO 对申请的接受/拒绝。
-     * 成功后回到列表并重新加载，确保状态和职位名额同步。
+     * Handle MO accept/reject for applications.
+     * On success, return to list and reload to ensure status and job quota are in sync.
      */
     function handleSvReview(applicationId, action) {
         if (svState.reviewingId) return;

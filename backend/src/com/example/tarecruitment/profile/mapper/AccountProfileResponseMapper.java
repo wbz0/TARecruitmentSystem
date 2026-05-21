@@ -6,9 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * AccountProfileResponseMapper - 账号资料响应转换工具。
+ * AccountProfileResponseMapper - Account profile response conversion utility.
  *
- * 共享侧边栏/顶栏只需要稳定字段名；账号头像本体通过 /api/me/avatar 单独请求。
+ * Shared sidebar/top bar only need stable field names; account avatar itself is requested separately via /api/me/avatar.
  */
 public final class AccountProfileResponseMapper {
 
@@ -20,7 +20,7 @@ public final class AccountProfileResponseMapper {
         data.put("userId", safeText(user.getUserId()));
         data.put("username", safeText(user.getUsername()));
         data.put("displayName", safeText(user.getDisplayName()));
-        // realName 对 TA 会优先使用档案 fullName，避免账号页和申请档案显示不同名字。
+        // For TA, realName prefers profile fullName to avoid showing different names on account page vs application profile.
         data.put("realName", safeText(sharedRealName));
         data.put("professionalTitle", safeText(user.getProfessionalTitle()));
         data.put("hasAvatar", hasAvatar);

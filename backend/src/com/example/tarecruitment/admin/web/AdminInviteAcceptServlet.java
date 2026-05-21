@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
- * AdminInviteAcceptServlet - 接受邀请码，创建管理员账号。
+ * AdminInviteAcceptServlet - Accept invite code and create admin account.
  *
- * 对应 /admin-invite.jsp / js/auth/admin-invite.js。
- * 这条是当前可见管理员注册主流程：用户输入邮箱、用户名、密码和短邀请码即可创建 ADMIN。
+ * Corresponding to /admin-invite.jsp / js/auth/admin-invite.js.
+ * This is the currently visible admin registration flow: user enters email, username, password and short invite code to create ADMIN.
  *
- * 邀请码由 InviteCodeService 生成的时间窗口码校验；
- * 不再依赖 CSV 存储的邀请记录。
+ * Invite code is validated by InviteCodeService's time-window code;
+ * no longer depends on CSV-stored invitation records.
  */
 @WebServlet(ApiRoutes.ADMIN_INVITATION_ACCEPTANCE)
 public class AdminInviteAcceptServlet extends HttpServlet {
@@ -44,7 +44,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // 页面只会 POST 注册；GET 留作 API 提示，避免浏览器直接访问时返回容器默认错误页。
+        // Page only accepts POST for registration; GET is reserved for API hint to avoid container default error page when browser directly accesses.
         ApiResponses.write(response, 200, true, "Use POST to accept invitation", null);
     }
 
@@ -73,7 +73,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
             User user = new User(username, password, email, User.Role.ADMIN);
             User saved = userDao.create(user);
 
-            // 注册成功后前端跳回登录页，不在这里自动建立登录 session。
+            // After successful registration, frontend redirects to login page; do not automatically establish login session here.
             ApiResponses.write(response, 201, true, "Admin account created successfully",
                     ApiResponses.objectMap(
                             "userId", saved.getUserId(),
@@ -91,7 +91,7 @@ public class AdminInviteAcceptServlet extends HttpServlet {
     private String validateInput(String username, String email,
                                  String password, String confirmPassword,
                                  String inviteCode) {
-        // 这里只做注册表单安全和格式校验；邀请码是否有效交给 InviteCodeService。
+        // Only perform registration form security and format validation here; invite code validity is handled by InviteCodeService.
         if (username.isEmpty()) return "Username is required";
         if (username.length() > USERNAME_MAX_LENGTH) return "Username is too long";
         if (hasControlChars(username) || containsDangerousMarkup(username))

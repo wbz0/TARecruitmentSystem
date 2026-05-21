@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JsonResponseUtil - 底层 JSON 序列化辅助。
+ * JsonResponseUtil - Low-level JSON serialization helper.
  *
- * 新 Servlet 优先使用 ApiResponses；这个类保留为底层实现和少量旧调用的兼容层。
+ * New Servlets prefer ApiResponses; this class is kept as a compatibility layer for low-level implementation and a few old calls.
  */
 public final class JsonResponseUtil {
 

@@ -12,31 +12,31 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Job 实体类 - MO 发布的职位。
+ * Job entity class - Position published by MO.
  *
- * 它既是业务对象，也是 jobs.csv 的序列化契约。新增字段要追加到 CSV 末尾，
- * 这样旧数据仍能被 fromCsv() 读取。
+ * It is both business object and jobs.csv serialization contract. New fields should be appended to CSV end,
+ * so old data can still be read by fromCsv().
  */
 public class Job {
 
     private String jobId;
-    private String moId;                 // 发布职位的MO用户ID
-    private String moName;               // MO姓名
-    private String title;                // 职位标题
-    private String courseCode;           // 课程代码
-    private String courseName;           // 课程名称
-    private String description;          // 职位描述
-    private List<String> requiredSkills; // 必需技能列表
-    private int positions;               // 职位数量
-    private String workload;             // 遗留/待移除：旧版工作量文本，当前前端改用 weeklyHours + workStartDate/workEndDate
-    private Double weeklyHours;          // 每周工作小时数
-    private LocalDate workStartDate;     // 工作开始日期
-    private LocalDate workEndDate;       // 工作结束日期
-    private String salary;               // 薪资
-    private LocalDateTime deadline;     // 申请截止日期
-    private Status status;               // 职位状态
-    private LocalDateTime createdAt;     // 创建时间
-    private LocalDateTime updatedAt;    // 更新时间
+    private String moId;                 // MO user ID who published the job
+    private String moName;               // MO name
+    private String title;                // Job title
+    private String courseCode;           // Course code
+    private String courseName;           // Course name
+    private String description;          // Job description
+    private List<String> requiredSkills; // Required skills list
+    private int positions;               // Number of positions
+    private String workload;             // Legacy/to be removed: old workload text, frontend now uses weeklyHours + workStartDate/workEndDate
+    private Double weeklyHours;          // Weekly work hours
+    private LocalDate workStartDate;     // Work start date
+    private LocalDate workEndDate;       // Work end date
+    private String salary;               // Salary
+    private LocalDateTime deadline;     // Application deadline
+    private Status status;               // Job status
+    private LocalDateTime createdAt;     // Created time
+    private LocalDateTime updatedAt;    // Updated time
 
     public enum Status {
         OPEN, CLOSED, FILLED
@@ -151,7 +151,7 @@ public class Job {
         if (weeklyHours != null) {
             return formatWeeklyHours(weeklyHours) + " hours / week";
         }
-        // 兼容旧 CSV：如果没有结构化 weeklyHours，就退回历史 workload 文本展示。
+        // Compatible with old CSV: if no structured weeklyHours, fall back to historical workload text display.
         return workload;
     }
 
@@ -208,12 +208,12 @@ public class Job {
     }
 
     /**
-     * 返回对外展示/筛选时应采用的生效状态。
-     * 规则：
-     * 1. FILLED 优先保留；
-     * 2. 手动 CLOSED 优先保留；
-     * 3. 截止时间已过的 OPEN 视为 CLOSED；
-     * 4. 其他情况视为 OPEN。
+     * Return effective status for external display/filtering.
+     * Rules:
+     * 1. FILLED takes priority;
+     * 2. Manual CLOSED takes priority;
+     * 3. OPEN past deadline treated as CLOSED;
+     * 4. Other cases treated as OPEN.
      */
     public Status getEffectiveStatus() {
         return getEffectiveStatus(LocalDateTime.now());
@@ -250,9 +250,9 @@ public class Job {
     }
 
     /**
-     * 转换为 CSV 格式存储。
+     * Convert to CSV format for storage.
      *
-     * 字段顺序必须和 JobDao.CSV_HEADER 对齐；后续新增字段只追加，不插到中间。
+     * Field order must align with JobDao.CSV_HEADER; subsequent new fields only appended, not inserted in middle.
      */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -279,9 +279,9 @@ public class Job {
     }
 
     /**
-     * 从 CSV 格式解析。
+     * Parse from CSV format.
      *
-     * fromCsv 允许缺少末尾字段，是为了兼容早期只保存 workload 文本的 jobs.csv。
+     * fromCsv allows missing trailing fields to be compatible with early jobs.csv that only saved workload text.
      */
     public static Job fromCsv(String csvLine) {
         String[] parts = CsvCodec.split(csvLine);

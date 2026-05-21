@@ -1,6 +1,6 @@
 /*
- * MO dashboard 样式。
- * 覆盖岗位发布/编辑、我的发布、申请审核列表和候选人详情区域。
+ * MO dashboard styles.
+ * Covers job posting/editing, my postings, application review lists, and candidate details.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

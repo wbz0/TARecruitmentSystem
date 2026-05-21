@@ -13,10 +13,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * MO 申请人推荐使用的 DeepSeek 客户端。
+ * DeepSeek client for MO applicant recommendations.
  *
- * 只处理和外部接口通信、解析 JSON 这两件事；哪些申请人可以被推荐、
- * 哪些字段可以发给 AI，由 MoApplicantAiSearchService 控制。
+ * Only handles external interface communication and JSON parsing;
+ * which applicants can be recommended and which fields can be sent to AI are controlled by MoApplicantAiSearchService.
  */
 public class DeepSeekApplicantSearchClient {
 
@@ -35,16 +35,16 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * 推荐类 AI 没有本地假推荐兜底；未配置 key 时直接返回 unavailable。
+     * Recommendation AI has no local fake recommendation fallback; when key is not configured, it directly returns unavailable.
      */
     public boolean isConfigured() {
         return config != null && config.isApiKeyConfigured();
     }
 
     /**
-     * 调用 DeepSeek 生成 MO 申请人推荐。
+     * Call DeepSeek to generate MO applicant recommendations.
      *
-     * prompt 由 service 层构造并脱敏；客户端只负责发送请求和解析稳定 JSON。
+     * Prompt is constructed and sanitized by the service layer; client only handles sending requests and parsing stable JSON.
      */
     public SearchAttempt search(String systemPrompt, String userPrompt) {
         if (!isConfigured()) {
@@ -86,9 +86,9 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * 解析 DeepSeek assistant content。
+     * Parse DeepSeek assistant content.
      *
-     * 只接受 recommend / out_of_scope 两种 action，防止模型返回自由文本被前端误用。
+     * Only accepts recommend / out_of_scope actions to prevent model from returning free text that frontend might misuse.
      */
     private Optional<SearchPayload> parseResponse(String body) {
         if (isBlank(body)) {
@@ -113,9 +113,10 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * 解析推荐结果数组。
+     * Parse recommendation results array.
      *
-     * candidateRef 是 service 层给 AI 的内部引用，后端会再映射回真实 applicationId/姓名。
+     * candidateRef is an internal reference provided by the service layer to AI;
+     * backend will map it back to real applicationId/name.
      */
     private List<SearchRecommendation> extractRecommendations(String json) {
         String arrayBody = DeepSeekChatClient.extractArrayBody(json, "results");
@@ -143,7 +144,7 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * DeepSeek 调用结果包装，避免 service 层处理 HTTP/IO/解析异常细节。
+     * DeepSeek call result wrapper, avoiding service layer from handling HTTP/IO/parsing exception details.
      */
     public static final class SearchAttempt {
         private final SearchPayload payload;
@@ -176,7 +177,7 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * 客户端解析后的推荐响应。
+     * Client-parsed recommendation response.
      */
     public static final class SearchPayload {
         private final String action;
@@ -205,7 +206,7 @@ public class DeepSeekApplicantSearchClient {
     }
 
     /**
-     * 单条申请人推荐。
+     * Single applicant recommendation.
      */
     public static final class SearchRecommendation {
         private final String candidateRef;

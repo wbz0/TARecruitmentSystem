@@ -1,6 +1,6 @@
 /**
- * 职位领域数据模型。
+ * Job domain data model.
  *
- * <p>Job 表达职位 CSV 字段、状态枚举和截止时间驱动的有效状态规则。
+ * <p>Job expresses job CSV fields, status enum, and deadline-driven active status rules.
  */
 package com.example.tarecruitment.job.model;

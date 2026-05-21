@@ -1,6 +1,6 @@
 /*
- * 全站设计变量和基础盒模型。
- * 其它页面 CSS 应优先复用这里的颜色、字体、间距和宽度变量。
+ * Site-wide design variables and base box model.
+ * Other page CSS should reuse the color, font, spacing, and width variables from here first.
  */
 * {
     box-sizing: border-box;

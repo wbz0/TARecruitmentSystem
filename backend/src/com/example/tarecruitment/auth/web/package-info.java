@@ -1,6 +1,6 @@
 /**
- * 认证领域 HTTP 与过滤器入口。
+ * Authentication domain HTTP and filter entry points.
  *
- * <p>包含登录、注册、登出、可用性检查和 AccessPolicy/AuthFilter 访问控制。
+ * <p>Contains login, registration, logout, availability checks, and AccessPolicy/AuthFilter access control.
  */
 package com.example.tarecruitment.auth.web;

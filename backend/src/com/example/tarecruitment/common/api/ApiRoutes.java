@@ -3,21 +3,21 @@ package com.example.tarecruitment.common.api;
 public final class ApiRoutes {
 
     /*
-     * API 路径集中放在这里，前端必须通过 TARecruitment.routes 生成 URL。
-     * 这样应用部署到 /groupproject 等 context path 时，不会写死根路径。
+     * API paths are centralized here. Frontend must generate URLs via TARecruitment.routes.
+     * When deployed to context paths like /groupproject, root path is not hardcoded.
      */
 
-    // 认证相关接口：登录页、注册页、退出登录和用户名/邮箱可用性检查共用。
+    // Auth endpoints: login, register, logout, and username/email availability check share these.
     public static final String AUTH_LOGIN = "/api/auth/login";
     public static final String AUTH_REGISTER = "/api/auth/register";
     public static final String AUTH_LOGOUT = "/api/auth/logout";
     public static final String AUTH_AVAILABILITY = "/api/auth/availability";
 
-    // 职位与申请主资源；详情和子动作由 Servlet 在这两个根路径后解析 pathInfo。
+    // Job and application main resources; details and sub-actions are parsed by Servlet after these root paths via pathInfo.
     public static final String JOBS = "/api/jobs";
     public static final String APPLICATIONS = "/api/applications";
 
-    // 当前登录用户资料接口，供共享侧边栏、TA dashboard 和附件上传/预览使用。
+    // Current logged-in user profile endpoints; used by shared sidebar, TA dashboard and file upload/preview.
     public static final String ME_ACCOUNT = "/api/me/account";
     public static final String ME_AVATAR = "/api/me/avatar";
     public static final String ME_APPLICANT_PROFILE = "/api/me/applicant-profile";
@@ -25,18 +25,18 @@ public final class ApiRoutes {
     public static final String ME_APPLICANT_PHOTO = "/api/me/applicant-profile/photo";
     public static final String ME_APPLICANT_RESUME = "/api/me/applicant-profile/resume";
 
-    // 站内通知接口，TA/MO/Admin 三类通知页共用同一个 Servlet。
+    // Notification endpoints; TA/MO/Admin notification pages share the same Servlet.
     public static final String NOTIFICATIONS = "/api/notifications";
 
-    // Admin 工作台接口：统计卡片、短邀请码管理和邀请注册。
+    // Admin dashboard endpoints: stats cards, short invitation code management and invitation registration.
     public static final String ADMIN_WORKLOAD_STATISTICS = "/api/admin/workload-statistics";
     public static final String ADMIN_INVITATION_ACCEPTANCE = "/api/admin/invitations/acceptance";
     public static final String ADMIN_CURRENT_INVITATION_CODE = "/api/admin/invitations/current-code";
 
-    // MO 侧 AI 接口：申请人推荐。
+    // MO side AI endpoint: applicant recommendations.
     public static final String MO_APPLICANT_RECOMMENDATIONS = "/api/mo/applicant-recommendations";
 
-    // TA 侧 AI 接口：职位推荐搜索。
+    // TA side AI endpoint: job recommendation search.
     public static final String TA_JOB_RECOMMENDATIONS = "/api/ta/job-recommendations";
 
     private ApiRoutes() {

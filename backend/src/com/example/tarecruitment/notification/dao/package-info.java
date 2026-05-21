@@ -1,6 +1,6 @@
 /**
- * 通知领域 CSV 数据访问层。
+ * Notification domain CSV data access layer.
  *
- * <p>NotificationDao 负责通知记录的读取、追加和删除。
+ * <p>NotificationDao handles notification record reading, appending, and deletion.
  */
 package com.example.tarecruitment.notification.dao;

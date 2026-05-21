@@ -1,6 +1,6 @@
 /*
- * Admin 邀请码页样式。
- * 覆盖短邀请码展示、倒计时条、刷新按钮和错误提示。
+ * Admin invite-code page styles.
+ * Covers short invite-code display, countdown bar, refresh button, and error messages.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

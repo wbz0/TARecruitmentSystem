@@ -1,236 +1,244 @@
-# TA Hiring System 用户手册
+# TA Hiring System User Manual
 
-## 1. 文档说明
+## 1. Document Overview
 
-本手册面向 TA、MO 和管理员三类用户，说明如何访问系统、注册和登录账号，以及如何完成各角色的主要操作。
+This manual is intended for three types of users: TA, MO, and Administrator. It explains how to access the system, register and log in to accounts, and how to complete the main operations for each role.
 
-系统名称统一为 **TA Hiring System**。本地演示环境默认访问地址为：
+The system name is uniformly referred to as **TA Hiring System**. The default access address for the local demo environment is:
 
 ```text
 http://localhost:8080/groupproject/
 ```
 
-如果本机 Tomcat 端口或应用名不同，请以本地 `scripts/config.sh` 或 `scripts/config.bat` 中的实际配置为准。
+If the Tomcat port or application name on this machine differs, please refer to the actual configuration in the local `scripts/config.sh` or `scripts/config.bat`.
 
-## 2. 公共入口与账号
+## 2. Common Entry Points and Accounts
 
-### 2.1 门户首页
+### 2.1 Portal Home Page
 
-门户首页提供系统概览、角色入口、登录入口和注册入口。用户可以从右上角切换语言，也可以直接进入登录或注册页面。
+The portal home page provides a system overview, role entry points, login entry, and registration entry. Users can switch languages from the upper right corner, or directly navigate to the login or registration page.
 
-![门户首页](user-manual-images/home.png)
+![Portal Home Page](user-manual-images/home.png)
 
-### 2.2 登录页面
+### 2.2 Login Page
 
-登录时需要填写用户名或邮箱、密码，并选择对应角色。账号角色和登录角色必须一致，否则系统会拒绝登录。
+During login, you need to fill in the username or email, password, and select the corresponding role. The account role and the login role must match, otherwise the system will deny the login.
 
-![登录页面](user-manual-images/login.png)
+![Login Page](user-manual-images/login.png)
 
-### 2.3 TA/MO 注册页面
+### 2.3 TA/MO Registration Page
 
-普通注册页面用于创建 TA 或 MO 账号。注册时需要填写用户名、邮箱、密码，并选择 TA 或 MO 角色。
+The regular registration page is used to create TA or MO accounts. During registration, you need to fill in the username, email, password, and select the TA or MO role.
 
-![TA/MO 注册页面](user-manual-images/register.png)
+![TA/MO Registration Page](user-manual-images/register.png)
 
-### 2.4 管理员邀请注册页面
+### 2.4 Administrator Invite Registration Page
 
-管理员账号不从普通注册入口创建。新管理员需要先获得当前 8 位邀请码，再在管理员邀请注册页填写邮箱、邀请码、用户名和密码。
+Administrator accounts are not created through the regular registration entry. New administrators must first obtain the current 8-digit invitation code, then fill in the email, invitation code, username, and password on the administrator invite registration page. The first administrator account is automatically generated with a default invitation code when the system is deployed. Subsequent administrators obtain their invitation codes from the current administrator.
 
-![管理员邀请注册页面](user-manual-images/admin-invite-register.png)
+![Administrator Invite Registration Page](user-manual-images/admin-invite-register.png)
 
-### 2.5 演示账号
+### 2.5 Demo Accounts
 
-本地演示环境启动时会自动补齐固定演示账号和示例数据。常用账号如下：
+When the local demo environment starts, fixed demo accounts and sample data are automatically populated. Common accounts are as follows:
 
-| 角色 | 用户名 | 密码 |
-| ---- | ------ | ---- |
+| Role | Username | Password |
+| ---- | -------- | -------- |
 | TA | `ta_demo` | `Pass1234` |
+| TA | `ta_demo_mia` | `Pass1234` |
+| TA | `ta_demo_noah` | `Pass1234` |
+| TA | `ta_demo_olivia` | `Pass1234` |
+| TA | `ta_demo_liam` | `Pass1234` |
 | MO | `mo_demo` | `Pass1234` |
-| 管理员 | `admin_demo` | `Pass1234` |
+| MO | `mo_demo_alice` | `Pass1234` |
+| MO | `mo_demo_brian` | `Pass1234` |
+| Administrator | `admin_demo` | `Pass1234` |
 
-如果页面没有显示演示数据，请确认应用已经通过项目脚本重新部署，并且本次运行使用了正确的 `TA_HIRING_DATA_DIR`。
+If the demo data is not displayed on the page, please confirm that the application has been redeployed via the project scripts and that the current run used the correct `TA_HIRING_DATA_DIR`.
 
-## 3. TA 使用指南
+## 3. TA User Guide
 
-TA 用户主要完成个人资料维护、岗位浏览、岗位申请和申请状态跟踪。
+TA users primarily manage personal profiles, browse positions, apply for positions, and track application status.
 
-### 3.1 TA 个人资料
+### 3.1 TA Personal Profile
 
-进入 TA 后，系统会显示个人资料页面。TA 可以维护姓名、学号、院系、项目类型、GPA、联系方式、技能、相关经历、申请动机、头像和简历。
+After entering the TA section, the system displays the personal profile page. TAs can maintain their name, student ID, department, project type, GPA, contact information, skills, relevant experience, application motivation, avatar, and resume.
 
-![TA 个人资料页面](user-manual-images/ta-dashboard.png)
+![TA Personal Profile Page](user-manual-images/ta-dashboard.png)
 
-操作要点：
+Key operation notes:
 
-- 头像支持 JPG、PNG、WEBP，最大 5MB。
-- 简历支持 PDF、DOC、DOCX，最大 10MB。
-- 技能建议使用英文逗号或中文逗号分隔。
-- 保存资料后，MO 在审核申请时可以查看相关信息。
+- Avatars support JPG, PNG, WEBP, with a maximum size of 5MB.
+- Resumes support PDF, DOC, DOCX, with a maximum size of 10MB.
+- Skills are recommended to be separated by English commas or Chinese commas.
+- After saving the profile, MOs can view the relevant information when reviewing applications.
 
-### 3.2 TA 岗位列表
+TAs can navigate to the job list or application status page via the left sidebar.
 
-岗位列表展示当前系统中的 TA 岗位。TA 可以通过搜索框按岗位标题、课程代码或关键词筛选，也可以进入岗位详情页查看岗位要求。
+### 3.2 TA Job List
 
-![TA 岗位列表](user-manual-images/ta-job-list.png)
+The job list displays the current TA positions in the system. TAs can use the search box to filter by job title, course code, or keywords, and can also navigate to the job detail page to view job requirements.
 
-操作要点：
+![TA Job List](user-manual-images/ta-job-list.png)
 
-- 岗位卡片会显示课程代码、课程名称、MO、截止时间、薪资、工作量和所需技能。
-- 进入岗位详情后，可以填写求职说明并提交申请。
-- 已关闭或已招满的岗位仍可能出现在列表中，但不能继续作为开放申请处理。
+Key operation notes:
 
-### 3.3 TA 申请状态
+- Job cards display the course code, course name, MO, deadline, salary, workload, and required skills.
+- After entering the job details, you can fill in a cover letter and submit an application.
+- Positions that have been closed or filled may still appear in the list, but cannot continue to be treated as open applications.
 
-申请状态页展示 TA 已提交的申请记录，并通过时间线显示申请进度。
+### 3.3 TA Application Status
 
-![TA 申请状态页面](user-manual-images/ta-application-status.png)
+The application status page displays the TA's submitted application records and shows application progress via a timeline.
 
-常见状态包括：
+![TA Application Status Page](user-manual-images/ta-application-status.png)
 
-| 状态 | 含义 |
-| ---- | ---- |
-| `PENDING` | 已提交，等待 MO 审核 |
-| `ACCEPTED` | MO 已接受申请 |
-| `REJECTED` | MO 已拒绝申请 |
-| `WITHDRAWN` | TA 已撤回申请 |
+Common statuses include:
 
-## 4. MO 使用指南
+| Status | Meaning |
+| ------ | ------- |
+| `PENDING` | Submitted, waiting for MO review |
+| `ACCEPTED` | Application accepted by MO |
+| `REJECTED` | Application rejected by MO |
+| `WITHDRAWN` | Application withdrawn by TA |
 
-MO 用户主要完成岗位发布、岗位维护、申请人查看、申请人 AI 推荐和申请详情 AI 分析。
+## 4. MO User Guide
 
-### 4.1 MO 岗位管理
+MO users primarily manage job postings, maintain positions, view applicants, use AI recommendations for applicants, and analyze application details with AI.
 
-MO 登录后默认进入岗位管理页面，可以查看自己发布的岗位，也可以切换到发布岗位表单。
+### 4.1 MO Job Management
 
-![MO 岗位管理页面](user-manual-images/mo-dashboard.png)
+After logging in, MOs enter the job management page by default, where they can view their published positions and switch to the job posting form.
 
-发布岗位时通常需要填写：
+![MO Job Management Page](user-manual-images/mo-dashboard.png)
 
-- 岗位标题、课程代码、课程名称；
-- 岗位描述和所需技能；
-- 招聘人数、截止日期、每周工作小时数；
-- 工作开始日期、工作结束日期和薪资说明。
+When posting a job, the following fields are typically required:
 
-### 4.2 MO 申请人审核子视图
+- Job title, course code, course name;
+- Job description and required skills;
+- Number of positions to fill, application deadline, weekly working hours;
+- Work start date, work end date, and salary description.
 
-申请人审核现在集成在 MO 岗位管理页中。MO 从“我的发布”进入某个岗位后，可以查看该岗位收到的申请，并按申请人姓名、邮箱或岗位标题搜索。
+### 4.2 MO Applicant Review Sub-View
 
-![MO 申请人审核子视图](user-manual-images/mo-dashboard-applicants.png)
+The applicant review is integrated into the MO job management page. After MOs enter a specific position from "My Postings," they can view applications received for that position and search by applicant name, email, or job title.
 
-操作要点：
+![MO Applicant Review Sub-View](user-manual-images/mo-dashboard-applicants.png)
 
-- 有申请记录时，页面会显示申请人卡片。
-- MO 可以查看申请人信息、申请岗位和求职说明。
-- 对待审核申请，MO 可以执行接受或拒绝操作。
+Key operation notes:
 
-### 4.3 MO AI 推荐
+- When there are application records, the page displays applicant cards.
+- MOs can view applicant information, applied positions, and cover letters.
+- For pending applications, MOs can accept or reject them.
 
-MO 岗位管理页可以使用 AI 推荐搜索候选人。
+### 4.3 MO AI Recommendations
 
-页面会展示：
+MOs can use AI recommendations to search for candidates on the job management page.
 
-- AI 推荐的候选人列表；
-- 推荐理由和候选人基础信息；
-- 可继续进入申请人详情查看材料并处理申请。
+The page displays:
 
-如果 AI 配置不可用，页面会显示不可用提示，不生成本地假推荐。
+- AI-recommended candidate list;
+- Recommendation reasons and basic candidate information;
+- You can further navigate to the applicant detail page to view materials and process applications.
 
-## 5. 管理员使用指南
+If AI configuration is unavailable, the page displays an unavailability notice and does not generate local fake recommendations.
 
-管理员主要负责查看 TA 工作量、管理管理员邀请码和发布通知。
+## 5. Administrator User Guide
 
-### 5.1 TA 工作量仪表盘
+Administrators are primarily responsible for viewing TA workloads, managing administrator invitation codes, and publishing notifications.
 
-管理员仪表盘展示已接受岗位带来的 TA 工作量统计。页面支持按 TA 姓名或相关关键词搜索。
+### 5.1 TA Workload Dashboard
 
-![管理员 TA 工作量仪表盘](user-manual-images/admin-dashboard.png)
+The administrator dashboard displays TA workload statistics from accepted positions. The page supports searching by TA name or related keywords.
 
-页面重点信息包括：
+![Administrator TA Workload Dashboard](user-manual-images/admin-dashboard.png)
 
-- 已纳入统计的 TA；
-- 每位 TA 的已接受岗位数；
-- 每位 TA 的累计工作小时数；
-- 点击卡片后可展开查看具体岗位工作量。
+Key information on the page includes:
 
-### 5.2 管理员邀请码管理
+- TAs included in the statistics;
+- Number of accepted positions per TA;
+- Cumulative working hours per TA;
+- Clicking a card allows you to expand and view specific position workloads.
 
-邀请码管理页展示当前可用的 8 位管理员邀请码和倒计时。管理员可以把当前邀请码回复给需要创建管理员账号的申请人。
+### 5.2 Administrator Invitation Code Management
 
-![管理员邀请码管理页面](user-manual-images/admin-invite-management.png)
+The invitation code management page displays the currently available 8-digit administrator invitation codes and a countdown. Administrators can reply the current invitation code to applicants who need to create an administrator account.
 
-操作流程：
+![Administrator Invitation Code Management Page](user-manual-images/admin-invite-management.png)
 
-1. 申请人使用计划注册的邮箱联系团队。
-2. 管理员进入邀请码管理页查看当前邀请码。
-3. 管理员把邀请码回复给申请人。
-4. 申请人在管理员邀请注册页完成账号创建。
+Operation process:
 
-### 5.3 管理员通知页面
+1. The applicant contacts the team using the email they plan to register with.
+2. The administrator goes to the invitation code management page to view the current invitation code.
+3. The administrator replies the invitation code to the applicant.
+4. The applicant completes the account creation on the administrator invite registration page.
 
-通知页面用于发布面向系统用户的公告。管理员可以填写通知标题和正文并发布。
+### 5.3 Administrator Notifications Page
 
-![管理员通知页面](user-manual-images/admin-notifications.png)
+The notifications page is used to publish announcements for system users. Administrators can fill in the notification title and body and publish.
 
-发布前建议确认：
+![Administrator Notifications Page](user-manual-images/admin-notifications.png)
 
-- 标题简洁明确；
-- 正文包含具体事项、对象和时间；
-- 不在公告中填写不必要的个人敏感信息。
+Before publishing, it is recommended to confirm:
 
-## 6. 常见问题
+- The title is concise and clear;
+- The body contains specific matters, target audience, and time;
+- Do not include unnecessary personal sensitive information in the announcement.
 
-### 6.1 登录失败
+## 6. Frequently Asked Questions
 
-- 确认用户名或邮箱填写正确。
-- 确认密码正确。
-- 确认登录页面选择的角色与账号角色一致。
-- 如果使用演示账号失败，请重启或重新部署本地应用，确认演示数据已初始化。
+### 6.1 Login Failure
 
-### 6.2 TA 无法上传头像或简历
+- Confirm that the username or email is filled in correctly.
+- Confirm that the password is correct.
+- Confirm that the role selected on the login page matches the account role.
+- If using a demo account fails, please restart or redeploy the local application and confirm that the demo data has been initialized.
 
-- 检查文件格式是否符合页面提示。
-- 检查文件大小是否超过限制。
-- 检查当前会话是否过期，必要时重新登录。
+### 6.2 TA Cannot Upload Avatar or Resume
 
-### 6.3 MO 看不到申请人
+- Check whether the file format complies with the page prompts.
+- Check whether the file size exceeds the limit.
+- Check whether the current session has expired; log in again if necessary.
 
-- 确认 TA 已经对该 MO 发布的岗位提交申请。
-- 确认当前登录账号是岗位所属 MO。
-- 可以先查看岗位管理页，确认岗位是否存在。
+### 6.3 MO Cannot See Applicants
 
-### 6.4 AI 推荐或分析不可用
+- Confirm that the TA has submitted an application for a position published by this MO.
+- Confirm that the currently logged-in account is the MO to whom the position belongs.
+- You can first check the job management page to confirm whether the position exists.
 
-- 确认 AI 配置文件中的 API Key、模型和网络访问可用。
-- 确认当前岗位、申请或 TA 档案数据完整。
-- 如果 AI 服务暂不可用，页面会显示失败提示，不生成本地普通匹配结果。
+### 6.4 AI Recommendation or Analysis Unavailable
 
-### 6.5 管理员看不到工作量
+- Confirm that the API Key, model, and network access in the AI configuration file are available.
+- Confirm that the current position, application, or TA profile data is complete.
+- If the AI service is temporarily unavailable, the page displays a failure notice and does not generate local regular matching results.
 
-- 确认当前账号以管理员角色登录。
-- 确认系统中存在已接受的 TA 申请。
-- 确认岗位有有效的每周小时数和工作周期数据。
+### 6.5 Administrator Cannot See Workloads
 
-## 7. 截图索引
+- Confirm that the current account is logged in with the administrator role.
+- Confirm that there are accepted TA applications in the system.
+- Confirm that the position has valid weekly hours and work cycle data.
 
-本手册中的截图均保存在当前 Markdown 文件同级目录下的 `user-manual-images/` 中。
+## 7. Screenshot Index
 
-| 文件名 | 对应页面 | 说明 |
-| ------ | -------- | ---- |
-| `home.png` | `/` | 门户首页 |
-| `login.png` | `/login.jsp` | 登录页面 |
-| `register.png` | `/register.jsp` | TA/MO 注册页面 |
-| `admin-invite-register.png` | `/admin-invite.jsp` | 管理员邀请注册页面 |
-| `ta-dashboard.png` | `/jsp/ta/dashboard.jsp` | TA 个人资料页面 |
-| `ta-job-list.png` | `/jsp/ta/job-list.jsp` | TA 岗位列表 |
-| `ta-application-status.png` | `/jsp/ta/application-status.jsp` | TA 申请状态 |
-| `mo-dashboard.png` | `/jsp/mo/dashboard.jsp` | MO 岗位管理 |
-| `mo-dashboard-applicants.png` | `/jsp/mo/dashboard.jsp` | MO 申请人审核子视图 |
-| `admin-dashboard.png` | `/jsp/admin/dashboard.jsp` | 管理员 TA 工作量 |
-| `admin-invite-management.png` | `/jsp/admin/invite.jsp` | 管理员邀请码管理 |
-| `admin-notifications.png` | `/jsp/admin/notifications.jsp` | 管理员通知页面 |
+All screenshots in this manual are stored in the `user-manual-images/` subdirectory at the same level as this Markdown file.
 
-## 8. 维护建议
+| File Name | Corresponding Page | Description |
+| -------- | ----------------- | ----------- |
+| `home.png` | `/` | Portal Home Page |
+| `login.png` | `/login.jsp` | Login Page |
+| `register.png` | `/register.jsp` | TA/MO Registration Page |
+| `admin-invite-register.png` | `/admin-invite.jsp` | Administrator Invite Registration Page |
+| `ta-dashboard.png` | `/jsp/ta/dashboard.jsp` | TA Personal Profile Page |
+| `ta-job-list.png` | `/jsp/ta/job-list.jsp` | TA Job List |
+| `ta-application-status.png` | `/jsp/ta/application-status.jsp` | TA Application Status |
+| `mo-dashboard.png` | `/jsp/mo/dashboard.jsp` | MO Job Management |
+| `mo-dashboard-applicants.png` | `/jsp/mo/dashboard.jsp` | MO Applicant Review Sub-View |
+| `admin-dashboard.png` | `/jsp/admin/dashboard.jsp` | Administrator TA Workload |
+| `admin-invite-management.png` | `/jsp/admin/invite.jsp` | Administrator Invitation Code Management |
+| `admin-notifications.png` | `/jsp/admin/notifications.jsp` | Administrator Notifications Page |
 
-- 每次新增主要页面后，在本手册中补充操作说明和截图。
-- 每次调整路由、角色权限或演示账号后，同步更新“公共入口与账号”章节。
-- 每次调整 Admin、MO 或 TA 的核心页面后，重新采集对应截图，避免手册内容与实际界面不一致。
+## 8. Maintenance Suggestions
+
+- After adding a new major page, supplement this manual with operation instructions and screenshots.
+- After adjusting routes, role permissions, or demo accounts, synchronize the updates to the "Common Entry Points and Accounts" chapter.
+- After adjusting the core pages for Admin, MO, or TA, recapture the corresponding screenshots to avoid inconsistencies between the manual content and the actual interface.

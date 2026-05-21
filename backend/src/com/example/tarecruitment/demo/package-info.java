@@ -1,6 +1,6 @@
 /**
- * 演示数据初始化包。
+ * Demo data initialization package.
  *
- * <p>负责创建课堂演示账号和示例 CSV 数据，保持本地运行时可以直接体验完整流程。
+ * <p>Responsible for creating classroom demo accounts and sample CSV data, enabling direct experience of the complete flow in local runtime.
  */
 package com.example.tarecruitment.demo;

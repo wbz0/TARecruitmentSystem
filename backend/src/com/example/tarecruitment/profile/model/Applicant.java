@@ -10,29 +10,29 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Applicant 实体类 - TA 申请人档案。
+ * Applicant entity class - TA applicant profile.
  *
- * 它既表达 TA 档案业务字段，也是 applicants.csv 的序列化契约。
- * resumePath/photoPath 只保存相对路径，真实文件由 ProfileAssetService 放在 TA_HIRING_DATA_DIR 下。
+ * It expresses both TA profile business fields and applicants.csv serialization contract.
+ * resumePath/photoPath only save relative paths, real files are placed by ProfileAssetService under TA_HIRING_DATA_DIR.
  */
 public class Applicant {
 
     private String applicantId;
-    private String userId;           // 关联的User ID
-    private String fullName;         // 姓名
-    private String studentId;        // 学号
-    private String department;       // 院系
-    private String program;          // 项目（本科/硕士/博士）
+    private String userId;           // Associated User ID
+    private String fullName;         // Full name
+    private String studentId;        // Student ID
+    private String department;       // Department
+    private String program;          // Program (Undergraduate/Master/PhD)
     private String gpa;              // GPA
-    private List<String> skills;     // 技能列表（逗号分隔）
-    private String resumePath;       // 简历文件路径
-    private String photoPath;        // 头像文件路径
-    private String phone;            // 电话
-    private String address;          // 地址
-    private String experience;       // 相关经验
-    private String motivation;       // 申请动机
-    private LocalDateTime createdAt; // 创建时间
-    private LocalDateTime updatedAt; // 更新时间
+    private List<String> skills;     // Skills list (comma separated)
+    private String resumePath;       // Resume file path
+    private String photoPath;        // Photo file path
+    private String phone;            // Phone
+    private String address;          // Address
+    private String experience;       // Related experience
+    private String motivation;       // Application motivation
+    private LocalDateTime createdAt; // Created time
+    private LocalDateTime updatedAt; // Updated time
 
     public Applicant() {
         this.applicantId = UUID.randomUUID().toString();
@@ -114,7 +114,7 @@ public class Applicant {
     }
 
     public String getSkillsAsString() {
-        // applicants.csv 内部用分号分隔技能；前端表单可以输入逗号或分号，validator 会统一解析。
+        // applicants.csv internally uses semicolon to separate skills; frontend form accepts comma or semicolon, validator normalizes.
         return skills != null ? String.join(";", skills) : "";
     }
 
@@ -191,9 +191,9 @@ public class Applicant {
     }
 
     /**
-     * 转换为 CSV 格式存储。
+     * Convert to CSV format for storage.
      *
-     * 字段顺序必须和 ApplicantDao.CSV_HEADER 对齐；新增字段只追加到末尾。
+     * Field order must align with ApplicantDao.CSV_HEADER; new fields only appended to end.
      */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -218,9 +218,9 @@ public class Applicant {
     }
 
     /**
-     * 从 CSV 格式解析。
+     * Parse from CSV format.
      *
-     * 允许读取旧格式，是为了兼容历史 applicants.csv。
+     * Allow reading old format for compatibility with historical applicants.csv.
      */
     public static Applicant fromCsv(String csvLine) {
         String[] parts = CsvCodec.split(csvLine);
@@ -238,8 +238,8 @@ public class Applicant {
         applicant.setGpa(unescapeCsv(parts[6]));
         applicant.setSkillsFromString(parts.length > 7 ? unescapeCsv(parts[7]) : "");
 
-        // 遗留兼容：旧格式没有 photoPath 列，新格式在 resumePath 后插入了 photoPath。
-        // 后续如果确认演示数据和用户数据全部迁移到新格式，可以移除这段列偏移判断。
+        // Legacy compatibility: old format without photoPath column, new format inserts photoPath after resumePath.
+        // Can remove this column offset logic after confirming all demo and user data migrated to new format.
         boolean hasPhotoColumn = parts.length >= 16;
         if (parts.length > 8) applicant.setResumePath(unescapeCsv(parts[8]));
         if (hasPhotoColumn && parts.length > 9) applicant.setPhotoPath(unescapeCsv(parts[9]));

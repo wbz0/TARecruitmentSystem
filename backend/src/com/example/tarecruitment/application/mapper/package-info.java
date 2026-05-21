@@ -1,6 +1,6 @@
 /**
- * 申请领域请求和响应转换层。
+ * Application domain request and response mapping layer.
  *
- * <p>Mapper 负责把 HTTP 参数转换为领域参数，并把 model/service 结果转换为响应 payload。
+ * <p>Mapper converts HTTP parameters to domain parameters, and converts model/service results to response payload.
  */
 package com.example.tarecruitment.application.mapper;

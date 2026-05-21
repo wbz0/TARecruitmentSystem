@@ -1,6 +1,6 @@
 /**
- * 档案领域 HTTP 入口层。
+ * Profile domain HTTP entry layer.
  *
- * <p>包含当前账号资料、当前 TA 档案和档案附件访问入口。
+ * <p>Contains current account profile, current TA profile, and profile asset access entry points.
  */
 package com.example.tarecruitment.profile.web;

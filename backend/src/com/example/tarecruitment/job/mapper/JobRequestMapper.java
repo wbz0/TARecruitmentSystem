@@ -15,10 +15,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * JobRequestMapper - 职位接口的请求转换工具。
+ * JobRequestMapper - Job interface request conversion utility.
  *
- * 只负责把 HTTP 路径/表单文本转换成 service 可用的普通参数，
- * 不做权限判断，也不直接读写 CSV。
+ * Only responsible for converting HTTP path/form text to ordinary parameters usable by service,
+ * does not do permission check, does not directly read/write CSV.
  */
 public final class JobRequestMapper {
 
@@ -26,39 +26,39 @@ public final class JobRequestMapper {
     }
 
     /**
-     * 从 /api/jobs/{jobId} 的 pathInfo 中取出 jobId。
+     * Extract jobId from pathInfo of /api/jobs/{jobId}.
      *
-     * Servlet 只关心第一段路径，后续如果出现 /extra 之类的子路径，
-     * 也不会把它误当成职位 ID 的一部分。
+     * Servlet only cares about first path segment, if /extra-like sub-paths appear later,
+     * it will not be mistaken as part of job ID.
      */
     public static String pathJobId(String pathInfo) {
         if (pathInfo == null || pathInfo.isBlank() || "/".equals(pathInfo)) {
             return "";
         }
-        // /api/jobs/{jobId}/extra 只取第一段，当前前端没有额外子资源。
+        // /api/jobs/{jobId}/extra only takes first segment; current frontend has no extra sub-resources.
         String text = pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
         int slash = text.indexOf('/');
         return slash >= 0 ? text.substring(0, slash) : text;
     }
 
     /**
-     * 把可空文本统一压成空字符串，方便 service/validator 少写 null 判断。
+     * Coerce nullable text to empty string uniformly, to reduce null checks in service/validator.
      */
     public static String trimToEmpty(String value) {
         return value != null ? value.trim() : "";
     }
 
     /**
-     * 把职位表单中的技能文本转换成列表。
+     * Convert skills text in job form to list.
      *
-     * 前端提交的是逗号分隔文本，CSV 模型里保存的是技能列表；
-     * 这里仅做格式转换，是否合法仍由 JobValidator 负责。
+     * Frontend submits comma-separated text, CSV model stores skills list;
+     * here only does format conversion, whether legal is still JobValidator responsibility.
      */
     public static List<String> normalizeSkillsToList(String rawSkills) {
         if (rawSkills == null || rawSkills.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        // 当前表单只允许中英文逗号分隔；分号等格式在 JobValidator 中会被拒绝。
+        // Current form only allows English or Chinese comma separator; semicolons and other formats will be rejected in JobValidator.
         return Arrays.stream(rawSkills.split("[,，]"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -66,10 +66,10 @@ public final class JobRequestMapper {
     }
 
     /**
-     * 解析 weeklyHours 字段。
+     * Parse weeklyHours field.
      *
-     * 返回 null 表示用户没填或格式不合法，调用方会结合校验结果决定
-     * 是使用默认值、保留旧值，还是返回 bad request。
+     * Return null means user did not fill or format invalid, caller will decide based on validation result
+     * whether to use default value, keep old value, or return bad request.
      */
     public static Double parseWeeklyHours(String weeklyHoursText) {
         if (weeklyHoursText == null || weeklyHoursText.trim().isEmpty()) {
@@ -83,10 +83,10 @@ public final class JobRequestMapper {
     }
 
     /**
-     * 解析浏览器 datetime-local 提交的截止时间。
+     * Parse deadline submitted by browser datetime-local.
      *
-     * 不同浏览器可能提交秒级或分钟级精度，所以按 ISO、秒级、分钟级
-     * 依次尝试，保证前端控件的小差异不会破坏创建/编辑职位。
+     * Different browsers may submit second or minute precision, so try ISO, second, minute
+     * in order to ensure small differences in frontend controls do not break create/edit job.
      */
     public static LocalDateTime parseDeadline(String deadlineStr) {
         if (deadlineStr == null || deadlineStr.trim().isEmpty()) {
@@ -97,7 +97,7 @@ public final class JobRequestMapper {
         try {
             return LocalDateTime.parse(text, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         } catch (Exception ignored) {
-            // 继续兼容浏览器 datetime-local 的不同精度。
+            // Continue to be compatible with different precision of browser datetime-local.
         }
 
         try {
@@ -114,10 +114,10 @@ public final class JobRequestMapper {
     }
 
     /**
-     * 手动解析 PUT 的 x-www-form-urlencoded 请求体。
+     * Manually parse PUT x-www-form-urlencoded request body.
      *
-     * 兼容说明：POST 表单一般可以用 request.getParameter，
-     * 但 PUT 请求在部分 Servlet 容器中不会自动填充 parameter map。
+     * Compatibility note: POST forms generally can use request.getParameter,
+     * but PUT requests in some Servlet containers do not automatically populate parameter map.
      */
     public static Map<String, String> formParameters(HttpServletRequest request) throws IOException {
         Map<String, String> values = new LinkedHashMap<>();
@@ -129,7 +129,7 @@ public final class JobRequestMapper {
             return values;
         }
 
-        // PUT 的 x-www-form-urlencoded body 在 Servlet API 中不一定会自动进 parameter map。
+        // PUT x-www-form-urlencoded body may not automatically populate parameter map in Servlet API.
         String body = request.getReader().lines().collect(Collectors.joining("&"));
         if (body.trim().isEmpty()) {
             return values;
@@ -150,10 +150,10 @@ public final class JobRequestMapper {
     }
 
     /**
-     * 按白名单读取前端提交字段。
+     * Read frontend submitted fields by whitelist.
      *
-     * JobServlet 传入 JOB_FIELDS，确保未知参数不会绕过 mapper 直接进入
-     * JobService 的创建流程。
+     * JobServlet passes JOB_FIELDS, ensuring unknown parameters do not bypass mapper to directly enter
+     * JobService creation flow.
      */
     public static Map<String, String> requestParameters(HttpServletRequest request, String... names) {
         Map<String, String> values = new LinkedHashMap<>();

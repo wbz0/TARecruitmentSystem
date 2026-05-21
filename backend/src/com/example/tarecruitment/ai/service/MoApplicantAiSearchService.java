@@ -17,18 +17,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * MO 申请人 AI 推荐服务。
+ * MO applicant AI recommendation service.
  *
- * 当前前端入口是 MO dashboard 的申请人推荐搜索。
- * 只把白名单字段和脱敏后的候选人上下文发给 DeepSeek。
- * 没有 key 或服务不可用时，直接返回“AI 搜索暂不可用”，不做本地假推荐。
+ * Current frontend entry is the applicant recommendation search in MO dashboard.
+ * Only sends whitelist fields and sanitized candidate context to DeepSeek.
+ * When there is no key or service is unavailable, it directly returns “AI search temporarily unavailable”,
+ * without local fake recommendations.
  */
 public class MoApplicantAiSearchService {
 
-    public static final String DEFAULT_QUERY = "推荐当前职位最适合的申请人";
+    public static final String DEFAULT_QUERY = "Recommend the most suitable applicants for the current position";
     public static final String OUT_OF_SCOPE_MESSAGE =
-            "我无法处理您的问题。我可以根据当前职位的申请人信息，帮你推荐候选人、比较申请人或解释推荐理由。";
-    public static final String UNAVAILABLE_MESSAGE = "AI 搜索暂不可用，请稍后再试。";
+            "I cannot process your question. Based on the current applicants for this position, I can help you recommend candidates, compare applicants, or explain the recommendation reasons.";
+    public static final String UNAVAILABLE_MESSAGE = "AI search is temporarily unavailable. Please try again later.";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:\\+?\\d[\\d\\s().-]{6,}\\d)(?!\\d)");
@@ -54,7 +55,7 @@ public class MoApplicantAiSearchService {
 
         List<CandidateContext> candidates = buildCandidates(applications, applicantsByUserId);
         if (candidates.isEmpty()) {
-            return SearchResult.recommend("当前职位暂无可推荐申请人。", Collections.emptyList());
+            return SearchResult.recommend("No applicants available for recommendation at this time.", Collections.emptyList());
         }
 
         String query = normalizeQuery(rawQuery);
@@ -86,7 +87,8 @@ public class MoApplicantAiSearchService {
             if (candidate == null || !seenApplicationIds.add(candidate.application.getApplicationId())) {
                 continue;
             }
-            // candidateRef 只是 prompt 内部引用，前端不展示 C1/C2；返回前替换成申请人显示名。
+            // candidateRef is only an internal reference in the prompt; frontend does not display C1/C2;
+// replace with applicant display name before returning.
             recommendations.add(new RecommendedApplication(
                     candidate.application,
                     replaceCandidateRefs(recommendation.getRecommendation(), byRef)
@@ -94,33 +96,33 @@ public class MoApplicantAiSearchService {
         }
 
         String message = payload.getMessage().isEmpty()
-                ? "已生成 AI 推荐结果。"
+                ? "AI recommendation results have been generated."
                 : replaceCandidateRefs(payload.getMessage(), byRef);
         return SearchResult.recommend(message, recommendations);
     }
 
     private String buildSystemPrompt() {
-        return "你是 TA 招聘系统中帮助 MO 审核申请人的 AI 搜索助手。"
-                + "你只能处理当前职位申请人推荐、申请人比较、推荐理由解释。"
-                + "如果用户问题超出这个范围，必须返回 JSON："
-                + "{\"action\":\"out_of_scope\",\"message\":\"" + OUT_OF_SCOPE_MESSAGE + "\",\"results\":[]}。"
-                + "如果用户问题属于范围，必须返回 JSON 对象："
-                + "{\"action\":\"recommend\",\"message\":\"简短说明\",\"results\":[{\"candidateRef\":\"C1\",\"recommendation\":\"推荐理由\"}]}。"
-                + "只能使用输入中提供的 candidateRef，不能编造候选人，不能输出 Markdown 或额外文本。"
-                + "推荐理由要具体、简洁，并基于候选人的技能、经历、动机、求职信与岗位要求。";
+        return "You are an AI search assistant in the TA recruitment system that helps MO review applicants."
+                + "You can only handle current job applicant recommendations, applicant comparisons, and recommendation reason explanations."
+                + "If the user question is outside this scope, you must return JSON:"
+                + "{\"action\":\"out_of_scope\",\"message\":\"" + OUT_OF_SCOPE_MESSAGE + "\",\"results\":[]}."
+                + "If the user question is within the scope, you must return a JSON object:"
+                + "{\"action\":\"recommend\",\"message\":\"brief explanation\",\"results\":[{\"candidateRef\":\"C1\",\"recommendation\":\"recommendation reason\"}]}."
+                + "You can only use the candidateRef provided in the input, cannot fabricate candidates, and cannot output Markdown or additional text."
+                + "Recommendation reasons should be specific, concise, and based on the candidate's skills, experience, motivation, cover letter, and job requirements.";
     }
 
     private String buildUserPrompt(Job job, List<CandidateContext> candidates, String query) {
         StringBuilder prompt = new StringBuilder(1600);
-        prompt.append("用户问题：").append(query).append("\n\n");
-        prompt.append("当前职位：\n");
+        prompt.append("User question: ").append(query).append("\n\n");
+        prompt.append("Current job:\n");
         prompt.append("- title: ").append(safe(job.getTitle())).append("\n");
         prompt.append("- courseCode: ").append(safe(job.getCourseCode())).append("\n");
         prompt.append("- courseName: ").append(safe(job.getCourseName())).append("\n");
         prompt.append("- workload: ").append(safe(job.getWorkload())).append("\n");
         prompt.append("- description: ").append(sanitizeFreeText(job.getDescription())).append("\n");
         prompt.append("- requiredSkills: ").append(join(normalizeSkills(job.getRequiredSkills()))).append("\n\n");
-        prompt.append("候选人列表（已脱敏；不要输出姓名、邮箱、电话、学号、地址或文件路径）：\n");
+        prompt.append("Candidate list (sanitized; do not output names, emails, phones, student IDs, addresses, or file paths):\n");
         for (CandidateContext candidate : candidates) {
             prompt.append(candidate.candidateRef).append(":\n");
             prompt.append("- applicationStatus: ").append(safe(candidate.application.getStatus() != null
@@ -152,7 +154,8 @@ public class MoApplicantAiSearchService {
             if (applicant == null) {
                 continue;
             }
-            // candidateRef 是给 AI 排序和引用用的临时编号，避免把真实姓名/邮箱放进 prompt。
+            // candidateRef is a temporary reference number for AI ranking and referencing,
+// to avoid putting real name/email into the prompt.
             String candidateRef = "C" + (candidates.size() + 1);
             candidates.add(new CandidateContext(
                     candidateRef,
@@ -179,9 +182,9 @@ public class MoApplicantAiSearchService {
             return "";
         }
         String sanitized = text.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ').trim();
-        sanitized = EMAIL_PATTERN.matcher(sanitized).replaceAll("[已脱敏邮箱]");
-        sanitized = STUDENT_ID_PATTERN.matcher(sanitized).replaceAll("[已脱敏学号]");
-        sanitized = PHONE_PATTERN.matcher(sanitized).replaceAll("[已脱敏电话]");
+        sanitized = EMAIL_PATTERN.matcher(sanitized).replaceAll("[sanitized email]");
+        sanitized = STUDENT_ID_PATTERN.matcher(sanitized).replaceAll("[sanitized student ID]");
+        sanitized = PHONE_PATTERN.matcher(sanitized).replaceAll("[sanitized phone]");
         sanitized = sanitized.replaceAll("\\s{2,}", " ").trim();
         if (sanitized.length() > MAX_TEXT_LENGTH) {
             sanitized = sanitized.substring(0, MAX_TEXT_LENGTH).trim();

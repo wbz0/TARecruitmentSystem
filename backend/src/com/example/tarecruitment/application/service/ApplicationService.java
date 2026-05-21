@@ -20,10 +20,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 申请业务流程服务。
+ * Application business flow service.
  *
- * ApplicationServlet 只读取 HTTP 参数并调用这里；这里负责列表可见范围、
- * 创建申请、接受/拒绝/撤回状态流转，以及职位名额填满后的状态同步。
+ * ApplicationServlet only reads HTTP parameters and calls here; this service is responsible for list visibility scope,
+ * application creation, accept/reject/withdraw status transitions, and job slot synchronization when positions are filled.
  */
 public class ApplicationService {
 
@@ -47,10 +47,10 @@ public class ApplicationService {
     }
 
     /**
-     * 按当前登录角色查询申请列表。
+     * Query application list by currently logged-in role.
      *
-     * TA 只能看自己的申请，MO 只能看自己发布职位下的申请，ADMIN 用于后台审计。
-     * applicantId/jobId/moId/status/keyword 都是列表页筛选条件，不改变数据。
+     * TA can only see their own applications, MO can only see applications for jobs they posted, ADMIN for backend audit.
+     * applicantId/jobId/moId/status/keyword are all list page filter conditions, do not change data.
      */
     public ServiceResult list(User currentUser,
                               String applicantId,
@@ -63,7 +63,7 @@ public class ApplicationService {
         }
 
         List<Application> applications;
-        // 不同角色看到的申请列表不同：TA 看自己的申请，MO 看自己职位收到的申请，Admin 看全部。
+        // Different roles see different application lists: TA sees their own, MO sees applications for their jobs, Admin sees all.
         if (currentUser.getRole() == User.Role.TA) {
             applications = applicationDao.findByApplicantId(currentUser.getUserId());
         } else if (currentUser.getRole() == User.Role.MO) {
@@ -84,12 +84,12 @@ public class ApplicationService {
         String normalizedApplicantId = trim(applicantId);
         if (!normalizedApplicantId.isEmpty()) {
             if (currentUser.getRole() == User.Role.MO) {
-                // MO 继续在自己可见列表里筛选，不能借 applicantId 越权查看其他职位申请。
+                // MO continues filtering within their visible list, cannot use applicantId to cross-check other job applications.
                 applications = applications.stream()
                         .filter(a -> normalizedApplicantId.equals(a.getApplicantId()))
                         .collect(Collectors.toList());
             } else {
-                // TA/Admin 入口保留 applicantId 查询能力，用于自己的申请页或后台排查。
+                // TA/Admin entry retains applicantId query capability for their own application page or backend troubleshooting.
                 applications = applicationDao.findByApplicantId(normalizedApplicantId);
             }
         }
@@ -118,7 +118,7 @@ public class ApplicationService {
                 keyword,
                 application -> ApplicationResponseMapper.searchFieldsForRole(application, currentUser.getRole())
         );
-        // approximateOnly 会传到前端，用于提示“没有精确匹配，展示相近结果”。
+        // approximateOnly will be passed to frontend to hint “no exact match, showing approximate results”.
         List<Application> visibleApplications = searchOutcome.getItems();
 
         return ServiceResult.ok(
@@ -128,9 +128,9 @@ public class ApplicationService {
     }
 
     /**
-     * 查询单个申请详情。
+     * Query single application detail.
      *
-     * 详情接口会再次校验记录归属，不能只依赖列表页已经过滤过的结果。
+     * Detail API will again verify record ownership, cannot rely only on already-filtered results from list page.
      */
     public ServiceResult detail(User currentUser, String applicationId) {
         if (currentUser == null) {
@@ -155,9 +155,9 @@ public class ApplicationService {
     }
 
     /**
-     * TA 提交职位申请。
+     * TA submits job application.
      *
-     * 创建前会确认职位仍开放、未过截止日期、TA 已有档案和简历，并禁止同一职位重复申请。
+     * Before creation, verifies job is still open, not past deadline, TA has profile and resume, and prohibits duplicate applications for same job.
      */
     public ServiceResult create(User currentUser, String jobId, String coverLetter) {
         if (currentUser == null) {
@@ -200,14 +200,14 @@ public class ApplicationService {
             return ServiceResult.badRequest("Please upload your resume before applying");
         }
 
-        // 同一 TA 对同一职位只允许一条申请，避免 MO 侧审核列表出现重复候选人。
+        // Same TA is only allowed one application for the same job, to avoid duplicate candidates appearing in MO's review list.
         if (applicationDao.hasApplied(normalizedJobId, currentUser.getUserId())) {
             return ServiceResult.badRequest("You have already applied for this job");
         }
 
         Application application = new Application();
-        // 申请里冗余保存职位和 MO 基本信息，便于 CSV 列表直接渲染历史申请。
-        // 即使职位标题后续被 MO 修改，旧申请列表仍可保留当时的显示信息。
+        // Application redundantly stores job and MO basic info for CSV list to directly render historical applications.
+        // Even if job title is later modified by MO, old application list can still retain the display info from that time.
         application.setJobId(normalizedJobId);
         application.setApplicantId(currentUser.getUserId());
         application.setApplicantName(applicant.getFullName());
@@ -228,10 +228,10 @@ public class ApplicationService {
     }
 
     /**
-     * 统一处理申请状态动作。
+     * Unified handling of application status actions.
      *
-     * 前端只提交 action 文本；这里把 accept/reject/withdraw 分发到各自的
-     * 权限和状态流转函数，避免 Servlet 承担业务分支。
+     * Frontend only submits action text; here accept/reject/withdraw are dispatched to their own
+     * permission and status transition functions, avoiding Servlet from bearing business branches.
      */
     public ServiceResult transition(User currentUser, String applicationId, String action) {
         if (currentUser == null) {
@@ -263,7 +263,7 @@ public class ApplicationService {
     }
 
     /**
-     * MO 接受申请，并在岗位满员时同步职位状态。
+     * MO accepts application and synchronizes job status when positions are filled.
      */
     private ServiceResult accept(Application application, User currentUser) {
         ServiceResult reviewPermission = validateMoReviewPermission(application, currentUser, "accept");
@@ -283,7 +283,7 @@ public class ApplicationService {
 
         long acceptedCount = applicationDao.countAcceptedByJobId(job.getJobId());
         if (acceptedCount >= job.getPositions()) {
-            // 名额已满时同步职位状态，避免后续 TA 继续看到可申请的开放岗位。
+            // When slots are filled, synchronize job status to avoid subsequent TAs continuing to see open jobs they can apply for.
             if (job.getStatus() != Job.Status.FILLED) {
                 job.setStatus(Job.Status.FILLED);
                 jobDao.update(job);
@@ -298,7 +298,7 @@ public class ApplicationService {
 
         long updatedAcceptedCount = applicationDao.countAcceptedByJobId(job.getJobId());
         if (updatedAcceptedCount >= job.getPositions() && job.getStatus() != Job.Status.FILLED) {
-            // 接受本次申请后刚好满员，也要立刻把职位标记为 FILLED。
+            // After accepting this application and becoming full, also immediately mark the job as FILLED.
             job.setStatus(Job.Status.FILLED);
             jobDao.update(job);
         }
@@ -306,9 +306,9 @@ public class ApplicationService {
     }
 
     /**
-     * MO 拒绝申请。
+     * MO rejects application.
      *
-     * 拒绝不影响职位名额，只更新申请记录本身。
+     * Rejection does not affect job slots, only updates the application record itself.
      */
     private ServiceResult reject(Application application, User currentUser) {
         ServiceResult reviewPermission = validateMoReviewPermission(application, currentUser, "reject");
@@ -324,12 +324,12 @@ public class ApplicationService {
     }
 
     /**
-     * 撤回申请。
+     * Withdraw application.
      *
-     * 常规入口是 TA 撤回自己的待处理申请；MO/Admin 权限保留给异常数据处理。
+     * Normal entry is TA withdrawing their own pending application; MO/Admin permissions reserved for exceptional data handling.
      */
     private ServiceResult withdraw(Application application, User currentUser) {
-        // 撤回允许 TA 撤自己的申请，也允许 MO/Admin 处理异常申请记录。
+        // Withdrawal allows TA to withdraw their own, also allows MO/Admin to handle exceptional application records.
         boolean canWithdraw = false;
         if (currentUser.getRole() == User.Role.TA && currentUser.getUserId().equals(application.getApplicantId())) {
             canWithdraw = true;
@@ -354,9 +354,9 @@ public class ApplicationService {
     }
 
     /**
-     * 校验 MO 是否能对这条申请做接受/拒绝。
+     * Validate if MO can accept/reject this application.
      *
-     * 只有职位发布者本人可以审核，并且只能审核仍处于 PENDING 的申请。
+     * Only the job poster can review, and can only review applications still in PENDING status.
      */
     private ServiceResult validateMoReviewPermission(Application application, User currentUser, String action) {
         if (currentUser.getRole() != User.Role.MO) {
@@ -372,7 +372,7 @@ public class ApplicationService {
     }
 
     /**
-     * 状态修改后重新读取申请，保证响应里包含 DAO 写回后的最新时间戳和阶段。
+     * Re-read application after status modification to ensure response contains latest timestamp and stage written back by DAO.
      */
     private ServiceResult updatedApplication(String message, String applicationId) {
         Optional<Application> updatedApp = applicationDao.findById(applicationId);
@@ -383,8 +383,8 @@ public class ApplicationService {
     }
 
     /**
-     * 详情权限边界：
-     * Admin 全量可见，TA 只能看自己的申请，MO 只能看自己职位下的申请。
+     * Detail permission boundary:
+     * Admin sees all, TA can only see their own applications, MO can only see applications for their jobs.
      */
     private boolean canAccessApplication(User currentUser, Application application) {
         if (currentUser.getRole() == User.Role.ADMIN) {
@@ -399,14 +399,14 @@ public class ApplicationService {
     }
 
     /**
-     * 查询参数统一压成空字符串，避免每个筛选分支重复判空。
+     * Unify query parameters to empty string to avoid repetitive null checks in each filter branch.
      */
     private String trim(String value) {
         return value != null ? value.trim() : "";
     }
 
     /**
-     * 创建成功后只返回 applicationId，完整列表由前端按需重新加载。
+     * After successful creation, only return applicationId; full list is reloaded by frontend as needed.
      */
     private Map<String, Object> idPayload(String applicationId) {
         Map<String, Object> data = new LinkedHashMap<>();

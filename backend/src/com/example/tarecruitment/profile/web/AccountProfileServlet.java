@@ -20,13 +20,13 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 /**
- * AccountProfileServlet - 账号资料和账号头像 API 入口。
+ * AccountProfileServlet - Account profile and account avatar API entry point.
  *
- * 路径：
- * - GET/POST/PUT /api/me/account：共享侧边栏/顶栏读取和保存账号资料。
- * - GET          /api/me/avatar：返回当前账号头像文件。
+ * Paths:
+ * - GET/POST/PUT /api/me/account: Shared sidebar/top bar read and save account profile.
+ * - GET          /api/me/avatar: Returns current account avatar file.
  *
- * Servlet 只处理 multipart、头像二进制响应和统一错误；业务同步逻辑在 AccountProfileService。
+ * Servlet only handles multipart, avatar binary response, and unified errors; business synchronization logic is in AccountProfileService.
  */
 @WebServlet(urlPatterns = {ApiRoutes.ME_ACCOUNT, ApiRoutes.ME_AVATAR})
 @MultipartConfig(
@@ -48,7 +48,7 @@ public class AccountProfileServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         User currentUser = accountProfileService.currentUser(request.getSession(false));
         if (isAvatarRequest(request)) {
-            // 头像是图片二进制响应，不包 ApiResponses 的 JSON 外壳。
+            // Avatar is image binary response, not wrapped in ApiResponses JSON shell.
             writeAvatar(response, currentUser);
             return;
         }
@@ -83,7 +83,7 @@ public class AccountProfileServlet extends HttpServlet {
         } catch (ServletException e) {
             String message = e.getMessage();
             if (message != null && message.toLowerCase().contains("size")) {
-                // Servlet 容器在超出 multipart 限制时会先抛异常，service 层拿不到 Part。
+                // Servlet container throws exception first when multipart limit is exceeded, service layer cannot get Part.
                 ApiResponses.write(response, 413, false,
                         "File size exceeds the maximum limit of 5MB. Please upload a smaller file.", null);
             } else {
@@ -124,7 +124,7 @@ public class AccountProfileServlet extends HttpServlet {
         } catch (ServletException e) {
             String contentType = request.getContentType();
             if (contentType == null || !contentType.toLowerCase().contains("multipart/form-data")) {
-                // 普通表单更新账号资料时没有 avatar part，这是合法请求。
+                // Normal form update account profile does not have avatar part, this is a valid request.
                 return null;
             }
             throw e;

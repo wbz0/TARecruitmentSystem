@@ -14,24 +14,24 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
- * RegisterServlet - 处理公开用户注册。
+ * RegisterServlet - Handles public user registration.
  *
- * 当前前端入口：register.jsp / js/auth/register.js。
- * 访问路径: /api/auth/register
+ * Current frontend entry: register.jsp / js/auth/register.js.
+ * Access path: /api/auth/register
  *
- * 公开注册只允许 TA/MO。Admin 注册必须走邀请页和邀请码验收流程。
+ * Public registration only allows TA/MO. Admin registration must go through invitation page and invite code acceptance process.
  */
 @WebServlet(ApiRoutes.AUTH_REGISTER)
 public class RegisterServlet extends HttpServlet {
 
     private UserDao userDao;
 
-    // 邮箱验证正则
+    // Email validation regex
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
 
-    // 用户名验证正则 (字母开头，允许字母数字下划线，3-20字符)
+    // Username validation regex (letter start, allow letters numbers underscore, 3-20 characters)
     private static final Pattern USERNAME_PATTERN = Pattern.compile(
         "^[a-zA-Z][a-zA-Z0-9_]{2,19}$"
     );
@@ -40,7 +40,7 @@ public class RegisterServlet extends HttpServlet {
     private static final int PASSWORD_MIN_LENGTH = 8;
     private static final int PASSWORD_MAX_LENGTH = 100;
 
-    // 简单的日志方法
+    // Simple logging method
     private void logInfo(String message) {
         Logger.i("RegisterServlet", message);
     }
@@ -73,7 +73,7 @@ public class RegisterServlet extends HttpServlet {
             String email = request.getParameter("email");
             String roleStr = request.getParameter("role");
 
-            // 输入验证
+            // Input validation
             String error = validateInput(username, password, confirmPassword, email, roleStr);
             if (error != null) {
                 logInfo("Validation failed: " + error);
@@ -81,12 +81,12 @@ public class RegisterServlet extends HttpServlet {
                 return;
             }
 
-            // 去除首尾空格（密码保留原样）
+            // Trim leading/trailing spaces (password kept as is)
             username = username.trim().toLowerCase();
             email = email.trim();
             roleStr = roleStr.trim();
 
-            // 解析角色（公开注册仅允许 TA / MO），ADMIN 必须走 admin invite。
+            // Parse role (public registration only allows TA / MO), ADMIN must go through admin invite.
             User.Role role;
             try {
                 role = parsePublicRole(roleStr);
@@ -96,14 +96,14 @@ public class RegisterServlet extends HttpServlet {
                 return;
             }
 
-            // 创建用户
+            // Create user
             logInfo("Attempting to create user: " + username);
             User user = new User(username, password, email, role);
             User savedUser = userDao.create(user);
 
             logInfo("User registered successfully: " + username + ", role: " + role);
 
-            // 注册成功
+            // Registration success
             ApiResponses.write(
                     response,
                     201,
@@ -116,7 +116,7 @@ public class RegisterServlet extends HttpServlet {
             );
 
         } catch (IllegalArgumentException e) {
-            // 用户名或邮箱已存在
+            // Username or email already exists
             logInfo("Registration failed: " + e.getMessage());
             ApiResponses.write(response, 409, false, e.getMessage(), null);
         } catch (Exception e) {
@@ -126,18 +126,18 @@ public class RegisterServlet extends HttpServlet {
     }
 
     /**
-     * 验证输入
-     * @return 错误信息，如果验证通过返回null
+     * Validate input
+     * @return Error message, or null if validation passes
      */
     private String validateInput(String username, String password,
                                   String confirmPassword, String email, String role) {
         String usernameText = username != null ? username.trim().toLowerCase() : "";
         String emailText = email != null ? email.trim() : "";
-        String passwordText = password != null ? password : "";           // 密码不 trim，避免悄悄改变用户输入。
-        String confirmPasswordText = confirmPassword != null ? confirmPassword : ""; // 确认密码同样不 trim。
+        String passwordText = password != null ? password : "";           // Password not trimmed to avoid silently changing user input.
+        String confirmPasswordText = confirmPassword != null ? confirmPassword : ""; // Confirm password also not trimmed.
         String roleText = role != null ? role.trim().toUpperCase() : "";
 
-        // 验证用户名
+        // Validate username
         if (usernameText.isEmpty()) {
             return "Username is required";
         }
@@ -157,7 +157,7 @@ public class RegisterServlet extends HttpServlet {
             return "Username cannot end with an underscore";
         }
 
-        // 验证密码
+        // Validate password
         if (passwordText.isEmpty()) {
             return "Password is required";
         }
@@ -174,7 +174,7 @@ public class RegisterServlet extends HttpServlet {
             return "Password must contain at least one letter and one number";
         }
 
-        // 验证确认密码
+        // Validate confirm password
         if (confirmPasswordText.isEmpty()) {
             return "Please confirm your password";
         }
@@ -182,7 +182,7 @@ public class RegisterServlet extends HttpServlet {
             return "Passwords do not match";
         }
 
-        // 验证邮箱
+        // Validate email
         if (emailText.isEmpty()) {
             return "Email is required";
         }
@@ -196,7 +196,7 @@ public class RegisterServlet extends HttpServlet {
             return "Invalid email format";
         }
 
-        // 验证角色
+        // Validate role
         if (roleText.isEmpty()) {
             return "Please select a role";
         }
@@ -258,7 +258,7 @@ public class RegisterServlet extends HttpServlet {
     }
 
     private User.Role parsePublicRole(String roleText) {
-        // Admin 的入口不在这里，避免公开注册接口绕过邀请码。
+        // Admin entry is not here to avoid public registration endpoint bypassing invite code.
         if (roleText == null) {
             throw new IllegalArgumentException("Invalid role selected");
         }

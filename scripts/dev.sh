@@ -21,6 +21,125 @@ WEBAPP_DIR="$PROJECT_ROOT/frontend/webapp"
 BUILD_DIR="$PROJECT_ROOT/build"
 TARGET_DIR="$CATALINA_HOME/webapps/$APP_NAME"
 FRONTEND_DIR="$PROJECT_ROOT/frontend/webapp"
+HTTP_PORT="${TOMCAT_HTTP_PORT:-8080}"
+LOGIN_URL="http://localhost:${HTTP_PORT}/${APP_NAME}/login.jsp"
+PORT_RELEASE_TIMEOUT_SECONDS="${PORT_RELEASE_TIMEOUT_SECONDS:-10}"
+STARTUP_TIMEOUT_SECONDS="${STARTUP_TIMEOUT_SECONDS:-120}"
+
+require_command() {
+    local command_name="$1"
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "[ERROR] Missing required command: $command_name"
+        exit 1
+    fi
+}
+
+port_listener_pids() {
+    lsof -tiTCP:"$HTTP_PORT" -sTCP:LISTEN 2>/dev/null | sort -u
+}
+
+tomcat_process_pids() {
+    ps -axo pid=,command= | awk '/org\.apache\.catalina\.startup\.Bootstrap/ {print $1}'
+}
+
+is_port_listening() {
+    [ -n "$(port_listener_pids)" ]
+}
+
+wait_for_port_release() {
+    local deadline=$((SECONDS + PORT_RELEASE_TIMEOUT_SECONDS))
+    local stable_free_count=0
+    while [ "$SECONDS" -lt "$deadline" ]; do
+        if ! is_port_listening; then
+            stable_free_count=$((stable_free_count + 1))
+            if [ "$stable_free_count" -ge 2 ]; then
+                return 0
+            fi
+        else
+            stable_free_count=0
+        fi
+        sleep 1
+    done
+    return 1
+}
+
+kill_tomcat_processes() {
+    local pids
+    pids="$(tomcat_process_pids)"
+    if [ -z "$pids" ]; then
+        return 0
+    fi
+
+    echo "  Killing old Tomcat process(es): $(echo "$pids" | tr '\n' ' ')"
+    echo "$pids" | xargs kill >/dev/null 2>&1 || true
+    sleep 2
+
+    pids="$(tomcat_process_pids)"
+    if [ -n "$pids" ]; then
+        echo "  Force killing old Tomcat process(es): $(echo "$pids" | tr '\n' ' ')"
+        echo "$pids" | xargs kill -9 >/dev/null 2>&1 || true
+        sleep 1
+    fi
+}
+
+kill_port_listeners() {
+    local pids
+    pids="$(port_listener_pids)"
+    if [ -z "$pids" ]; then
+        return 0
+    fi
+
+    echo "  Port $HTTP_PORT is still occupied. Killing listener process(es): $(echo "$pids" | tr '\n' ' ')"
+    echo "$pids" | xargs kill >/dev/null 2>&1 || true
+    sleep 2
+
+    pids="$(port_listener_pids)"
+    if [ -n "$pids" ]; then
+        echo "  Port $HTTP_PORT is still occupied. Force killing listener process(es): $(echo "$pids" | tr '\n' ' ')"
+        echo "$pids" | xargs kill -9 >/dev/null 2>&1 || true
+        sleep 1
+    fi
+}
+
+show_startup_diagnostics() {
+    echo ""
+    echo "[ERROR] Tomcat did not pass startup verification."
+    echo "  Expected port: $HTTP_PORT"
+    echo "  Expected URL: $LOGIN_URL"
+    echo ""
+
+    echo "Current port listener:"
+    lsof -nP -iTCP:"$HTTP_PORT" -sTCP:LISTEN 2>/dev/null || echo "  No listener on port $HTTP_PORT"
+
+    if [ -f "$CATALINA_HOME/logs/catalina.out" ]; then
+        echo ""
+        echo "Last Tomcat log lines:"
+        tail -n 80 "$CATALINA_HOME/logs/catalina.out"
+    fi
+}
+
+wait_for_startup_verification() {
+    local deadline=$((SECONDS + STARTUP_TIMEOUT_SECONDS))
+    local status
+
+    while [ "$SECONDS" -lt "$deadline" ]; do
+        if is_port_listening; then
+            status="$(curl -sS -o /dev/null -w "%{http_code}" "$LOGIN_URL" 2>/dev/null || true)"
+            if [ "$status" = "200" ]; then
+                echo "  Port $HTTP_PORT is listening."
+                echo "  $LOGIN_URL returned 200."
+                return 0
+            fi
+            echo "  Waiting for $LOGIN_URL to return 200 (current: ${status:-no response})..."
+        else
+            echo "  Waiting for port $HTTP_PORT to start listening..."
+        fi
+        sleep 2
+    done
+
+    show_startup_diagnostics
+    return 1
+}
 
 echo "========================================"
 echo "  Dev Script - All in One"
@@ -49,6 +168,9 @@ if [ ! -d "$TOMCAT_HOME" ]; then
     echo "Please check config.sh"
     exit 1
 fi
+
+require_command lsof
+require_command curl
 
 CLASSPATH="$TOMCAT_HOME/lib/servlet-api.jar:$BUILD_DIR/WEB-INF/classes"
 
@@ -97,7 +219,19 @@ if ! "$CATALINA_HOME/bin/shutdown.sh" >/dev/null 2>&1; then
     echo "  Tomcat was not running."
 fi
 
-sleep 2
+kill_tomcat_processes
+
+if ! wait_for_port_release; then
+    kill_port_listeners
+fi
+
+if is_port_listening; then
+    echo "[ERROR] Port $HTTP_PORT is still occupied after kill attempts."
+    lsof -nP -iTCP:"$HTTP_PORT" -sTCP:LISTEN 2>/dev/null || true
+    exit 1
+fi
+
+echo "  Port $HTTP_PORT is free."
 
 echo "  Deploying to Tomcat..."
 
@@ -147,7 +281,14 @@ if [ ! -d "$CATALINA_HOME" ]; then
     exit 1
 fi
 
-"$CATALINA_HOME/bin/startup.sh"
+if ! "$CATALINA_HOME/bin/startup.sh"; then
+    echo "[ERROR] Failed to execute Tomcat startup.sh"
+    exit 1
+fi
+
+if ! wait_for_startup_verification; then
+    exit 1
+fi
 
 echo ""
 echo "========================================"
@@ -155,10 +296,12 @@ echo "  All Done!"
 echo "========================================"
 echo ""
 echo "Access URLs:"
-echo "  - Home: http://localhost:8080/$APP_NAME/"
-echo "  - Login: http://localhost:8080/$APP_NAME/login.jsp"
+echo "  - Home: http://localhost:$HTTP_PORT/$APP_NAME/"
+echo "  - Login: $LOGIN_URL"
 echo ""
-echo "Tomcat Manager: http://localhost:8080/manager/html"
+echo "Tomcat Manager: http://localhost:$HTTP_PORT/manager/html"
 echo ""
 
-read -p "Press Enter to exit..."
+if [ -t 0 ]; then
+    read -p "Press Enter to exit..."
+fi

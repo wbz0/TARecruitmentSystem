@@ -19,11 +19,11 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * ApplicantProfileService - 当前 TA 的申请人档案业务服务。
+ * ApplicantProfileService - Current TA applicant profile business service.
  *
- * 被 ApplicantProfileServlet 调用，对应 /api/me/applicant-profile。
- * 它负责档案创建/更新、简历草稿落正式文件、头像删除、学号唯一性，
- * 以及把 TA 真实姓名同步到账号和历史申请快照，保证前端多个页面显示一致。
+ * Called by ApplicantProfileServlet, corresponds to /api/me/applicant-profile.
+ * It is responsible for profile create/update, resume draft to formal file, photo deletion, student ID uniqueness,
+ * and syncing TA real name to account and historical application snapshot to ensure consistent display across multiple frontend pages.
  */
 public class ApplicantProfileService {
 
@@ -55,7 +55,7 @@ public class ApplicantProfileService {
 
         Optional<Applicant> applicantOpt = applicantDao.findByUserId(currentUser.getUserId());
         if (applicantOpt.isEmpty()) {
-            // TA 首次进入档案页时可能还没保存档案，但会话里可能已有“待保存简历草稿”。
+            // TA first entering profile page may not have saved profile yet, but session may have pending resume draft.
             return ServiceResult.of(404, false, "Applicant profile not found",
                     ApplicantProfileResponseMapper.draftResumePayload(session, assetService));
         }
@@ -108,14 +108,14 @@ public class ApplicantProfileService {
             String draftResumeName = assetService.getDraftResumeName(session);
             boolean clearDraftAfterSave = false;
             if (ApplicantProfileValidator.isNotEmpty(draftResumePath)) {
-                // 普通表单保存时，先把单独上传的草稿简历复制到正式 resumes 目录。
+                // For regular form save, first copy separately uploaded draft resume to formal resumes directory.
                 newResumePath = assetService.copyDraftResumeToFinal(draftResumePath, currentUser.getUserId(), draftResumeName);
                 applicant.setResumePath(newResumePath);
                 clearDraftAfterSave = true;
             }
 
             if (input.isRemovePhoto()) {
-                // removePhoto 来自前端显式删除头像动作，不代表本次没有上传 photo。
+                // removePhoto comes from frontend explicit avatar delete action; does not mean no photo uploaded this time.
                 applicant.setPhotoPath("");
             }
 
@@ -125,7 +125,7 @@ public class ApplicantProfileService {
 
             Applicant savedApplicant = saveApplicant(applicant, isUpdate);
             persisted = true;
-            // TA fullName 是账号实名和申请列表里 applicantName 的共同来源。
+            // TA fullName is the common source for account realName and applicantName in application list.
             syncAccountRealName(currentUser, savedApplicant.getFullName(), session);
             syncApplicationApplicantName(savedApplicant);
 
@@ -197,7 +197,7 @@ public class ApplicantProfileService {
 
             Part resumePart = upload.getResumePart();
             if (resumePart != null) {
-                // multipart 保存路径是“直接带文件提交”；非 multipart 才走草稿简历状态。
+                // multipart save path is “direct file submission”; non-multipart uses draft resume state.
                 String fileError = ProfileAssetValidator.validateResumeFile(resumePart);
                 if (fileError != null) {
                     return ServiceResult.badRequest(fileError);
@@ -207,7 +207,7 @@ public class ApplicantProfileService {
                 currentResumeName = ProfileAssetValidator.extractFileName(resumePart);
                 clearDraftAfterSave = assetService.hasDraftResume(session);
             } else if (assetService.hasDraftResume(session)) {
-                // 允许用户先上传草稿简历，再用普通表单保存其它档案字段。
+                // Allow user to upload draft resume first, then save other profile fields with regular form.
                 newResumePath = assetService.copyDraftResumeToFinal(
                         assetService.getDraftResumePath(session),
                         currentUser.getUserId(),
@@ -238,7 +238,7 @@ public class ApplicantProfileService {
             }
 
             if (isUpdate) {
-                // PUT/multipart 更新只覆盖请求里出现的字段，避免把未展示或未传字段清空。
+                // PUT/multipart update only overwrites fields present in request; avoid clearing unset or unshown fields.
                 applyProvidedFields(applicant, input);
             } else {
                 applyAllFields(applicant, input);
@@ -282,7 +282,7 @@ public class ApplicantProfileService {
     private ServiceResult validateStudentIdAvailability(String studentId,
                                                         Optional<Applicant> currentApplicant,
                                                         boolean isUpdate) {
-        // studentId 是 TA 档案的唯一键之一；更新自己原来的学号不算重复。
+        // studentId is one of TA profile unique keys; updating own original student ID is not considered duplicate.
         Optional<Applicant> existingWithStudentId = applicantDao.findByStudentId(studentId);
         if (existingWithStudentId.isPresent()) {
             if (!isUpdate || currentApplicant.isEmpty()
@@ -355,7 +355,7 @@ public class ApplicantProfileService {
         }
 
         for (Application application : applicationDao.findByApplicantId(applicant.getApplicantId())) {
-            // 申请 CSV 保存了一份 applicantName 快照，用于 MO/Admin 列表不必回查档案。
+            // Application CSV saves applicantName snapshot; used so MO/Admin list doesn't need to query profile.
             String currentName = application.getApplicantName() == null ? "" : application.getApplicantName();
             if (!fullName.equals(currentName)) {
                 application.setApplicantName(fullName);

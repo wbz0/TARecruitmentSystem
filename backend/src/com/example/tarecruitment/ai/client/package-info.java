@@ -1,6 +1,6 @@
 /**
- * AI 客户端与配置层。
+ * AI client and configuration layer.
  *
- * <p>负责读取本地 properties、系统属性和环境变量，并封装对外部 AI 服务的 HTTP 调用。
+ * <p>Responsible for reading local properties, system properties, and environment variables, and encapsulating HTTP calls to external AI services.
  */
 package com.example.tarecruitment.ai.client;

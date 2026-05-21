@@ -1,6 +1,6 @@
 /**
- * 通用搜索包。
+ * Common search package.
  *
- * <p>提供轻量模糊搜索和匹配元数据，供职位和申请筛选等页面复用。
+ * <p>Provides lightweight fuzzy search and matching metadata for reuse across job and application filtering pages.
  */
 package com.example.tarecruitment.common.search;

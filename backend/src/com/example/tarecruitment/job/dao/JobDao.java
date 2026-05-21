@@ -15,10 +15,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * JobDao - 职位数据访问对象。
+ * JobDao - Job data access object.
  *
- * 只负责 jobs.csv 的读写、简单查询和搜索字段提取，不读取 request/session，也不做权限判断。
- * JobService 负责业务规则，JobResponseMapper 负责前端 payload。
+ * Only responsible for jobs.csv read/write, simple queries and search field extraction, does not read request/session or do permission checks.
+ * JobService is responsible for business rules, JobResponseMapper is responsible for frontend payload.
  */
 public class JobDao {
 
@@ -47,7 +47,7 @@ public class JobDao {
     }
 
     /**
-     * 初始化职位数据文件；字段顺序要和 Job.toCsv()/fromCsv() 保持一致。
+     * Initialize job data file; field order must be consistent with Job.toCsv()/fromCsv().
      */
     private void initJobFile() {
         File jobFile = new File(JOB_FILE);
@@ -68,7 +68,7 @@ public class JobDao {
     }
 
     /**
-     * 读取所有职位；上层需要筛选时在 service 层组合条件。
+     * Read all jobs; when upper layer needs filtering, combine conditions in service layer.
      */
     private List<Job> readAllJobs() {
         initJobFile();
@@ -106,7 +106,7 @@ public class JobDao {
     }
 
     /**
-     * 写入所有职位；先写临时文件再原子替换，降低写一半导致 CSV 损坏的风险。
+     * Write all jobs; write to temp file first then atomically replace, reducing risk of CSV corruption from half-written.
      */
     private void writeAllJobs(List<Job> jobs) {
         Path targetPath = Path.of(JOB_FILE);
@@ -129,7 +129,7 @@ public class JobDao {
     }
 
     /**
-     * 根据ID查找职位
+     * Find job by ID
      */
     public Optional<Job> findById(String jobId) {
         return readAllJobs().stream()
@@ -138,7 +138,7 @@ public class JobDao {
     }
 
     /**
-     * 根据课程代码查找职位
+     * Find jobs by course code
      */
     public List<Job> findByCourseCode(String courseCode) {
         return readAllJobs().stream()
@@ -147,7 +147,7 @@ public class JobDao {
     }
 
     /**
-     * 根据MO ID查找职位
+     * Find jobs by MO ID
      */
     public List<Job> findByMoId(String moId) {
         return readAllJobs().stream()
@@ -156,7 +156,7 @@ public class JobDao {
     }
 
     /**
-     * 根据状态查找职位
+     * Find jobs by status
      */
     public List<Job> findByStatus(Job.Status status) {
         LocalDateTime now = LocalDateTime.now();
@@ -166,14 +166,14 @@ public class JobDao {
     }
 
     /**
-     * 获取所有开放职位
+     * Get all open jobs
      */
     public List<Job> findOpenJobs() {
         return findByStatus(Job.Status.OPEN);
     }
 
     /**
-     * 保存职位（新建或更新）
+     * Save job (create or update)
      */
     public Job save(Job job) {
         List<Job> jobs = readAllJobs();
@@ -194,14 +194,14 @@ public class JobDao {
     }
 
     /**
-     * 创建新职位
+     * Create new job
      */
     public Job create(Job job) {
         return save(job);
     }
 
     /**
-     * 更新职位
+     * Update job
      */
     public Job update(Job job) {
         List<Job> jobs = readAllJobs();
@@ -217,7 +217,7 @@ public class JobDao {
     }
 
     /**
-     * 删除职位
+     * Delete job
      */
     public boolean delete(String jobId) {
         List<Job> jobs = readAllJobs();
@@ -231,14 +231,14 @@ public class JobDao {
     }
 
     /**
-     * 获取所有职位
+     * Get all jobs
      */
     public List<Job> findAll() {
         return new ArrayList<>(readAllJobs());
     }
 
     /**
-     * 更新职位状态
+     * Update job status
      */
     public boolean updateStatus(String jobId, Job.Status status) {
         Optional<Job> jobOpt = findById(jobId);
@@ -253,16 +253,16 @@ public class JobDao {
     }
 
     /**
-     * 获取职位数量
+     * Get job count
      */
     public long count() {
         return readAllJobs().size();
     }
 
     /**
-     * 获取开放职位数量。
+     * Get open job count.
      *
-     * 这里使用 effective status，所以超过截止时间的 OPEN 岗位会被统计为非开放。
+     * Uses effective status here, so OPEN positions past deadline are counted as not open.
      */
     public long countOpenJobs() {
         LocalDateTime now = LocalDateTime.now();
@@ -272,14 +272,14 @@ public class JobDao {
     }
 
     /**
-     * 清空所有职位（仅用于测试和 demo 数据重置）。
+     * Clear all jobs (only for test and demo data reset).
      */
     public void deleteAll() {
         writeAllJobs(new ArrayList<>());
     }
 
     /**
-     * 批量创建职位（仅用于测试初始化和 DemoDataSeeder）。
+     * Batch create jobs (only for test initialization and DemoDataSeeder).
      */
     public void batchCreate(List<Job> jobs) {
         List<Job> existingJobs = readAllJobs();
@@ -288,17 +288,17 @@ public class JobDao {
     }
 
     /**
-     * 根据关键词搜索职位。
+     * Search jobs by keyword.
      *
-     * 遗留/待移除：外部主流程通常走 searchWithMetadata，以便前端知道 approximateOnly。
-     * 如果确认没有测试或旧调用依赖只返回列表的 search，可后续收敛到一个搜索入口。
+     * Legacy/to be removed: external main flow usually goes through searchWithMetadata so frontend knows approximateOnly.
+     * If confirmed no tests or old calls depend on list-returning search, can later converge to one search entry.
      */
     public List<Job> search(String keyword) {
         return searchWithMetadata(keyword, readAllJobs()).getItems();
     }
 
     /**
-     * 在给定候选集合中执行统一 fuzzy 搜索，并返回匹配元信息。
+     * Execute unified fuzzy search on given candidate collection and return match metadata.
      */
     public FuzzySearchUtil.SearchOutcome<Job> searchWithMetadata(String keyword, List<Job> baseJobs) {
         List<Job> safeBase = baseJobs == null ? readAllJobs() : new ArrayList<>(baseJobs);

@@ -8,15 +8,16 @@ import java.util.Locale;
 import java.util.Properties;
 
 /**
- * DeepSeek OpenAI-compatible API 配置。
+ * DeepSeek OpenAI-compatible API configuration.
  *
- * 读取优先级：本地 properties 文件 > System Property > Environment Variable。
- * 这份配置支撑“推荐类”AI 功能；配置本身不在前端展示。
- * 如果 key 缺失或还是占位符，服务层会返回 AI 暂不可用，而不是生成本地假推荐。
+ * Read priority: local properties file > System Property > Environment Variable.
+ * This configuration supports “recommendation” AI features; the configuration itself is not displayed on the frontend.
+ * If the key is missing or still a placeholder, the service layer will return “AI temporarily unavailable”,
+ * rather than generating local fake recommendations.
  */
 public final class DeepSeekAiConfig {
 
-    // 本地密钥文件路径；*.local.properties 不提交仓库。
+    // Local secret file path; *.local.properties are not committed to the repository.
     private static final String LOCAL_CONFIG_PATH = "/WEB-INF/ai/deepseek.local.properties";
     private static final String DEFAULT_BASE_URL = "https://api.deepseek.com";
     private static final String DEFAULT_MODEL = "deepseek-v4-flash";
@@ -35,15 +36,15 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 加载 DeepSeek 配置。
+     * Load DeepSeek configuration.
      *
-     * 本地 properties 适合课程演示，System Property/Environment Variable 适合部署；
-     * 调用方不需要知道配置来自哪里。
+     * Local properties are suitable for course demos; System Property/Environment Variable are suitable for deployment.
+     * Callers don't need to know where the configuration comes from.
      */
     public static DeepSeekAiConfig load(ServletContext servletContext) {
         Properties localProps = loadLocalProperties(servletContext);
 
-        // 本地文件适合课堂演示；System Property / Environment Variable 适合部署环境。
+        // Local file is suitable for classroom demos; System Property / Environment Variable is suitable for deployment.
         String apiKey = readConfig(localProps, "deepseek.api.key", "deepseek.api.key", "DEEPSEEK_API_KEY");
         String baseUrl = readConfig(localProps, "deepseek.base-url", "deepseek.base-url", "DEEPSEEK_BASE_URL");
         String model = readConfig(localProps, "deepseek.model", "deepseek.model", "DEEPSEEK_MODEL");
@@ -69,9 +70,10 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 判断 API key 是否真实配置。
+     * Check if API key is genuinely configured.
      *
-     * 占位符会被视为未配置，推荐类 AI 将返回“暂不可用”，不会走本地假推荐。
+     * Placeholders are treated as not configured; recommendation AI will return “temporarily unavailable”,
+     * and will not use local fake recommendations.
      */
     public boolean isApiKeyConfigured() {
         if (isBlank(apiKey)) {
@@ -86,7 +88,7 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 读取 WEB-INF 下的本地配置文件。
+     * Read local configuration file under WEB-INF.
      */
     private static Properties loadLocalProperties(ServletContext servletContext) {
         Properties properties = new Properties();
@@ -104,7 +106,7 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 按本地文件 -> JVM 参数 -> 环境变量的顺序读取配置。
+     * Read configuration in order: local file -> JVM argument -> environment variable.
      */
     private static String readConfig(Properties localProps, String localKey, String propertyName, String envName) {
         String localValue = localProps.getProperty(localKey);
@@ -125,7 +127,7 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 解析超时时间，非法值回退默认值。
+     * Parse timeout; invalid values fallback to default.
      */
     private static long parseTimeout(String text) {
         if (isBlank(text)) {
@@ -140,7 +142,7 @@ public final class DeepSeekAiConfig {
     }
 
     /**
-     * 规范化 base URL，去掉尾部斜杠，避免拼接 /chat/completions 时出现双斜杠。
+     * Normalize base URL, remove trailing slashes to avoid double slashes when appending /chat/completions.
      */
     private static String normalizeBaseUrl(String url) {
         String normalized = isBlank(url) ? DEFAULT_BASE_URL : url.trim();

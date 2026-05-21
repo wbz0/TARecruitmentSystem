@@ -1,6 +1,6 @@
 /**
- * AI 能力领域包。
+ * AI capability domain package.
  *
- * <p>包含 DeepSeek 推荐搜索和对应 API 入口。
+ * <p>Contains DeepSeek recommendation search and corresponding API entry points.
  */
 package com.example.tarecruitment.ai;

@@ -1,8 +1,8 @@
 /*
- * TA 申请详情页脚本，对应 /jsp/ta/application-detail.jsp。
+ * TA application detail page script, corresponds to /jsp/ta/application-detail.jsp.
  *
- * 根据 URL 中的 application id 同时读取申请详情、申请人快照和岗位详情。
- * 只有 PENDING 状态展示撤回按钮，撤回通过 /api/applications/{applicationId}/transition 完成。
+ * Reads application details, applicant snapshot, and job details from the URL application id.
+ * Only PENDING status shows the withdraw button; withdrawal is done via /api/applications/{applicationId}/transition.
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -29,7 +29,7 @@
     var withdrawButton = document.getElementById("withdraw-application-btn");
 
     var state = {
-        // application 是主记录；applicant/job 是为了补充页面上的档案提示和岗位摘要。
+        // application is the primary record; applicant/job are for supplementary profile hints and job summary on the page.
         applicationId: "",
         application: null,
         applicant: null,
@@ -413,7 +413,7 @@
         var deadline = formatDisplayDateTime(job.deadline);
         var deadlineText = deadline;
         if (deadline && deadline !== "—") {
-            deadlineText = t("portal.taApplicationDetail.deadlinePrefix", "截至") + " " + deadline;
+            deadlineText = t("portal.taApplicationDetail.deadlinePrefix", "Deadline") + " " + deadline;
         }
 
         meta.appendChild(teaserMetaItem("workload", t("portal.taApplicationDetail.workload", "Workload"), workload));

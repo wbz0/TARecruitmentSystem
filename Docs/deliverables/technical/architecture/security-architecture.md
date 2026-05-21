@@ -1,17 +1,17 @@
-# 安全架构设计
+# Security Architecture Design
 
-## 1. 安全设计概述
+## 1. Security Design Overview
 
-TA Hiring System 的安全架构基于 **Jakarta Servlet Filter** 实现，采用集中的请求过滤和基于角色的访问控制 (RBAC) 策略。
+The security architecture of TA Hiring System is implemented based on **Jakarta Servlet Filter**, adopting centralized request filtering and Role-Based Access Control (RBAC) strategy.
 
 ---
 
-## 2. 认证机制
+## 2. Authentication Mechanism
 
-### 2.1 登录认证流程
+### 2.1 Login Authentication Flow
 
 ```
-用户提交登录请求 (username/email + password)
+User submits login request (username/email + password)
     │
     ▼
 LoginServlet.doPost()
@@ -19,76 +19,76 @@ LoginServlet.doPost()
     ▼
 UserDao.verifyLogin(usernameOrEmail, password)
     │
-    ├── 用户不存在或密码错误 → 返回错误信息
+    ├── User does not exist or password incorrect → Return error message
     │
-    └── 验证成功 → 创建 Session
+    └── Verification successful → Create Session
                       │
                       ▼
                  Session.setAttribute("user", User)
                       │
                       ▼
-                 重定向到角色对应仪表盘
+                 Redirect to role-specific dashboard
 ```
 
-### 2.2 密码安全
+### 2.2 Password Security
 
-**密码存储**：
+**Password Storage**:
 
-- 算法：SHA-256
-- 存储：密码哈希值（非明文）
+- Algorithm: SHA-256
+- Storage: Password hash (not plaintext)
 
 ```java
 private String hashPassword(String password) {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
     byte[] hash = digest.digest(password.getBytes("UTF-8"));
-    // 转换为十六进制字符串
+    // Convert to hex string
     return hexString.toString();
 }
 ```
 
-### 2.3 会话管理
+### 2.3 Session Management
 
-**会话存储**：
+**Session Storage**:
 
-- 使用 HttpSession 存储用户信息
-- Session 存储用户对象 (User)
+- Use HttpSession to store user information
+- Session stores user object (User)
 
 ```java
-// 登录时
+// On login
 HttpSession session = request.getSession(true);
 session.setAttribute("user", user);
 
-// 获取当前登录用户
+// Get current logged-in user
 User user = (User) session.getAttribute("user");
 ```
 
-**会话配置** (web.xml)：
+**Session Configuration** (web.xml):
 
 ```xml
 <session-config>
-    <session-timeout>30</session-timeout>  <!-- 30分钟 -->
+    <session-timeout>30</session-timeout>  <!-- 30 minutes -->
 </session-config>
 ```
 
 ---
 
-## 3. 权限控制
+## 3. Authorization Control
 
-### 3.1 基于角色的访问控制 (RBAC)
+### 3.1 Role-Based Access Control (RBAC)
 
-系统定义了三种角色：
+The system defines three roles:
 
-| 角色            | 说明                      | 主要权限                         |
-| --------------- | ------------------------- | -------------------------------- |
-| **TA**    | Teaching Assistant 申请人 | 查看职位、申请职位、管理个人档案 |
-| **MO**    | Module Owner 模块负责人   | 发布职位、审核申请、AI 推荐和申请分析   |
-| **ADMIN** | 系统管理员                | 工作量统计、发送邀请             |
+| Role | Description | Main Permissions |
+|------|-------------|-------------------|
+| **TA** | Teaching Assistant Applicant | View jobs, apply for jobs, manage personal profile |
+| **MO** | Module Owner | Post jobs, review applications, AI recommendations and application analysis |
+| **ADMIN** | System Administrator | Workload statistics, send invitations |
 
-### 3.2 AuthFilter 权限验证
+### 3.2 AuthFilter Permission Verification
 
-`AuthFilter` 是核心的安全过滤器，使用 `@WebFilter("/*")` 注解自动拦截所有请求。
+`AuthFilter` is the core security filter, automatically intercepting all requests using `@WebFilter("/*")` annotation.
 
-**公开路径 (无需登录)**：
+**Public Paths (no login required)**:
 
 ```java
 PUBLIC_PATHS = {
@@ -100,53 +100,53 @@ PUBLIC_PATHS = {
     "/api/auth/logout",
     "/api/auth/availability",
     "/api/admin/invitations/acceptance",
-    "/api/jobs"  // 职位公开列表
+    "/api/jobs"  // Public job list
 }
 ```
 
-**权限矩阵**：
+**Permission Matrix**:
 
-| 路径模式                                          | TA                         | MO | ADMIN |
-| ------------------------------------------------- | -------------------------- | -- | ----- |
-| `/jsp/ta/*`                                     | ✓                         | ✗ | ✗    |
-| `/jsp/mo/*`                                     | ✗                         | ✓ | ✗*   |
-| `/jsp/admin/*`                                  | ✗                         | ✗ | ✓    |
-| `/api/ta/*`                                     | ✓                         | ✓ | ✗    |
-| `/api/mo/*`                                     | ✗                         | ✓ | ✗    |
-| `/api/jobs`                                     | TA 可读，MO 可管理本人职位 | ✓ | ✗    |
-| `/api/me/applicant-profile/*`                   | ✓                         | ✗ | ✗    |
-| `/api/applications/{applicationId}/applicant/*` | ✓                         | ✓ | ✓    |
+| Path Pattern | TA | MO | ADMIN |
+| ------------------------------------------------- | --- | --- | ----- |
+| `/jsp/ta/*` | ✓ | ✗ | ✗ |
+| `/jsp/mo/*` | ✗ | ✓ | ✗* |
+| `/jsp/admin/*` | ✗ | ✗ | ✓ |
+| `/api/ta/*` | ✓ | ✓ | ✗ |
+| `/api/mo/*` | ✗ | ✓ | ✗ |
+| `/api/jobs` | TA can read, MO can manage their own jobs | ✓ | ✗ |
+| `/api/me/applicant-profile/*` | ✓ | ✗ | ✗ |
+| `/api/applications/{applicationId}/applicant/*` | ✓ | ✓ | ✓ |
 
-### 3.3 权限验证流程
+### 3.3 Permission Verification Flow
 
 ```java
 public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     String path = getPath(httpRequest);
 
-    // 1. 检查是否为公开路径
+    // 1. Check if it's a public path
     if (isPublicPath(path)) {
         chain.doFilter(request, response);
         return;
     }
 
-    // 2. 检查登录状态
+    // 2. Check login status
     HttpSession session = httpRequest.getSession(false);
     User user = session != null ? (User) session.getAttribute("user") : null;
 
     if (user == null) {
         if (isAjaxRequest(httpRequest)) {
-            // AJAX 请求返回 401
+            // AJAX request returns 401
             response.setStatus(401);
             response.getWriter().write("{\"error\": \"Unauthorized\"}");
         } else {
-            // 普通请求重定向到登录页
+            // Normal request redirects to login page
             response.sendRedirect(contextPath + "/login.jsp");
         }
         return;
     }
 
-    // 3. 验证角色权限
+    // 3. Verify role permission
     if (!hasPermission(path, user.getRole())) {
         if (isAjaxRequest(httpRequest)) {
             response.setStatus(403);
@@ -157,46 +157,46 @@ public void doFilter(ServletRequest request, ServletResponse response, FilterCha
         return;
     }
 
-    // 4. 放行
+    // 4. Pass through
     chain.doFilter(request, response);
 }
 ```
 
 ---
 
-## 4. CSRF 防护
+## 4. CSRF Protection
 
-### 4.1 表单 Token
+### 4.1 Form Token
 
-系统使用隐藏字段存储 CSRF Token：
+The system uses hidden fields to store CSRF tokens:
 
 ```jsp
 <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
 ```
 
-### 4.2 请求验证
+### 4.2 Request Verification
 
 ```java
-// 在关键 Servlet 中验证
+// Verify in key Servlets
 String submittedToken = request.getParameter("csrfToken");
 String sessionToken = (String) session.getAttribute("csrfToken");
 
 if (!submittedToken.equals(sessionToken)) {
-    // 拒绝请求
+    // Reject request
     response.sendError(403, "Invalid CSRF token");
 }
 ```
 
 ---
 
-## 5. 输入验证
+## 5. Input Validation
 
-### 5.1 服务端验证
+### 5.1 Server-side Validation
 
-所有用户输入在服务端进行验证：
+All user input is validated on the server:
 
 ```java
-// 示例：注册验证
+// Example: Registration validation
 if (username == null || username.trim().isEmpty()) {
     return error("Username is required");
 }
@@ -208,25 +208,25 @@ if (userDao.existsByUsername(username)) {
 }
 ```
 
-### 5.2 XSS 防护
+### 5.2 XSS Protection
 
-- JSP 页面使用 EL 表达式自动转义
-- 富文本内容使用 HTML 编码
+- JSP pages use EL expressions for automatic escaping
+- Rich text content uses HTML encoding
 
 ```jsp
-<!-- 自动转义 -->
+<!-- Auto-escape -->
 <p>${user.username}</p>
 
-<!-- 手动编码 -->
+<!-- Manual encoding -->
 <p>${fn:escapeXml(user.bio)}</p>
 ```
 
-### 5.3 SQL 注入防护 (CSV 场景)
+### 5.3 SQL Injection Protection (CSV Scenario)
 
-虽然使用 CSV 存储，但仍进行输入清理：
+Although using CSV storage, input sanitization is still performed:
 
 ```java
-// CSV 转义
+// CSV escape
 private static String escapeCsv(String value) {
     if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
         return "\"" + value.replace("\"", "\"\"") + "\"";
@@ -237,36 +237,36 @@ private static String escapeCsv(String value) {
 
 ---
 
-## 6. 文件上传安全
+## 6. File Upload Security
 
-### 6.1 简历上传
+### 6.1 Resume Upload
 
-- **允许类型**: PDF
-- **大小限制**: 5MB (前端检查)
-- **文件名**: 使用 UUID 重命名
+- **Allowed types**: PDF
+- **Size limit**: 5MB (frontend check)
+- **Filename**: Renamed using UUID
 
 ```java
-// 生成安全文件名
+// Generate secure filename
 String extension = FilenameUtils.getExtension(originalFilename);
 String newFilename = userId + "_resume_" + System.currentTimeMillis() + "." + extension;
 ```
 
-### 6.2 头像上传
+### 6.2 Avatar Upload
 
-- **允许类型**: JPG, PNG, GIF
-- **大小限制**: 2MB (前端检查)
-- **存储路径**: `{DATA_DIR}/photos/`
+- **Allowed types**: JPG, PNG, GIF
+- **Size limit**: 2MB (frontend check)
+- **Storage path**: `{DATA_DIR}/photos/`
 
 ---
 
-## 7. Session 安全
+## 7. Session Security
 
-### 7.1 Session 固定防护
+### 7.1 Session Fixation Protection
 
-登录成功后重新创建 Session：
+Recreate Session after successful login:
 
 ```java
-// 登录成功
+// Login success
 HttpSession oldSession = request.getSession(false);
 if (oldSession != null) {
     oldSession.invalidate();
@@ -275,7 +275,7 @@ HttpSession newSession = request.getSession(true);
 newSession.setAttribute("user", user);
 ```
 
-### 7.2 登出处理
+### 7.2 Logout Handling
 
 ```java
 @Override
@@ -291,20 +291,20 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
 
 ---
 
-## 8. 敏感操作审计
+## 8. Sensitive Operation Audit
 
-### 8.1 日志记录
+### 8.1 Logging
 
-关键操作记录到控制台日志：
+Key operations are logged to console:
 
 ```java
 System.out.println("[AuthFilter] User " + user.getUsername() +
     " accessed " + path);
 ```
 
-### 8.2 短邀请码安全
+### 8.2 Short Invitation Code Security
 
-管理员入口使用 8 位短邀请码，由服务端密钥和时间窗口生成：
+Admin entry uses 8-character short invitation code, generated by server secret and time window:
 
 ```java
 String code = InviteCodeService.getInstance().getCurrentCode();
@@ -313,12 +313,12 @@ boolean valid = InviteCodeService.getInstance().isValidCode(code);
 
 ---
 
-## 9. 安全配置清单
+## 9. Security Configuration Checklist
 
-| 配置项       | 建议值        | 当前状态       |
-| ------------ | ------------- | -------------- |
-| Session 超时 | 30 分钟       | ✓ 30分钟      |
-| 密码哈希     | BCrypt/Argon2 | SHA-256 (演示) |
-| HTTPS        | 生产必须      | 开发环境可选   |
-| CORS         | 限制来源      | 未配置         |
-| 文件上传大小 | ≤ 5MB        | ✓ 前端检查    |
+| Configuration | Recommended Value | Current Status |
+|-------------|-------------------|----------------|
+| Session timeout | 30 minutes | ✓ 30 minutes |
+| Password hash | BCrypt/Argon2 | SHA-256 (demo) |
+| HTTPS | Required in production | Optional in dev |
+| CORS | Restrict origins | Not configured |
+| File upload size | ≤ 5MB | ✓ Frontend check |

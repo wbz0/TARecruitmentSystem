@@ -1,6 +1,6 @@
 /**
- * 通知领域 HTTP 入口层。
+ * Notification domain HTTP entry layer.
  *
- * <p>NotificationServlet 提供通知列表、管理员发布和删除接口。
+ * <p>NotificationServlet provides notification list, admin publish and delete interfaces.
  */
 package com.example.tarecruitment.notification.web;

@@ -1,13 +1,14 @@
 <%--
-    共享侧边栏片段。
+    Shared sidebar fragment.
 
-    调用页面必须先设置：
-    - contextPath：当前部署路径；
-    - portalRole：ta/mo/admin，用于决定导航项和品牌文案；
-    - activeNav：当前高亮导航；
-    - username/userInitial：底部用户区兜底展示。
+    Calling pages must define these values first:
+    - contextPath: current deployment path;
+    - portalRole: ta/mo/admin, used for nav items and brand copy;
+    - activeNav: the currently highlighted nav item;
+    - username/userInitial: fallback display values for the footer user area.
 
-    这里还包含 TA/MO 可编辑的账号资料弹窗，调用 /api/me/account 和 /api/me/avatar。
+    This fragment also contains the TA/MO editable account profile modal,
+    which calls /api/me/account and /api/me/avatar.
 --%>
 <%
     String sidebarRole = portalRole == null ? "" : portalRole;
@@ -60,14 +61,14 @@
                     <path d="M9 7.5V6A1.5 1.5 0 0 1 10.5 4.5h3A1.5 1.5 0 0 1 15 6v1.5"/>
                     <path d="M3 12h18"/>
                 </svg>
-                <span data-i18n="portal.nav.mo.myJobs">我的发布</span>
+                <span data-i18n="portal.nav.mo.myJobs">My Postings</span>
             </a>
             <a class="portal-nav-link <%= "post-job".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/mo/dashboard.jsp?tab=post-job">
                 <svg class="portal-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path d="M12 5v14"/>
                     <path d="M5 12h14"/>
                 </svg>
-                <span data-i18n="portal.nav.mo.postJob">发布新职位</span>
+                <span data-i18n="portal.nav.mo.postJob">Post New Job</span>
             </a>
         <% } else if ("admin".equals(sidebarRole)) { %>
             <a class="portal-nav-link <%= "dashboard".equals(sidebarActive) ? "is-active" : "" %>" href="<%= contextPath %>/jsp/admin/dashboard.jsp">
@@ -195,8 +196,9 @@
 <% } %>
 <script>
 (function () {
-    // 这段脚本绑定在共享侧边栏中，负责加载账号资料、头像和账号资料编辑弹窗。
-    // DOM 节点可能因角色不同而不存在，例如 Admin 没有资料编辑弹窗。
+    // This script is bound inside the shared sidebar and loads account profile,
+    // avatar, and the account profile edit modal.
+    // Some DOM nodes may not exist for all roles, such as the Admin profile modal.
     var el = document.getElementById("sidebar-avatar-el");
     var usernameEl = document.getElementById("sidebar-username-el");
     var trigger = document.getElementById("sidebar-profile-trigger");
@@ -212,7 +214,7 @@
     var initial = "<%= sidebarInitial %>";
     var fallbackUsername = "<%= sidebarUsername.replace("\\", "\\\\").replace("\"", "\\\"") %>";
     var contextPath = "<%= contextPath %>";
-    // 当前账号资料快照，侧边栏展示和弹窗表单都从这里同步。
+    // Current account profile snapshot used by both sidebar display and modal fields.
     var currentProfile = {
         username: fallbackUsername,
         displayName: "",
@@ -222,17 +224,18 @@
     };
 
     /*
-     * 读取 /api/me... 路由集合。
+     * Read the /api/me... route collection.
      */
     function getMeRoutes() {
-        // ta-recruitment.js 可能因为 defer 顺序稍晚才挂到 window，下面会等待 DOMContentLoaded 再取一次。
+        // ta-recruitment.js may attach to window slightly later because of defer order.
+        // The caller below checks again on DOMContentLoaded.
         return window.TARecruitment && window.TARecruitment.routes && window.TARecruitment.routes.me
             ? window.TARecruitment.routes.me
             : null;
     }
 
     /*
-     * 等公共路由工具可用后再加载账号资料。
+     * Load account profile only after the shared route helper is available.
      */
     function whenMeRoutesReady(callback) {
         var routes = getMeRoutes();
@@ -249,7 +252,7 @@
     }
 
     /*
-     * 共享侧边栏里的本地化兜底。
+     * Localization fallback inside the shared sidebar.
      */
     function t(key, fallback) {
         if (window.AppI18n && typeof window.AppI18n.t === "function") {
@@ -259,7 +262,7 @@
     }
 
     /*
-     * 保存资料失败时尽量把服务端英文错误转换成当前语言。
+     * Convert server-side English errors into the current language when profile save fails.
      */
     function localizeServerMessage(message, fallbackKey, fallbackText) {
         if (window.AppI18n && typeof window.AppI18n.localizeServerMessage === "function") {
@@ -269,7 +272,7 @@
     }
 
     /*
-     * 侧边栏用户名展示优先取账号 profile，缺失时使用 JSP session 兜底。
+     * Prefer the account profile for the sidebar label, then fall back to the JSP session value.
      */
     function getAccountLabel(profile) {
         if (profile && profile.username) return profile.username;
@@ -277,7 +280,7 @@
     }
 
     /*
-     * 根据用户名/实名生成头像首字母。
+     * Generate avatar initials from username or real name.
      */
     function getInitialFromText(text) {
         var source = typeof text === "string" && text.trim() ? text.trim() : fallbackUsername;
@@ -285,7 +288,7 @@
     }
 
     /*
-     * 清空头像图片，回到首字母头像。
+     * Clear the avatar image and return to initials.
      */
     function clearAvatar(target, seed) {
         if (!target) return;
@@ -294,7 +297,7 @@
     }
 
     /*
-     * 把图片地址应用到头像容器；加载失败时回退首字母。
+     * Apply an image URL to the avatar container and fall back to initials on load failure.
      */
     function applyAvatar(target, src) {
         if (!target) return;
@@ -313,7 +316,7 @@
     }
 
     /*
-     * 弹窗内消息提示。
+     * Message display inside the modal.
      */
     function setMessage(text, isError) {
         if (!messageEl) return;
@@ -322,7 +325,7 @@
     }
 
     /*
-     * 根据账号资料更新侧边栏用户名和头像。
+     * Update sidebar username and avatar from account profile.
      */
     function updateSidebar(profile) {
         var label = getAccountLabel(profile);
@@ -338,7 +341,7 @@
     }
 
     /*
-     * 打开弹窗前，把当前 profile 写入表单。
+     * Write the current profile into the form before opening the modal.
      */
     function updateModal(profile) {
         if (displayNameInput) displayNameInput.value = getAccountLabel(profile);
@@ -354,18 +357,18 @@
     }
 
     /*
-     * 账号资料保存后广播给其他页面脚本，例如 TA dashboard 的头像同步逻辑。
+     * Broadcast account profile updates to other page scripts, such as TA dashboard avatar sync.
      */
     function notifyAccountProfileUpdated(profile) {
         if (typeof window.CustomEvent !== "function" || !profile) return;
-        // 给 TA dashboard 等页面同步侧边栏保存后的账号资料，不需要刷新整页。
+        // Let pages such as TA dashboard sync sidebar profile changes without a full refresh.
         document.dispatchEvent(new CustomEvent("account-profile-updated", {
             detail: profile
         }));
     }
 
     /*
-     * TA 档案保存 fullName 后，同步到账号资料弹窗的 realName 字段。
+     * Sync the TA profile fullName into the account profile modal's realName field.
      */
     function applyTaProfileRealName(realName) {
         if (typeof realName !== "string") return;
@@ -376,7 +379,7 @@
     }
 
     /*
-     * 从 /api/me/account 加载账号资料。
+     * Load account profile from /api/me/account.
      */
     function loadProfile() {
         if (!el || !trigger) return;
@@ -399,7 +402,7 @@
     }
 
     /*
-     * 打开账号资料弹窗。
+     * Open the account profile modal.
      */
     function openModal() {
         if (!modal) return;
@@ -413,7 +416,7 @@
     }
 
     /*
-     * 关闭账号资料弹窗。
+     * Close the account profile modal.
      */
     function closeModal() {
         if (!modal) return;
@@ -435,7 +438,7 @@
     });
     if (avatarInput) {
         avatarInput.addEventListener("change", function () {
-            // 本地预览头像，不等保存接口返回；真正持久化仍在表单 submit 中完成。
+            // Preview the avatar locally before save; persistence still happens during form submit.
             var file = avatarInput.files && avatarInput.files[0];
             if (!file || !preview) return;
             var reader = new FileReader();
@@ -449,7 +452,7 @@
         form.addEventListener("submit", function (event) {
             event.preventDefault();
             setMessage("", false);
-            // displayName 复用用户名规则，因为后端账号资料仍按 username 风格校验展示名。
+            // displayName reuses username rules because the backend still validates it as a username-style display label.
             var usernameError = validateAccountUsername(displayNameInput ? displayNameInput.value.trim() : "");
             if (usernameError) {
                 setMessage(usernameError, true);
@@ -506,8 +509,8 @@
     }
 
     /*
-     * 账号资料弹窗里的用户名/展示名校验。
-     * 规则与注册登录侧保持一致，避免保存后侧边栏显示非法账号名。
+     * Username/display-name validation inside the account profile modal.
+     * Rules stay aligned with registration/login to prevent invalid sidebar labels after save.
      */
     function validateAccountUsername(value) {
         if (!value) {
@@ -538,7 +541,7 @@
 
     document.addEventListener("ta-profile-real-name-updated", function (event) {
         var detail = event && event.detail ? event.detail : {};
-        // TA 档案 fullName 保存后，会通知账号资料弹窗一起更新 realName。
+        // TA profile fullName saves notify the account profile modal to update realName.
         applyTaProfileRealName(typeof detail.realName === "string" ? detail.realName : "");
     });
 })();

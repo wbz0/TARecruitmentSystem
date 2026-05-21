@@ -1,6 +1,6 @@
 /**
- * 职位领域校验层。
+ * Job domain validation layer.
  *
- * <p>JobValidator 负责职位表单必填、格式、长度、日期和危险输入校验。
+ * <p>JobValidator handles job form required fields, format, length, date, and dangerous input validation.
  */
 package com.example.tarecruitment.job.validator;

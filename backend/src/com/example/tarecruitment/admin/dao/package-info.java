@@ -1,6 +1,6 @@
 /**
- * 管理员领域 CSV 数据访问层。
+ * Admin domain CSV data access layer.
  *
- * <p>Dao 只负责读取和写入管理员邀请等 CSV 数据，不读取 HTTP request 或 session。
+ * <p>Dao is only responsible for reading and writing admin invitation CSV data, and does not read HTTP request or session.
  */
 package com.example.tarecruitment.admin.dao;

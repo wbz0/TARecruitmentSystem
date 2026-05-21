@@ -1,8 +1,8 @@
 /*
- * Admin 通知页脚本，对应 /jsp/admin/notifications.jsp。
+ * Admin notification page script, corresponds to /jsp/admin/notifications.jsp.
  *
- * 读取全站公告列表，并允许 ADMIN 通过 /api/notifications 发布和删除公告。
- * TA/MO 通知页共用同一个读接口，但没有发布/删除表单。
+ * Reads all-site announcement list and allows ADMIN to publish/delete announcements via /api/notifications.
+ * TA/MO notification pages share the same read API but have no publish/delete forms.
  */
 (function () {
     "use strict";
@@ -75,7 +75,7 @@
                     "<h3 class=\"notification-title\">" + escapeHtml(n.title) + "</h3>" +
                     "<button class=\"notification-delete-btn\" aria-label=\"" +
                         escapeHtml(t("portal.notifications.deleteBtn", "Delete")) + "\" title=\"" +
-                        escapeHtml(t("portal.notifications.deleteBtn", "Delete")) + "\">×</button>" +
+                        escapeHtml(t("portal.notifications.deleteBtn", "Delete")) + "\">x</button>" +
                 "</div>" +
                 "<p class=\"notification-content\">" + escapeHtml(n.content) + "</p>" +
                 "<p class=\"notification-meta\">" +
@@ -96,7 +96,7 @@
     }
 
     function loadNotifications() {
-        // NotificationServlet 仍返回 data 数组，前端保持按数组渲染。
+        // NotificationServlet still returns data array, frontend continues to render as array.
         fetch(window.TARecruitment.routes.notifications(), {
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })

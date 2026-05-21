@@ -8,7 +8,7 @@
     }
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 申请状态页：展示当前 TA 自己的 /api/applications 列表。 --%>
+<%-- TA application status page: displays the current TA's /api/applications list. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -33,7 +33,7 @@
                         <p class="subtitle" data-i18n="portal.taApplicationStatus.subtitle">Track the status of your submitted applications.</p>
                     </section>
 
-                    <section class="status-panel" aria-label="申请状态列表" data-i18n-aria-label="portal.taApplicationStatus.panelAria">
+                    <section class="status-panel" aria-label="Application status list" data-i18n-aria-label="portal.taApplicationStatus.panelAria">
                         <form id="status-search-form" class="search-form" novalidate>
                             <label for="status-search-input" data-i18n="portal.common.search">Search</label>
                             <div class="search-row">
@@ -60,7 +60,7 @@
     </div>
 
     <script>
-        // 注入给公共 routes 工具，申请状态页不需要额外用户变量。
+        // Injected as a shared routing utility; the application status page does not need additional user variables.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js" defer></script>

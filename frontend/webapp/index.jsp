@@ -2,7 +2,7 @@
 <%
     String contextPath = request.getContextPath();
 %>
-<%-- 门户首页：仅展示入口和流程预览，不直接调用业务 API。 --%>
+<%-- Portal home page: displays only entry points and process overview, does not call business APIs directly. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -31,7 +31,7 @@
 
             <div class="home-header-actions">
                 <div class="locale-switch" role="group" data-i18n-aria-label="common.locale.switchAria">
-                    <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">中文</button>
+                    <button class="locale-btn" type="button" data-locale-switch data-locale="zh-CN" data-i18n="common.locale.zh">Chinese</button>
                     <span class="locale-divider">/</span>
                     <button class="locale-btn" type="button" data-locale-switch data-locale="en" data-i18n="common.locale.en">English</button>
                 </div>

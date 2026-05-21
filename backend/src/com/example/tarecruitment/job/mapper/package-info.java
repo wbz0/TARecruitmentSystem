@@ -1,6 +1,6 @@
 /**
- * 职位领域请求和响应转换层。
+ * Job domain request and response mapping layer.
  *
- * <p>RequestMapper 处理路径、表单和类型转换；ResponseMapper 组装前端展示 payload。
+ * <p>RequestMapper handles path, form, and type conversions; ResponseMapper assembles frontend display payload.
  */
 package com.example.tarecruitment.job.mapper;

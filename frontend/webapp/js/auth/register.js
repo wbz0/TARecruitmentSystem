@@ -1,8 +1,9 @@
 /*
- * TA/MO 注册页脚本，对应 register.jsp。
+ * TA/MO registration page script, corresponds to register.jsp.
  *
- * 负责角色切换、字段即时校验、用户名/邮箱可用性检查，并提交到 /api/auth/register。
- * Admin 注册不走这里，必须使用 admin-invite.jsp 的邀请码流程。
+ * Handles role switching, real-time field validation, username/email availability check,
+ * and submits to /api/auth/register.
+ * Admin registration does not go here; must use admin-invite.jsp invite code flow.
  */
 (function () {
     var USERNAME_PATTERN = /^[A-Za-z][A-Za-z0-9_]{2,19}$/;
@@ -51,7 +52,7 @@
         if (!input) return;
 
         input.addEventListener("blur", function () {
-            if (input.value.trim() === "") return; // empty blur → skip
+            if (input.value.trim() === "") return; // empty blur -> skip
             var error = getFieldError(input);
             if (error) {
                 setFieldError(input, error, true);
@@ -199,7 +200,7 @@
         var value = getTrimmedValue(input);
         if (!value) return;
 
-        // 每次 blur 都递增 id，较慢的旧请求回来时不会覆盖新的校验结果。
+        // Each blur increments the id so that slower old responses do not overwrite newer results.
         var checkId;
         if (type === "username") {
             usernameCheckId += 1;
@@ -254,7 +255,7 @@
     }
 
     function submitRegister(username, email, password, confirmPassword, role) {
-        // 页面允许 TA/MO；ADMIN 会被 getNormalizedRole 拦截并引导到邀请注册页。
+        // Page allows TA/MO; ADMIN is intercepted by getNormalizedRole and redirected to invite registration page.
         var formData = new URLSearchParams();
         formData.set("username", username);
         formData.set("email", email);

@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * UserDao - 用户数据访问对象。
+ * UserDao - User data access object.
  *
- * 用户按角色拆成 3 个 CSV 文件，便于演示数据查看和按角色加载。
- * DAO 只负责存储和账号唯一性，不处理 HTTP session 或页面跳转。
+ * Users are split into 3 CSV files by role for easy demo data viewing and loading by role.
+ * DAO is only responsible for storage and account uniqueness, does not handle HTTP session or page routing.
  */
 public class UserDao {
 
@@ -56,7 +56,7 @@ public class UserDao {
     }
 
     /**
-     * 初始化用户数据文件
+     * Initialize user data file
      */
     private void initUserFile(String filePath) {
         File userFile = new File(filePath);
@@ -83,10 +83,10 @@ public class UserDao {
     }
 
     /**
-     * 启动时补齐固定测试账号，但不覆盖已有本地数据。
+     * Fill in fixed test accounts on startup, but do not overwrite existing local data.
      */
     public synchronized void ensureDefaultDemoAccounts() {
-        // 演示账号语义是项目约定，不能被公开注册或数据初始化意外覆盖。
+        // Demo account semantics are project convention and cannot be accidentally overwritten by public registration or data initialization.
         ensureDefaultDemoAccount("ta_demo", DEFAULT_TA_DEMO_EMAIL, User.Role.TA);
         ensureDefaultDemoAccount("mo_demo", DEFAULT_MO_DEMO_EMAIL, User.Role.MO);
         ensureDefaultDemoAccount("admin_demo", DEFAULT_ADMIN_DEMO_EMAIL, User.Role.ADMIN);
@@ -120,7 +120,7 @@ public class UserDao {
     }
 
     /**
-     * 读取所有用户
+     * Read all users
      */
     private List<User> readAllUsers() {
         initUserFiles();
@@ -168,10 +168,10 @@ public class UserDao {
     }
 
     /**
-     * 写入所有用户
+     * Write all users
      */
     private void writeUsersToFile(String filePath, List<User> users) {
-        // 分角色文件写入时先写临时文件，再替换目标文件，降低 CSV 写坏的风险。
+        // When writing role-specific files, write to temporary file first then replace target to reduce risk of corrupting CSV.
         Path targetPath = Path.of(filePath);
         Path tempPath = targetPath.resolveSibling(targetPath.getFileName() + ".tmp");
         try {
@@ -271,7 +271,7 @@ public class UserDao {
     }
 
     /**
-     * 根据ID查找用户
+     * Find user by ID
      */
     public Optional<User> findById(String userId) {
         return readAllUsers().stream()
@@ -280,7 +280,7 @@ public class UserDao {
     }
 
     /**
-     * 根据用户名查找用户
+     * Find user by username
      */
     public Optional<User> findByUsername(String username) {
         if (username == null) {
@@ -293,7 +293,7 @@ public class UserDao {
     }
 
     /**
-     * 根据邮箱查找用户
+     * Find user by email
      */
     public Optional<User> findByEmail(String email) {
         if (email == null) {
@@ -306,26 +306,26 @@ public class UserDao {
     }
 
     /**
-     * 检查用户名是否存在
+     * Check if username exists
      */
     public boolean existsByUsername(String username) {
         return findByUsername(username).isPresent();
     }
 
     /**
-     * 检查邮箱是否存在
+     * Check if email exists
      */
     public boolean existsByEmail(String email) {
         return findByEmail(email).isPresent();
     }
 
     /**
-     * 保存用户（新建或更新）
+     * Save user (create or update)
      */
     public User save(User user) {
         initUserFiles();
 
-        // 用户改角色时要从三个角色文件中都移除旧记录，再写入目标角色文件。
+        // When user changes role, remove old record from all three role files and write to target role file.
         String targetFile = getUserFileByRole(user.getRole());
         List<User> targetUsers = readUsersForRole(user.getRole());
         List<User> taUsers = readUsersForRole(User.Role.TA);
@@ -354,7 +354,7 @@ public class UserDao {
     }
 
     /**
-     * 创建新用户
+     * Create new user
      */
     public User create(User user) {
         if (existsByUsername(user.getUsername())) {
@@ -364,14 +364,14 @@ public class UserDao {
             throw new IllegalArgumentException("Email already exists: " + user.getEmail());
         }
 
-        // 项目演示环境使用 SHA-256 哈希；没有引入数据库或额外密码库。
+        // Project demo environment uses SHA-256 hash; no database or additional password library introduced.
         user.setPassword(hashPassword(user.getPassword()));
 
         return save(user);
     }
 
     /**
-     * 更新用户
+     * Update user
      */
     public User update(User user) {
         List<User> users = readAllUsers();
@@ -391,7 +391,7 @@ public class UserDao {
     }
 
     /**
-     * 删除用户
+     * Delete user
      */
     public boolean delete(String userId) {
         List<User> taUsers = readUsersForRole(User.Role.TA);
@@ -411,22 +411,22 @@ public class UserDao {
     }
 
     /**
-     * 获取所有用户
+     * Get all users
      */
     public List<User> findAll() {
         return new ArrayList<>(readAllUsers());
     }
 
     /**
-     * 根据角色查找用户
+     * Find users by role
      */
     public List<User> findByRole(User.Role role) {
         return new ArrayList<>(readUsersForRole(role));
     }
 
     /**
-     * 验证用户登录
-     * 返回用户对象（密码已验证）
+     * Verify user login
+     * Returns user object (password verified)
      */
     public Optional<User> verifyLogin(String usernameOrEmail, String password) {
         Optional<User> userOpt = findByUsername(usernameOrEmail);
@@ -439,7 +439,7 @@ public class UserDao {
             String hashedInput = hashPassword(password);
 
             if (hashedInput.equals(user.getPassword())) {
-                // 更新最后登录时间
+                // Update last login time
                 user.setLastLoginAt(java.time.LocalDateTime.now());
                 save(user);
                 return Optional.of(user);
@@ -450,7 +450,7 @@ public class UserDao {
     }
 
     /**
-     * 密码哈希（SHA-256）
+     * Password hash (SHA-256)
      */
     private String hashPassword(String password) {
         try {
@@ -471,27 +471,27 @@ public class UserDao {
     }
 
     /**
-     * 获取用户数量
+     * Get user count
      */
     public long count() {
         return readAllUsers().size();
     }
 
     /**
-     * 清空所有用户（仅用于测试）
+     * Delete all users (for testing only)
      */
     public void deleteAll() {
-        // 仅测试/演示重置使用，前端没有清空用户的入口。
+        // Only used for test/demo reset; frontend has no entry to clear users.
         writeUsersToFile(USER_FILE_TA, new ArrayList<>());
         writeUsersToFile(USER_FILE_MO, new ArrayList<>());
         writeUsersToFile(USER_FILE_ADMIN, new ArrayList<>());
     }
 
     /**
-     * 批量创建用户（仅用于测试初始化）
+     * Batch create users (for testing initialization only)
      */
     public void batchCreate(List<User> users) {
-        // 仅 DemoDataSeeder/测试初始化使用，正常注册仍走 create() 唯一性校验。
+        // Only used by DemoDataSeeder/test initialization; normal registration still goes through create() uniqueness check.
         List<User> taUsers = readUsersForRole(User.Role.TA);
         List<User> moUsers = readUsersForRole(User.Role.MO);
         List<User> adminUsers = readUsersForRole(User.Role.ADMIN);

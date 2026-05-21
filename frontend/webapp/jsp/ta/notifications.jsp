@@ -6,7 +6,7 @@
     if (usernameObj != null) username = usernameObj.toString();
     String userInitial = username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "T";
 %>
-<%-- TA 通知页：只读全站公告 /api/notifications。 --%>
+<%-- TA notifications page: read-only global announcements from /api/notifications. --%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -46,7 +46,7 @@
     </div>
 
     <script>
-        // 注入给 ta-notifications.js 的公共路由工具。
+        // Injected for ta-notifications.js as a shared routing utility.
         window.APP_CONTEXT_PATH = "<%= contextPath %>";
     </script>
     <script src="<%= contextPath %>/js/common/i18n.js"></script>

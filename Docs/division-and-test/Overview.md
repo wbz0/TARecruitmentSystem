@@ -1,25 +1,29 @@
-### 整体分工
+# Team Division and Current Code Files
 
-| 成员        | 文件                  | Git author                    | 标准提交数 | 分工概述                                                                                   |
-| ----------- | --------------------- | ----------------------------- | ---------: | ------------------------------------------------------------------------------------------ |
-| `member1` | [member1.md](member1.md) | `member1 <member1@edu.com>` |         18 | 后端基础能力、认证流程、接口响应与工具类、技能匹配早期实现、部分测试/统计补充              |
-| `member2` | [member2.md](member2.md) | `member2 <member2@edu.com>` |         20 | TA 档案与文件上传、数据路径/初始化稳定性、AI 推荐搜索与匹配服务                            |
-| `member3` | [member3.md](member3.md) | `member3 <member3@edu.com>` |         19 | 职位发布/查询/校验、工作量统计接口、账号资料同步、AI 配置模板                              |
-| `member4` | [member4.md](member4.md) | `member4 <member4@edu.com>` |         23 | 申请流程、状态流转、TA 撤回、MO 选择、通知与邀请码业务、集成测试/用户手册早期工作          |
-| `member5` | [member5.md](member5.md) | `member5 <member5@edu.com>` |         34 | 前端页面与交互，覆盖登录注册、TA/MO/Admin 页面、前端 API 路由统一                          |
-| `member6` | [member6.md](member6.md) | `member6 <member6@edu.com>` |         41 | 项目 leader/架构重组、通用配置、文档脚本整理、门户壳层、公共样式、Admin 页面与全站双语资源 |
+[Back to Overview](Overview.md)
 
-### 个人测试展示入口
+## Overall Division of Labor
 
-每个成员答辩时只需要运行自己的脚本，不需要运行统一总测试。
+| Contributor | File | Standard Commit Count | Division Overview |
+| --- | --- | --- | --- |
+| Ouyang Xiaojun | [ouyang-xiaojun.md](ouyang-xiaojun.md) | 18 | Backend foundational capabilities, authentication flow, API response and logging utilities, early skill matching implementation, partial testing/stats contribution |
+| Zhou Bohan | [zhou-bohan.md](zhou-bohan.md) | 20 | TA profile and file upload, data path/initialization stability, AI recommendation search and matching service |
+| Liu Tengyi | [liu-tengyi.md](liu-tengyi.md) | 19 | Position posting/query/validation, workload statistics interface, account profile sync, AI config templates |
+| Sun Jialu | [sun-jialu.md](sun-jialu.md) | 23 | Application flow, status transitions, TA withdrawal, MO selection, notifications and invite code service, integration testing/early user manual work |
+| Sheng Yuhan | [sheng-yuhan.md](sheng-yuhan.md) | 34 | Frontend pages and interactions, covering login/register, TA/MO/Admin pages, frontend API routing unification |
+| Wang Bangzhen | [wang-bangzhen.md](wang-bangzhen.md) | 41 | Project leader / architecture restructuring, common configuration, documentation/scripts organization, portal shell, common styles, Admin pages and full-site bilingual resources |
 
-重叠文件和答辩主归属见：[overlap-and-defense-ownership.md](overlap-and-defense-ownership.md)。
+## Individual Test Presentation Entry
 
-| 成员 | 测试命令 | 测试代码 |
+Each contributor only needs to run their own script during the defense, no need to run the unified total test.
+
+For overlapping files and defense attribution, see: [overlap-and-defense-ownership.md](overlap-and-defense-ownership.md).
+
+| Contributor | Test Command | Test Code |
 | --- | --- | --- |
-| `member1` | `./scripts/test/test-member1.sh` | `backend/test/Member1BackendTest.java` |
-| `member2` | `./scripts/test/test-member2.sh` | `backend/test/Member2BackendTest.java` |
-| `member3` | `./scripts/test/test-member3.sh` | `backend/test/Member3BackendTest.java` |
-| `member4` | `./scripts/test/test-member4.sh` | `backend/test/Member4BackendTest.java` |
-| `member5` | `./scripts/test/test-member5.sh` | `frontend/test/member5-frontend-test.js` |
-| `member6` | `./scripts/test/test-member6.sh` | `frontend/test/member6-architecture-test.js` |
+| Ouyang Xiaojun | `./scripts/test/test-ouyang-xiaojun.sh` | `backend/test/OuyangXiaojunBackendTest.java` |
+| Zhou Bohan | `./scripts/test/test-zhou-bohan.sh` | `backend/test/ZhouBohanBackendTest.java` |
+| Liu Tengyi | `./scripts/test/test-liu-tengyi.sh` | `backend/test/LiuTengyiBackendTest.java` |
+| Sun Jialu | `./scripts/test/test-sun-jialu.sh` | `backend/test/SunJialuBackendTest.java` |
+| Sheng Yuhan | `./scripts/test/test-sheng-yuhan.sh` | `frontend/test/sheng-yuhan-frontend-test.js` |
+| Wang Bangzhen | `./scripts/test/test-wang-bangzhen.sh` | `frontend/test/wang-bangzhen-architecture-test.js` |

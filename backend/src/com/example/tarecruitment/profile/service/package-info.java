@@ -1,6 +1,6 @@
 /**
- * 档案领域业务服务层。
+ * Profile domain business service layer.
  *
- * <p>服务负责账号资料同步、TA 档案保存、头像/简历资源定位和权限相关业务校验。
+ * <p>Services are responsible for account profile synchronization, TA profile saving, avatar/resume resource location, and permission-related business validation.
  */
 package com.example.tarecruitment.profile.service;

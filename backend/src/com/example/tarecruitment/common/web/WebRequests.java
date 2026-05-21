@@ -5,10 +5,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 /**
- * Servlet 请求读取工具。
+ * Servlet request reading utility.
  *
- * 这里放所有 web 层重复用到的小判断：当前用户、AJAX 请求、基础字符串清理、
- * 危险标记检查。service/dao 层不要依赖这个类，避免把 HTTP 细节带进业务层。
+ * Here are all small checks repeatedly used in web layer: current user, AJAX request, basic string cleanup,
+ * dangerous markup check. service/dao layer should not depend on this class to avoid bringing HTTP details into business layer.
  */
 public final class WebRequests {
 
@@ -16,9 +16,9 @@ public final class WebRequests {
     }
 
     /**
-     * 从 session 中读取当前登录用户。
+     * Read current logged-in user from session.
      *
-     * Servlet 层使用这个方法，避免每个入口重复写 session.getAttribute("user")。
+     * Servlet layer uses this method to avoid repeating writing session.getAttribute("user") at each entry.
      */
     public static User currentUser(HttpServletRequest request) {
         if (request == null) {
@@ -33,36 +33,36 @@ public final class WebRequests {
     }
 
     /**
-     * 判断是否为前端 fetch/ajax 请求。
+     * Determine if frontend fetch/ajax request.
      */
     public static boolean isAjax(HttpServletRequest request) {
         return request != null && "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 
     /**
-     * 请求参数统一 trim，null 归为空字符串。
+     * Uniformly trim request parameters, null becomes empty string.
      */
     public static String trim(String value) {
         return value == null ? "" : value.trim();
     }
 
     /**
-     * 控制字符检查，用于基础输入防护。
+     * Control character check for basic input protection.
      */
     public static boolean containsControlChars(String value) {
         return value != null && value.chars().anyMatch(ch -> ch < 32 || ch == 127);
     }
 
     /**
-     * 明显 HTML/JS 标记检查。
+     * Obvious HTML/JS markup check.
      *
-     * 这是 web 层通用兜底；更精确的字段规则仍放在各 domain validator。
+     * This is web layer general fallback; more precise field rules are still in each domain validator.
      */
     public static boolean containsDangerousMarkup(String value) {
         if (value == null || value.isEmpty()) {
             return false;
         }
-        // 这里只做进入业务前的轻量防护；具体字段长度/格式仍由各 domain validator 判断。
+        // Only lightweight protection before entering business logic; specific field length/format still determined by each domain validator.
         String text = value.toLowerCase();
         return text.matches(".*<[^>]*>.*")
                 || text.contains("javascript:")

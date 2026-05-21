@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * ApplicantDao - TA 申请人档案数据访问对象。
+ * ApplicantDao - TA applicant profile data access object.
  *
- * 只负责 applicants.csv 的读写和简单查询，不处理 HTTP、session、文件上传或权限判断。
- * 业务流程在 ApplicantProfileService，文件保存由 ProfileAssetService 管理。
+ * Only responsible for applicants.csv read/write and simple queries, does not handle HTTP, session, file upload or permission check.
+ * Business flow in ApplicantProfileService, file saving managed by ProfileAssetService.
  */
 public class ApplicantDao {
 
@@ -44,7 +44,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 初始化申请人数据文件；字段顺序要和 Applicant.toCsv()/fromCsv() 保持一致。
+     * Initialize applicant data file; field order must be consistent with Applicant.toCsv()/fromCsv().
      */
     private void initApplicantFile() {
         File applicantFile = new File(APPLICANT_FILE);
@@ -65,7 +65,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 读取所有申请人
+     * Read all applicants
      */
     private List<Applicant> readAllApplicants() {
         initApplicantFile();
@@ -103,7 +103,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 写入所有申请人；使用临时文件原子替换，避免 CSV 写一半被中断。
+     * Write all applicants; use temp file atomic replace to avoid CSV half-write interruption.
      */
     private void writeAllApplicants(List<Applicant> applicants) {
         Path targetPath = Path.of(APPLICANT_FILE);
@@ -121,7 +121,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 根据ID查找申请人
+     * Find applicant by ID
      */
     public Optional<Applicant> findById(String applicantId) {
         return readAllApplicants().stream()
@@ -130,7 +130,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 根据UserId查找申请人
+     * Find applicant by UserId
      */
     public Optional<Applicant> findByUserId(String userId) {
         return readAllApplicants().stream()
@@ -139,7 +139,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 根据学号查找申请人
+     * Find applicant by student ID
      */
     public Optional<Applicant> findByStudentId(String studentId) {
         return readAllApplicants().stream()
@@ -148,21 +148,21 @@ public class ApplicantDao {
     }
 
     /**
-     * 检查学号是否存在
+     * Check if student ID exists
      */
     public boolean existsByStudentId(String studentId) {
         return findByStudentId(studentId).isPresent();
     }
 
     /**
-     * 检查用户是否已有档案
+     * Check if user already has profile
      */
     public boolean existsByUserId(String userId) {
         return findByUserId(userId).isPresent();
     }
 
     /**
-     * 保存申请人（新建或更新）
+     * Save applicant (create or update)
      */
     public Applicant save(Applicant applicant) {
         List<Applicant> applicants = readAllApplicants();
@@ -183,7 +183,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 创建新申请人档案
+     * Create new applicant profile
      */
     public Applicant create(Applicant applicant) {
         if (existsByUserId(applicant.getUserId())) {
@@ -197,7 +197,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 更新申请人档案
+     * Update applicant profile
      */
     public Applicant update(Applicant applicant) {
         List<Applicant> applicants = readAllApplicants();
@@ -213,7 +213,7 @@ public class ApplicantDao {
     }
 
     /**
-     * 删除申请人
+     * Delete applicant
      */
     public boolean delete(String applicantId) {
         List<Applicant> applicants = readAllApplicants();
@@ -227,28 +227,28 @@ public class ApplicantDao {
     }
 
     /**
-     * 获取所有申请人
+     * Get all applicants
      */
     public List<Applicant> findAll() {
         return new ArrayList<>(readAllApplicants());
     }
 
     /**
-     * 获取申请人数量
+     * Get applicant count
      */
     public long count() {
         return readAllApplicants().size();
     }
 
     /**
-     * 清空所有申请人（仅用于测试和 demo 数据重置）。
+     * Clear all applicants (only for test and demo data reset).
      */
     public void deleteAll() {
         writeAllApplicants(new ArrayList<>());
     }
 
     /**
-     * 批量创建申请人（仅用于测试初始化和 DemoDataSeeder）。
+     * Batch create applicants (only for test initialization and DemoDataSeeder).
      */
     public void batchCreate(List<Applicant> applicants) {
         List<Applicant> existingApplicants = readAllApplicants();

@@ -1,7 +1,7 @@
 /*
- * TA 通知页脚本，对应 /jsp/ta/notifications.jsp。
+ * TA notifications page script, corresponds to /jsp/ta/notifications.jsp.
  *
- * 只读 /api/notifications 并渲染公告列表；发布和删除只存在 Admin 通知页。
+ * Read-only /api/notifications and renders announcement list; publish and delete only exist on Admin notification page.
  */
 (function () {
     "use strict";

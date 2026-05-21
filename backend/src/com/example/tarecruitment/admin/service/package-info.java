@@ -1,6 +1,6 @@
 /**
- * 管理员领域业务服务层。
+ * Admin domain business service layer.
  *
- * <p>服务负责邀请创建、邀请码轮换、邮件内容生成和工作量统计等业务流程。
+ * <p>Services are responsible for invitation creation, invitation code rotation, email content generation, and workload statistics business processes.
  */
 package com.example.tarecruitment.admin.service;

@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * NotificationServlet - 系统通知 API。
+ * NotificationServlet - System notification API.
  *
- * GET    /api/notifications - 所有已登录用户可查看。
- * POST   /api/notifications - 仅 ADMIN 可发布，参数 title/content。
- * DELETE /api/notifications - 仅 ADMIN 可删除，参数 notificationId。
+ * GET    /api/notifications - All logged-in users can view.
+ * POST   /api/notifications - Only ADMIN can publish, parameters title/content.
+ * DELETE /api/notifications - Only ADMIN can delete, parameter notificationId.
  *
- * 对应 TA/MO/Admin 三套 notifications.jsp 页面；公告是全站共享，不按角色拆 CSV。
+ * Corresponds to TA/MO/Admin three sets of notifications.jsp pages; notifications are site-wide shared, CSV not split by role.
  */
 @WebServlet(ApiRoutes.NOTIFICATIONS)
 public class NotificationServlet extends HttpServlet {
@@ -94,7 +94,7 @@ public class NotificationServlet extends HttpServlet {
         Notification n = new Notification();
         n.setTitle(title);
         n.setContent(content);
-        // 保存发布者快照，之后账号改名也不影响历史公告显示。
+        // Save publisher snapshot; later account rename won't affect historical notification display.
         n.setPublishedByUserId(user.getUserId());
         n.setPublishedByUsername(user.getUsername());
 

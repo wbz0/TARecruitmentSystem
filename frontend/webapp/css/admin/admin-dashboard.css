@@ -1,6 +1,6 @@
 /*
- * Admin 工作量统计页样式。
- * 覆盖 TA 工作量搜索、分页、工作量卡片和展开后的岗位明细。
+ * Admin workload statistics page styles.
+ * Covers TA workload search, pagination, workload cards, and expanded job details.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

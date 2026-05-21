@@ -1,6 +1,6 @@
 /*
- * TA 档案页样式。
- * 覆盖档案表单、简历草稿上传、照片预览和只读/编辑状态。
+ * TA profile page styles.
+ * Covers the profile form, resume draft upload, photo preview, and read/edit states.
  */
 @import url("../common/motion.css");
 @import url("../portal/portal-shell.css");

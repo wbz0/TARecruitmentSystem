@@ -13,14 +13,14 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 
 /**
- * InviteCodeService - 基于时间窗口的邀请码生成与校验。
+ * InviteCodeService - Time-window based invite code generation and validation.
  *
-     * 当前前端页面是 /jsp/admin/invite.jsp：页面直接展示一个可刷新的 8 位邀请码；
-     * /admin-invite.jsp 提交注册时校验这个短码并创建管理员账号。
+ * Current frontend page is /jsp/admin/invite.jsp: the page directly displays a refreshable 8-character invite code;
+ * /admin-invite.jsp validates this short code when submitting registration and creates an admin account.
  *
- * 每 10 分钟产生一个新码（HMAC-SHA256 + 服务端密钥）。校验时接受当前窗口及前后各一个窗口，
- * 这样可以避免用户刚好卡在倒计时边界时失败。管理员点击刷新时会增加 rotationOffset，
- * 让旧码立即失效。
+ * A new code is generated every 10 minutes (HMAC-SHA256 + server secret). During validation, the current window
+ * and one window before/after are accepted, so users won't fail when the countdown boundary is reached.
+ * When admin clicks refresh, rotationOffset is increased, making the old code immediately invalid.
  */
 public class InviteCodeService {
 
@@ -90,7 +90,8 @@ public class InviteCodeService {
     }
 
     /**
-     * 手动刷新后，新窗口从刷新时刻开始计算，而不是继续沿用整点 10 分钟边界。
+     * After manual refresh, the new window starts from the refresh time,
+     * rather than continuing to follow the hourly 10-minute boundary.
      */
     private long activeWindowStartMillis(long now) {
         if (forcedWindowStartMillis > 0L && now - forcedWindowStartMillis < WINDOW_MILLIS) {
@@ -135,7 +136,8 @@ public class InviteCodeService {
     }
 
     /**
-     * rotationOffset 存在磁盘里，重启 Tomcat 后也不会把管理员刚刷掉的旧码恢复回来。
+     * rotationOffset is stored on disk, so restarting Tomcat won't restore
+     * the old code that admin just refreshed.
      */
     private long loadRotationOffset() {
         Path offsetPath = Paths.get(invitesDir, OFFSET_FILE);

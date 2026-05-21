@@ -1,8 +1,8 @@
 /*
- * TA 职位列表脚本，对应 /jsp/ta/job-list.jsp。
+ * TA job list page script, corresponds to /jsp/ta/job-list.jsp.
  *
- * 普通搜索调用 /api/jobs，AI 推荐模式调用 /api/ta/job-recommendations。
- * AI 模式只重排/标注后端返回的真实岗位，不在前端生成假岗位。
+ * Normal search calls /api/jobs; AI recommendation mode calls /api/ta/job-recommendations.
+ * AI mode only reorders/marks real jobs returned by the backend, no fake jobs are generated on the frontend.
  */
 (function () {
     var contextPath = typeof window.APP_CONTEXT_PATH === "string" ? window.APP_CONTEXT_PATH : "";
@@ -20,13 +20,13 @@
     }
 
     /*
-     * 页面状态集中放在这里：
-     * - searchMode 决定普通关键词搜索还是 AI 推荐；
-     * - aiRecommendationsByJobId 只保存后端返回的推荐理由，不生成假岗位；
-     * - currentJobs 用于语言切换后重新渲染现有结果。
+     * Centralized page state:
+     * - searchMode determines normal keyword search or AI recommendation;
+     * - aiRecommendationsByJobId only stores recommendation reasons returned by backend, no fake jobs generated;
+     * - currentJobs is used for re-rendering existing results after language switch.
      */
     var state = {
-        // searchMode 控制普通搜索/AI 推荐；currentJobs 始终是实际渲染的岗位数组。
+        // searchMode controls normal search/AI recommendation; currentJobs is always the actual rendered job array.
         loading: false,
         loadError: false,
         approximateOnly: false,
@@ -78,8 +78,8 @@
     loadJobs("", false);
 
     /*
-     * 搜索表单统一入口。
-     * 当前是 AI 模式就请求 /api/ta/job-recommendations，否则请求 /api/jobs。
+     * Unified entry point for search form submission.
+     * If currently in AI mode, requests /api/ta/job-recommendations, otherwise requests /api/jobs.
      */
     function submitSearch() {
         if (state.searchMode === "ai") {
@@ -90,8 +90,8 @@
     }
 
     /*
-     * 普通职位列表加载。
-     * keyword 会进入 /api/jobs?keyword=...，后端返回 approximateOnly 给页面展示近似匹配提示。
+     * Normal job list loading.
+     * keyword goes to /api/jobs?keyword=..., backend returns approximateOnly for the page to show approximate match notice.
      */
     function loadJobs(keyword, isUserTriggeredSearch) {
         if (state.loading || state.aiSearchLoading) {
@@ -153,8 +153,8 @@
     }
 
     /*
-     * TA 侧 AI 推荐搜索。
-     * 只展示后端返回的真实开放岗位及推荐理由；DeepSeek 不可用时显示失败状态。
+     * TA-side AI recommendation search.
+     * Only displays real open jobs and recommendation reasons returned by backend; shows failure state when DeepSeek is unavailable.
      */
     function runAiSearch() {
         if (state.loading || state.aiSearchLoading) {
@@ -231,8 +231,8 @@
     }
 
     /*
-     * 构造普通职位列表 URL。
-     * API 路径必须走 TARecruitment.routes，确保部署 context path 正确。
+     * Build normal job list URL.
+     * API paths must go through TARecruitment.routes to ensure correct deployment context path.
      */
     function buildJobsUrl(keyword) {
         var params = new URLSearchParams();
@@ -245,8 +245,8 @@
     }
 
     /*
-     * 渲染当前职位列表。
-     * 这里同时处理加载错误、空列表、普通搜索空结果和 AI 推荐空结果四种状态。
+     * Render current job list.
+     * Handles four states: loading error, empty list, normal search no results, and AI recommendation no results.
      */
     function renderJobs(jobs) {
         var keyword = state.lastKeyword;
@@ -297,8 +297,8 @@
     }
 
     /*
-     * 创建单个职位卡片。
-     * 卡片点击跳转到复用的职位详情页，AI 推荐理由只在 AI 搜索结果中展示。
+     * Create a single job card.
+     * Card click navigates to the reused job detail page; AI recommendation reason is only shown in AI search results.
      */
     function createJobCard(job) {
         var card = document.createElement("article");
@@ -357,7 +357,7 @@
     }
 
     /*
-     * 把后端枚举状态映射成 CSS class 后缀。
+     * Map backend enum status to CSS class suffix.
      */
     function getJobStatusClass(status) {
         if (status === "OPEN") {
@@ -373,7 +373,7 @@
     }
 
     /*
-     * 把后端枚举状态映射成页面可读文案。
+     * Map backend enum status to page-readable label.
      */
     function getJobStatusLabel(status) {
         if (status === "OPEN") {
@@ -389,7 +389,7 @@
     }
 
     /*
-     * 拼职位副标题：课程、MO 和截止时间。
+     * Build job subtitle: course, MO, and deadline.
      */
     function buildJobSubtitle(job) {
         var parts = [];
@@ -412,7 +412,7 @@
     }
 
     /*
-     * 拼卡片元信息：名额、薪酬、工作量。
+     * Build card meta info: positions, salary, workload.
      */
     function buildJobMeta(job) {
         var parts = [];
@@ -430,7 +430,7 @@
     }
 
     /*
-     * 技能标签只显示前 4 个，避免职位卡片高度过大。
+     * Skill tags only show the first 4 to avoid job cards being too tall.
      */
     function buildSkillTags(skillsText) {
         var skills = String(skillsText || "")
@@ -447,7 +447,7 @@
     }
 
     /*
-     * 根据不同空状态生成对应文案。
+     * Generate appropriate text for different empty states.
      */
     function createEmptyState(mode) {
         var empty = document.createElement("div");
@@ -481,8 +481,8 @@
     }
 
     /*
-     * 切换普通搜索/AI 推荐模式。
-     * 只改变控件状态，不自动发请求，避免用户误点切换就触发 AI 调用。
+     * Toggle between normal search and AI recommendation mode.
+     * Only changes control state, does not automatically send requests, to avoid AI calls triggered by user accidentally clicking mode switch.
      */
     function setSearchMode(mode) {
         state.searchMode = mode === "ai" ? "ai" : "search";
@@ -514,7 +514,7 @@
     }
 
     /*
-     * 同步搜索按钮、AI 模式按钮和加载态文案。
+     * Synchronize search button, AI mode button, and loading state text.
      */
     function updateSearchControls() {
         var busy = state.loading || state.aiSearchLoading;
@@ -537,7 +537,7 @@
     }
 
     /*
-     * 列表摘要只在搜索、AI 或错误状态下显示，默认首页列表保持简洁。
+     * List summary is only shown during search, AI, or error states; default homepage list stays clean.
      */
     function setListSummary(text) {
         if (!state.lastKeyword && !state.aiSearchActive && !state.loadError) {
@@ -607,7 +607,7 @@
     }
 
     /*
-     * 页面本地 request 保留为兼容包装，内部优先调用公共请求工具。
+     * Page-local request wrapper stays as a compatibility layer; internally prioritizes the shared request utility.
      */
     function request(url, options) {
         if (window.TARecruitment && window.TARecruitment.api) {
@@ -628,7 +628,7 @@
     }
 
     /*
-     * 提取统一响应中的数组数据，兼容 data.jobs 和旧顶层 jobs 两种形态。
+     * Extract array data from unified response; compatible with both data.jobs and legacy top-level jobs formats.
      */
     function getPayloadDataArray(payload, key) {
         if (!payload || typeof payload !== "object") {
@@ -644,7 +644,7 @@
     }
 
     /*
-     * 提取统一响应中的 data 对象；没有 data 时返回 payload 本身作为兼容兜底。
+     * Extract data object from unified response; returns payload itself as fallback if no data wrapper exists.
      */
     function getPayloadDataObject(payload) {
         if (!payload || typeof payload !== "object") {
@@ -657,7 +657,7 @@
     }
 
     /*
-     * 后端时间字符串转本地短时间展示。
+     * Convert backend datetime string to local short datetime display.
      */
     function formatDateTime(value) {
         if (typeof value !== "string" || !value.trim()) {

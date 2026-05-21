@@ -1,6 +1,6 @@
 /**
- * 通用 CSV 与存储路径包。
+ * Common CSV and storage path package.
  *
- * <p>封装 CSV 转义/解析和 TA_HIRING_DATA_DIR 驱动的数据目录解析。
+ * <p>Encapsulates CSV escaping/parsing and TA_HIRING_DATA_DIR-driven data directory resolution.
  */
 package com.example.tarecruitment.common.storage;
