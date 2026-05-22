@@ -1,127 +1,180 @@
-# Software Engineering Group Project
+# TA Hiring System
 
-基于 Tomcat + Servlet + JSP 的 Web 应用
+A teaching scenario TA recruitment system based on `Servlet + JSP + vanilla JavaScript + CSS + CSV`. The project serves three roles:
 
-## 环境要求
+- **TA**: Maintain personal profile, upload avatar/resume, browse positions, submit applications, view application progress, and receive AI job recommendations.
+- **MO**: Post and maintain positions, view candidates, process applications, and use AI recommendations to assist filtering.
+- **Admin**: View TA workload statistics, manage notifications, and generate admin registration invite codes.
 
-- JDK 17+
-- Apache Tomcat 11.x
+## Tech Stack
 
-## 快速开始
+| Layer | Technology |
+| --- | --- |
+| Backend | Java 17+, Jakarta Servlet |
+| Container | Apache Tomcat 10.1+ or 11.x |
+| Frontend | JSP, HTML, CSS, vanilla JavaScript |
+| Build/Run | `scripts/dev.sh` / `scripts/dev.bat` |
+| Persistence | CSV files + local upload directory |
+| AI | AI recommendation search |
+| i18n | Chinese/English bilingual frontend |
 
-### 1. 首次配置
+This project has no dependencies on Maven, Gradle, Spring, databases, or frontend build tools. The dev scripts directly use `javac` to compile `backend/src/**/*.java`, then deploy `frontend/webapp` to Tomcat.
 
-Windows:
-```cmd
-cd scripts
-copy config.example.bat config.bat
-notepad config.bat
-```
+## Directory Structure
 
-修改 `config.bat`，填入你的 Tomcat 路径：
+| Path | Purpose |
+| --- | --- |
+| `backend/src/` | Backend Java source code |
+| `frontend/webapp/` | JSP pages, CSS, JavaScript, `WEB-INF/web.xml`, and AI config templates |
+| `scripts/dev.sh` | macOS / Linux one-click compile, deploy, start |
+| `scripts/dev.bat` | Windows one-click compile, deploy, start |
+| `scripts/config.example.sh` | macOS / Linux local config template |
+| `scripts/config.example.bat` | Windows local config template |
+| `scripts/javadocs.sh` | macOS / Linux JavaDoc generation script |
+| `scripts/javadocs.bat` | Windows JavaDoc generation script |
+| `docs/deliverables/technical/` | Architecture, API, deployment, and module documentation |
+| `docs/deliverables/` | Course delivery materials |
 
-```bat
-set CATALINA_HOME=C:\apache-tomcat-11.0.7
-```
+## Environment Requirements
 
-macOS / Linux:
+| Tool | Requirement | Notes |
+| --- | --- | --- |
+| JDK | `17+` | Must be able to use `javac` directly |
+| Tomcat | `10.1+` or `11.x` | Project uses Jakarta Servlet 6 API |
+| Shell | Bash or Windows CMD | Run local scripts |
+| Node.js | Optional | Only used for `node --check` to validate frontend JS syntax |
+
+## Quick Start
+
+### macOS / Linux
+
 ```bash
-cd scripts
-cp config.example.sh config.sh
+cp scripts/config.example.sh scripts/config.sh
+chmod +x scripts/dev.sh
 ```
 
-修改 `config.sh`，填入你的 Tomcat 路径：
+Edit `scripts/config.sh`:
+
 ```bash
 export CATALINA_HOME="/path/to/apache-tomcat-11.0.7"
 export TOMCAT_HOME="${CATALINA_HOME}"
 export APP_NAME="groupproject"
+export TA_HIRING_DATA_DIR="${CATALINA_HOME}/data"
 ```
 
-### 2. 运行项目
+Start:
 
-Windows:
-```cmd
-cd scripts
-build.bat
-deploy.bat
-startup.bat
-```
-
-macOS / Linux（推荐一键）:
 ```bash
-cd scripts
-chmod +x *.sh
-./onekey.sh
+./scripts/dev.sh
 ```
 
-或分步执行：
-```bash
-cd scripts
-chmod +x *.sh
-./build.sh
-./deploy.sh
-./startup.sh
+### Windows
+
+```bat
+copy scripts\config.example.bat scripts\config.bat
 ```
 
-### 3. 访问
+Edit `scripts\config.bat`:
 
-- 首页: http://localhost:8080/groupproject/
-- Servlet: http://localhost:8080/groupproject/hello
-- JSP: http://localhost:8080/groupproject/jsp/welcome.jsp
+```bat
+set CATALINA_HOME=D:\path\to\apache-tomcat-11.0.7
+set TOMCAT_HOME=%CATALINA_HOME%
+set APP_NAME=groupproject
+set TA_HIRING_DATA_DIR=%CATALINA_HOME%\data
+```
 
-## Standard Demo Accounts
+Start:
 
-预览、联调与对外说明时统一使用以下固定测试账号；如果本地数据缺失，请先补齐再测试，并保持本节与实际使用一致。
+```bat
+scripts\dev.bat
+```
+
+The script automatically executes:
+
+```text
+Clean build -> Compile backend/src -> Copy frontend/webapp -> Deploy to Tomcat webapps -> Start Tomcat
+```
+
+## Access URLs
+
+With default `APP_NAME=groupproject`, after startup access:
+
+| Page | URL |
+| --- | --- |
+| Portal Home | http://localhost:8080/groupproject/ |
+| Login Page | http://localhost:8080/groupproject/login.jsp |
+| TA/MO Registration | http://localhost:8080/groupproject/register.jsp |
+| Admin Invite Registration | http://localhost:8080/groupproject/admin-invite.jsp |
+
+Role pages are located at:
+
+| Role | Key Pages |
+| --- | --- |
+| TA | `/jsp/ta/dashboard.jsp`, `/jsp/ta/job-list.jsp`, `/jsp/ta/application-status.jsp`, `/jsp/ta/notifications.jsp` |
+| MO | `/jsp/mo/dashboard.jsp`, `/jsp/mo/notifications.jsp` |
+| Admin | `/jsp/admin/dashboard.jsp`, `/jsp/admin/invite.jsp`, `/jsp/admin/notifications.jsp` |
+
+## Demo Accounts
+
+Demo accounts and sample positions/applications are automatically populated on startup. Existing CSV data will not be cleared.
 
 | Role | Username | Password |
 | --- | --- | --- |
 | TA | `ta_demo` | `Pass1234` |
+| TA | `ta_demo_mia` | `Pass1234` |
+| TA | `ta_demo_noah` | `Pass1234` |
+| TA | `ta_demo_olivia` | `Pass1234` |
+| TA | `ta_demo_liam` | `Pass1234` |
 | MO | `mo_demo` | `Pass1234` |
+| MO | `mo_demo_alice` | `Pass1234` |
+| MO | `mo_demo_brian` | `Pass1234` |
 | Admin | `admin_demo` | `Pass1234` |
 
-## 日常开发工作流 (修改代码后)
+## Data and Logs
 
-当你修改了任何 `.java` 源码或 `.jsp/.html` 前端文件后，**无需重启 Tomcat**，只需要在 `scripts/` 目录下重新执行编译和部署命令：
+Runtime data must be specified by `TA_HIRING_DATA_DIR`. The code will not write runtime data into the repository. Users, positions, applications, notifications, avatars, and resumes are all stored under this directory.
 
-Windows:
-```cmd
-cd scripts
-build.bat
-deploy.bat
-```
-
-macOS / Linux:
-```bash
-cd scripts
-./build.sh
-./deploy.sh
-```
-
-*(这会重新编译最新的 Java 类并把新文件覆盖到 Tomcat 的运行包中，刷新浏览器即可看到变化)*
-
-## 项目架构与目录说明
-
-为了完全契合《EBU6304 敏捷开发计划》中 **前端/后端分别协作** 的要求，也为了避免将来合代码时产生冲突，本项目的代码被物理隔离为两个顶级目录：
+Backend log files are located in the project root:
 
 ```text
-carnegie_software_engineering/
-├── backend/               # 👨‍💻 后端开发工作区 (成员1-4)
-│   └── src/               # Java 源代码存放处 
-│
-├── frontend/              # 🎨 前端开发工作区 (成员5-6)
-│   └── webapp/            # JSP、HTML、CSS、JS 静态资源与 web.xml
-│
-├── scripts/               # ⚙️ 构建与部署脚本
-│   ├── build.bat          # 核心构建脚本 (将 backend 和 frontend 组装)
-│   ├── deploy.bat         # 核心部署脚本
-│   ├── startup.bat        # Tomcat 启动脚本
-│   └── config.example.bat # 配置文件模板
-│
-├── data/                  # 💾 纯文本数据存储 (JSON/txt)
-└── build/                 # 📦 脚本自动生成的打包产物 (被 Git 忽略)
+logs/app.log
 ```
 
-## 常见问题
+## Page Features
 
-- **端口被占用**: 请修改您本机的 `Tomcat/conf/server.xml`，将 `<Connector port="8080" />` 改为其他端口。
-- **命令行乱码**: 请确保您的终端代码页格式正确，或在执行构建脚本时确保所有的本地 `.java` 文件是以 `UTF-8` 无 BOM 形式保存的。
+| Role | Frontend Visible Features |
+| --- | --- |
+| TA | Login/Register, maintain account and TA profile, upload avatar/resume, browse positions, submit applications, view application status, view job recommendations |
+| MO | Login/Register, post/edit/delete positions, view candidates, process applications, view applicant recommendations |
+| Admin | Login, view TA workload statistics, view notifications, view/refresh current 8-digit admin invite code |
+
+New Admin accounts are created via `/admin-invite.jsp` by entering an 8-digit invite code. The current invite code can be viewed or refreshed on the Admin page `/jsp/admin/invite.jsp`.
+
+## AI Configuration
+
+AI configuration only affects the recommendation feature on frontend pages. Templates are located in `frontend/webapp/WEB-INF/ai/`. Real key files use `*.local.properties` and are ignored by `.gitignore`.
+
+### Recommendation Search
+
+Used for MO applicant recommendations and TA job recommendations.
+
+```bash
+cp frontend/webapp/WEB-INF/ai/deepseek.properties.template \
+   frontend/webapp/WEB-INF/ai/deepseek.local.properties
+```
+
+AI recommendation search does not provide local fallback data. If the key is not configured or the service is unavailable, the frontend displays the error message "AI recommendations are temporarily unavailable, please try again later." No fake recommendation results will be generated.
+
+## FAQ
+
+- **Tomcat not found**: Check if `CATALINA_HOME` / `TOMCAT_HOME` points to the real Tomcat root directory and confirm `lib/servlet-api.jar` exists.
+- **Data directory not configured**: Check if `TA_HIRING_DATA_DIR` is written to `scripts/config.sh` or `scripts/config.bat`.
+- **Script shows All Done but page won't open**: Check if 8080/8005 is occupied by another Tomcat or service, and check Tomcat logs.
+- **Page opens but no data**: Confirm the same `TA_HIRING_DATA_DIR` is used for this run, and confirm the demo data initialization had no errors during startup.
+- **Admin registration failed**: Admin accounts must use the 8-digit short invite code from `/admin-invite.jsp`. The current invite code can be viewed or refreshed on Admin's `/jsp/admin/invite.jsp` page.
+- **AI recommendation unavailable**: Check if the corresponding `*.local.properties` has a real key configured.
+
+## More Documentation
+
+- Technical documentation entry: `docs/deliverables/technical/index.md`
+- Deployment guide: `docs/deliverables/technical/deployment/deployment-guide.md`

@@ -1,0 +1,26 @@
+# DeepSeek applicant/job AI recommendation config template
+# Usage: copy this file to deepseek.local.properties, then fill in the real local key.
+# Note: *.local.properties is ignored by git. Do not commit real secrets.
+#
+# Current uses:
+# - Applicant AI recommendations on the MO dashboard
+# - Open-position AI recommendations on the TA job list
+#
+# These recommendations do not have local fake-result fallback data. Without a key,
+# or when the service is unavailable, the frontend shows that AI is unavailable.
+# The frontend does not expose prompts, candidateRef/jobRef, or other internal
+# references; it only shows the mapped real applicant/job records returned by the backend.
+
+# DeepSeek API key (required)
+# Empty values and placeholders are treated as not configured by DeepSeekAiConfig.
+deepseek.api.key=
+
+# OpenAI-compatible base URL. Do not add a trailing slash; the code also trims it defensively.
+deepseek.base-url=https://api.deepseek.com
+
+# Model name used by the DeepSeek-compatible API.
+deepseek.model=deepseek-v4-flash
+
+# Request timeout (milliseconds)
+# On timeout, the recommendation endpoint returns a failure message instead of generating local fallback recommendations.
+deepseek.timeout-ms=8000
