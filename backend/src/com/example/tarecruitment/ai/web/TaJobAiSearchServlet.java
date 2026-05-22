@@ -73,6 +73,7 @@ public class TaJobAiSearchServlet extends HttpServlet {
         }
 
         String query = request.getParameter("query");
+        String locale = request.getParameter("locale");
         if (query != null && query.length() > MAX_QUERY_LENGTH) {
             ApiResponses.write(response, 400, false, "query is too long", null);
             return;
@@ -89,14 +90,14 @@ public class TaJobAiSearchServlet extends HttpServlet {
                         response,
                         400,
                         false,
-                        TaJobAiSearchService.PROFILE_REQUIRED_MESSAGE,
+                        TaJobAiSearchService.profileRequiredMessageFor(query, locale),
                         ApiResponses.objectMap("action", "profile_required")
                 );
                 return;
             }
 
             List<Job> jobs = loadApplicableOpenJobs(currentUser.getUserId());
-            SearchResult result = aiSearchService.search(applicantOpt.get(), jobs, query);
+            SearchResult result = aiSearchService.search(applicantOpt.get(), jobs, query, locale);
 
             if (!result.isSuccess()) {
                 int status = "profile_required".equals(result.getAction()) ? 400 : 503;
@@ -116,13 +117,13 @@ public class TaJobAiSearchServlet extends HttpServlet {
             ApiResponses.write(response, 400, false, ex.getMessage(), null);
         } catch (Exception ex) {
             getServletContext().log("Failed to run TA job AI search", ex);
-            ApiResponses.write(response, 503, false, TaJobAiSearchService.UNAVAILABLE_MESSAGE, null);
+            ApiResponses.write(response, 503, false, TaJobAiSearchService.unavailableMessageFor(query, locale), null);
         }
     }
 
     private List<Job> loadApplicableOpenJobs(String currentUserId) {
         LocalDateTime effectiveNow = LocalDateTime.now();
-        // Frontend only displays recommended results; excluding applied jobs and showing only open positions are backend protection logic.
+        // AI recommendation only uses actionable jobs: currently open and not already applied by this TA.
         return jobDao.findAll().stream()
                 .filter(job -> job != null && job.getEffectiveStatus(effectiveNow) == Job.Status.OPEN)
                 .filter(job -> job.getJobId() != null && !job.getJobId().trim().isEmpty())
@@ -175,7 +176,8 @@ public class TaJobAiSearchServlet extends HttpServlet {
                 "workload", safeText(job.getWorkload()),
                 "salary", safeText(job.getSalary()),
                 "deadline", job.getDeadline() != null ? job.getDeadline().toString() : "",
-                "status", effectiveStatus != null ? effectiveStatus.name() : "OPEN"
+                "status", effectiveStatus != null ? effectiveStatus.name() : "OPEN",
+                "hasApplied", false
         );
     }
 

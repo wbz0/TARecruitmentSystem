@@ -124,7 +124,7 @@ public class MoApplicantAiSearchServlet extends HttpServlet {
             ApiResponses.write(response, 400, false, ex.getMessage(), null);
         } catch (Exception ex) {
             getServletContext().log("Failed to run MO applicant AI search", ex);
-            ApiResponses.write(response, 503, false, MoApplicantAiSearchService.UNAVAILABLE_MESSAGE, null);
+            ApiResponses.write(response, 503, false, MoApplicantAiSearchService.unavailableMessageFor(query), null);
         }
     }
 

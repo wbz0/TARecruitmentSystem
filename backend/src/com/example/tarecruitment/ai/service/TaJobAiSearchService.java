@@ -19,17 +19,30 @@ import java.util.regex.Pattern;
  * TA job list AI recommendation service.
  *
  * Current frontend entry is the AI search mode in TA job list.
- * Only sends TA profile whitelist fields and currently open jobs to DeepSeek.
+ * Only sends TA profile whitelist fields and currently open jobs the TA has not applied for to DeepSeek.
  * When there is no key or service is unavailable, it directly returns “AI recommendation temporarily unavailable”,
  * without local fake recommendations.
  */
 public class TaJobAiSearchService {
 
-    public static final String DEFAULT_QUERY = "Recommend the most suitable open TA positions for me";
+    public static final String DEFAULT_QUERY = "Recommend the most suitable open TA positions I have not applied to yet";
+    private static final String DEFAULT_QUERY_ZH = "请根据我的个人档案推荐最适合的、我尚未申请的开放 TA 职位";
     public static final String OUT_OF_SCOPE_MESSAGE =
-            "I cannot process your question. Based on your personal profile and currently open positions, I can help you recommend positions, compare positions, or explain recommendation reasons.";
+            "I cannot process your question. Based on your personal profile and open positions you have not applied to yet, I can help you recommend positions, compare positions, or explain recommendation reasons.";
+    private static final String OUT_OF_SCOPE_MESSAGE_ZH =
+            "我无法处理你的问题。基于你的个人档案和你尚未申请的开放职位，我可以帮你推荐职位、比较职位或解释推荐理由。";
     public static final String UNAVAILABLE_MESSAGE = "AI recommendation is temporarily unavailable. Please try again later.";
+    private static final String UNAVAILABLE_MESSAGE_ZH = "AI 推荐暂时不可用，请稍后再试。";
     public static final String PROFILE_REQUIRED_MESSAGE = "Please complete your profile before using AI recommendation.";
+    private static final String PROFILE_REQUIRED_MESSAGE_ZH = "请先完善个人档案后再使用 AI 推荐。";
+    private static final String NO_OPEN_POSITIONS_MESSAGE =
+            "Currently no open positions you have not applied to are available for recommendation.";
+    private static final String NO_OPEN_POSITIONS_MESSAGE_ZH =
+            "当前没有可推荐的、你尚未申请的开放职位。";
+    private static final String NO_RECOMMENDATIONS_MESSAGE =
+            "AI did not find a suitable recommendation from open positions you have not applied to yet.";
+    private static final String NO_RECOMMENDATIONS_MESSAGE_ZH =
+            "AI 暂未从你尚未申请的开放职位中找到合适推荐。";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:\\+?\\d[\\d\\s().-]{6,}\\d)(?!\\d)");
@@ -43,34 +56,39 @@ public class TaJobAiSearchService {
     }
 
     public SearchResult search(Applicant applicant, List<Job> jobs, String rawQuery) {
+        return search(applicant, jobs, rawQuery, null);
+    }
+
+    public SearchResult search(Applicant applicant, List<Job> jobs, String rawQuery, String responseLanguageHint) {
+        ResponseLanguage language = detectResponseLanguage(rawQuery, responseLanguageHint);
         if (applicant == null) {
-            return SearchResult.profileRequired(PROFILE_REQUIRED_MESSAGE);
+            return SearchResult.profileRequired(profileRequiredMessage(language));
         }
         if (client == null || !client.isConfigured()) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         List<JobContext> jobContexts = buildJobs(jobs);
         if (jobContexts.isEmpty()) {
-            return SearchResult.recommend("Currently no open positions available for recommendation.", Collections.emptyList());
+            return SearchResult.recommend(noOpenPositionsMessage(language), Collections.emptyList());
         }
 
-        String query = normalizeQuery(rawQuery);
+        String query = normalizeQuery(rawQuery, language);
         DeepSeekTaJobSearchClient.SearchAttempt attempt = client.search(
-                buildSystemPrompt(),
-                buildUserPrompt(applicant, jobContexts, query)
+                buildSystemPrompt(language),
+                buildUserPrompt(applicant, jobContexts, query, language)
         );
 
         if (!attempt.hasResult()) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         DeepSeekTaJobSearchClient.SearchPayload payload = attempt.getPayload();
         if ("out_of_scope".equals(payload.getAction())) {
-            return SearchResult.outOfScope(OUT_OF_SCOPE_MESSAGE);
+            return SearchResult.outOfScope(outOfScopeMessage(language));
         }
         if (!"recommend".equals(payload.getAction())) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         Map<String, JobContext> byRef = new LinkedHashMap<>();
@@ -85,33 +103,41 @@ public class TaJobAiSearchService {
             if (jobContext == null || jobContext.job == null || !seenJobIds.add(jobContext.job.getJobId())) {
                 continue;
             }
-            // jobRef is only an internal reference in the prompt; frontend does not display J1/J2;
-// replace with job title before returning.
+            // jobRef is only an internal prompt reference; replace it with the job title before returning.
             recommendations.add(new RecommendedJob(
                     jobContext.job,
                     replaceJobRefs(recommendation.getRecommendation(), byRef)
             ));
         }
 
-        String message = payload.getMessage().isEmpty()
-                ? "AI recommended positions have been generated."
-                : replaceJobRefs(payload.getMessage(), byRef);
+        String message = generatedMessage(language, recommendations.size());
         return SearchResult.recommend(message, recommendations);
     }
 
-    private String buildSystemPrompt() {
-        return "You are an AI recommendation assistant in the TA recruitment system that helps TA choose suitable positions from open positions."
-                + "You can only handle current open position recommendations, position comparisons, and recommendation reason explanations."
-                + "If the user question is outside this scope, you must return JSON:"
-                + "{\"action\":\"out_of_scope\",\"message\":\"" + OUT_OF_SCOPE_MESSAGE + "\",\"results\":[]}."
-                + "If the user question is within the scope, you must return a JSON object:"
-                + "{\"action\":\"recommend\",\"message\":\"brief explanation\",\"results\":[{\"jobRef\":\"J1\",\"recommendation\":\"recommendation reason\"}]}."
-                + "You can only use the jobRef provided in the input, cannot fabricate positions, and cannot output Markdown or additional text."
+    private String buildSystemPrompt(ResponseLanguage language) {
+        String outputLanguage = outputLanguageName(language);
+        return "You are an AI recommendation assistant in the TA recruitment system that helps TA choose suitable positions from open positions they have not applied to yet. "
+                + "You can only handle recommendations, comparisons, and recommendation reason explanations for current open positions the TA has not applied to yet. "
+                + "Output language rule: the JSON field names stay in English, but the user-facing JSON message and every recommendation value must be written in "
+                + outputLanguage
+                + ". Do not mix output languages except for proper nouns, course codes, job titles, skill names, and fixed terms copied from the input. "
+                + "The job list provided by the system has already excluded jobs the TA has applied to. "
+                + "Never describe this list as all currently open positions; if you mention availability or counts, call them open positions the TA has not applied to yet. "
+                + "When writing in Simplified Chinese, use the phrase \"尚未申请的开放职位\" for this candidate pool. "
+                + "If the user question is outside this scope, you must return JSON: "
+                + "{\"action\":\"out_of_scope\",\"message\":\"" + outOfScopeMessage(language) + "\",\"results\":[]}. "
+                + "If the user question is within the scope, you must return a JSON object: "
+                + "{\"action\":\"recommend\",\"message\":\"brief explanation in " + outputLanguage + "\",\"results\":[{\"jobRef\":\"J1\",\"recommendation\":\"recommendation reason in " + outputLanguage + "\"}]}. "
+                + "You can only use the jobRef provided in the input, cannot fabricate positions, and cannot output Markdown or additional text. "
                 + "Recommendation reasons should be specific, concise, and based on the TA's skills, experience, motivation, GPA, and job requirements.";
     }
 
-    private String buildUserPrompt(Applicant applicant, List<JobContext> jobContexts, String query) {
+    private String buildUserPrompt(Applicant applicant, List<JobContext> jobContexts, String query, ResponseLanguage language) {
         StringBuilder prompt = new StringBuilder(1800);
+        prompt.append("Target output language: ").append(outputLanguageName(language)).append("\n");
+        prompt.append("Write both the overall recommendation message and each recommendation reason in the target output language.\n\n");
+        prompt.append("Important: the job list below contains only open positions this TA has not applied to yet. ");
+        prompt.append("Do not call it the complete set of all open positions.\n\n");
         prompt.append("User question: ").append(query).append("\n\n");
         prompt.append("TA personal profile (sanitized; do not output names, emails, phones, student IDs, addresses, or file paths):\n");
         prompt.append("- department: ").append(sanitizeFreeText(applicant.getDepartment())).append("\n");
@@ -120,7 +146,7 @@ public class TaJobAiSearchService {
         prompt.append("- skills: ").append(join(normalizeSkills(applicant.getSkills()))).append("\n");
         prompt.append("- experience: ").append(sanitizeFreeText(applicant.getExperience())).append("\n");
         prompt.append("- motivation: ").append(sanitizeFreeText(applicant.getMotivation())).append("\n\n");
-        prompt.append("Open position list (only these jobRefs are allowed for recommendation):\n");
+        prompt.append("Open positions not yet applied to by this TA (only these jobRefs are allowed for recommendation):\n");
         for (JobContext jobContext : jobContexts) {
             Job job = jobContext.job;
             prompt.append(jobContext.jobRef).append(":\n");
@@ -147,16 +173,91 @@ public class TaJobAiSearchService {
             if (job == null || isBlank(job.getJobId())) {
                 continue;
             }
-            // Use temporary jobRef to avoid AI directly touching internal jobId,
-// and also so the model can only recommend jobs from the input list.
+            // Use temporary jobRef so the model cannot directly touch internal jobId and must stay within the input list.
             contexts.add(new JobContext("J" + (contexts.size() + 1), job));
         }
         return contexts;
     }
 
-    private String normalizeQuery(String rawQuery) {
+    private String normalizeQuery(String rawQuery, ResponseLanguage language) {
         String query = sanitizeFreeText(rawQuery);
-        return query.isEmpty() ? DEFAULT_QUERY : query;
+        return query.isEmpty() ? defaultQuery(language) : query;
+    }
+
+    public static String unavailableMessageFor(String rawQuery) {
+        return unavailableMessageFor(rawQuery, null);
+    }
+
+    public static String unavailableMessageFor(String rawQuery, String responseLanguageHint) {
+        return unavailableMessage(detectResponseLanguage(rawQuery, responseLanguageHint));
+    }
+
+    public static String profileRequiredMessageFor(String rawQuery) {
+        return profileRequiredMessageFor(rawQuery, null);
+    }
+
+    public static String profileRequiredMessageFor(String rawQuery, String responseLanguageHint) {
+        return profileRequiredMessage(detectResponseLanguage(rawQuery, responseLanguageHint));
+    }
+
+    private static String defaultQuery(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? DEFAULT_QUERY_ZH : DEFAULT_QUERY;
+    }
+
+    private static String outOfScopeMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? OUT_OF_SCOPE_MESSAGE_ZH : OUT_OF_SCOPE_MESSAGE;
+    }
+
+    private static String unavailableMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? UNAVAILABLE_MESSAGE_ZH : UNAVAILABLE_MESSAGE;
+    }
+
+    private static String profileRequiredMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? PROFILE_REQUIRED_MESSAGE_ZH : PROFILE_REQUIRED_MESSAGE;
+    }
+
+    private static String noOpenPositionsMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? NO_OPEN_POSITIONS_MESSAGE_ZH : NO_OPEN_POSITIONS_MESSAGE;
+    }
+
+    private static String noRecommendationsMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? NO_RECOMMENDATIONS_MESSAGE_ZH : NO_RECOMMENDATIONS_MESSAGE;
+    }
+
+    private static String generatedMessage(ResponseLanguage language, int recommendationCount) {
+        if (recommendationCount <= 0) {
+            return noRecommendationsMessage(language);
+        }
+        if (language == ResponseLanguage.CHINESE) {
+            return "已为你生成 " + recommendationCount + " 个尚未申请的开放职位推荐。";
+        }
+        String suffix = recommendationCount == 1 ? "" : "s";
+        return "Generated " + recommendationCount + " AI recommendation" + suffix
+                + " from open positions you have not applied to yet.";
+    }
+
+    private static ResponseLanguage detectResponseLanguage(String rawQuery) {
+        return detectResponseLanguage(rawQuery, null);
+    }
+
+    private static ResponseLanguage detectResponseLanguage(String rawQuery, String responseLanguageHint) {
+        if (rawQuery != null) {
+            for (int index = 0; index < rawQuery.length(); index++) {
+                Character.UnicodeScript script = Character.UnicodeScript.of(rawQuery.charAt(index));
+                if (script == Character.UnicodeScript.HAN) {
+                    return ResponseLanguage.CHINESE;
+                }
+            }
+        }
+        if (isBlank(rawQuery) && responseLanguageHint != null
+                && responseLanguageHint.trim().toLowerCase().startsWith("zh")) {
+            return ResponseLanguage.CHINESE;
+        }
+        return ResponseLanguage.ENGLISH;
+    }
+
+    private static String outputLanguageName(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? "Simplified Chinese" : "English";
     }
 
     private String sanitizeFreeText(String text) {
@@ -224,6 +325,11 @@ public class TaJobAiSearchService {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private enum ResponseLanguage {
+        ENGLISH,
+        CHINESE
     }
 
     private static final class JobContext {
