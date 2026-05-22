@@ -54,6 +54,10 @@ public class JobService {
      * fuzzy search metadata and applicant count that frontend cards need.
      */
     public ServiceResult list(String courseCode, String status, String keyword, String moId) {
+        return list(null, courseCode, status, keyword, moId);
+    }
+
+    public ServiceResult list(User currentUser, String courseCode, String status, String keyword, String moId) {
         List<Job> jobs = jobDao.findAll();
         // effectiveNow is used for calculating dynamic status, e.g. auto-show CLOSED after deadline passes.
         LocalDateTime effectiveNow = LocalDateTime.now();
@@ -91,7 +95,7 @@ public class JobService {
         List<Job> visibleJobs = searchOutcome.getItems();
         return ServiceResult.ok(
                 "Jobs retrieved successfully",
-                JobResponseMapper.toListPayload(visibleJobs, searchOutcome, effectiveNow, applicationDao, userDao)
+                JobResponseMapper.toListPayload(visibleJobs, searchOutcome, effectiveNow, applicationDao, userDao, currentUser)
         );
     }
 

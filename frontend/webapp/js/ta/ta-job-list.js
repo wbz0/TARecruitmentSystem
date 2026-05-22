@@ -164,6 +164,9 @@
         var query = searchInput.value.trim();
         var params = new URLSearchParams();
         params.set("query", query);
+        if (!query && window.AppI18n && typeof window.AppI18n.getLocale === "function") {
+            params.set("locale", window.AppI18n.getLocale());
+        }
 
         setAiSearchLoading(true);
         state.loadError = false;
@@ -199,7 +202,7 @@
 
                 if (data.action === "out_of_scope") {
                     showMessage(
-                        localizeServerMessage(data.message || payload.message, "portal.taJobList.aiOutOfScope", "I cannot handle your question. I can recommend jobs, compare jobs, or explain recommendation reasons based on your profile and open positions."),
+                        localizeServerMessage(data.message || payload.message, "portal.taJobList.aiOutOfScope", "I cannot handle your question. I can recommend jobs, compare jobs, or explain recommendation reasons based on your profile and open positions you have not applied to yet."),
                         "error"
                     );
                     return;
@@ -262,7 +265,7 @@
 
         if (!Array.isArray(jobs) || jobs.length === 0) {
             if (state.aiSearchActive) {
-                setListSummary(t("portal.taJobList.aiNoRecommendations", "No AI recommendations for the current open positions."));
+                setListSummary(t("portal.taJobList.aiNoRecommendations", "No AI recommendations for open positions you have not applied to yet."));
                 jobList.appendChild(createEmptyState("ai-empty"));
                 return;
             }
@@ -314,6 +317,7 @@
         var recommendation = state.aiSearchActive
             ? getSafeText(state.aiRecommendationsByJobId[jobId], "")
             : "";
+        var hasApplied = job.hasApplied === true || String(job.hasApplied).toLowerCase() === "true";
 
         card.className = "job-card status-" + statusClass + (recommendation ? " job-card--ai" : "");
         card.setAttribute("role", "link");
@@ -335,6 +339,9 @@
             "</div>" +
             "<div class=\"job-side\">" +
                 "<span class=\"job-status-chip status-" + statusClass + "\">" + escapeHtml(getJobStatusLabel(status)) + "</span>" +
+                (hasApplied
+                    ? "<span class=\"job-application-chip\">" + escapeHtml(getAppliedLabel(job.applicationStatus)) + "</span>"
+                    : "") +
             "</div>" +
             (recommendation
                 ? "<div class=\"job-ai-note\">" +
@@ -386,6 +393,20 @@
             return t("portal.common.filled", "Filled");
         }
         return getSafeText(status, "-");
+    }
+
+    function getAppliedLabel(status) {
+        var normalizedStatus = getSafeText(status, "").toUpperCase();
+        if (normalizedStatus === "ACCEPTED") {
+            return t("portal.taJobList.applicationAccepted", "Accepted");
+        }
+        if (normalizedStatus === "REJECTED") {
+            return t("portal.taJobList.applicationRejected", "Rejected");
+        }
+        if (normalizedStatus === "WITHDRAWN") {
+            return t("portal.taJobList.applicationWithdrawn", "Withdrawn");
+        }
+        return t("portal.taJobList.alreadyApplied", "Applied");
     }
 
     /*
@@ -469,8 +490,8 @@
 
         if (mode === "ai-empty") {
             empty.innerHTML =
-                "<p class=\"empty-title\">" + escapeHtml(t("portal.taJobList.aiNoRecommendations", "No AI recommendations for the current open positions.")) + "</p>" +
-                "<p class=\"empty-copy\">" + escapeHtml(t("portal.taJobList.aiNoRecommendationsHint", "Try asking for a different teaching focus or check again when more open jobs are available.")) + "</p>";
+                "<p class=\"empty-title\">" + escapeHtml(t("portal.taJobList.aiNoRecommendations", "No AI recommendations for open positions you have not applied to yet.")) + "</p>" +
+                "<p class=\"empty-copy\">" + escapeHtml(t("portal.taJobList.aiNoRecommendationsHint", "Try asking for a different teaching focus or check again when more unapplied open jobs are available.")) + "</p>";
             return empty;
         }
 

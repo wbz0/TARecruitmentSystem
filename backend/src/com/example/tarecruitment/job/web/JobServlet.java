@@ -74,6 +74,7 @@ public class JobServlet extends HttpServlet {
 
             // List filter parameters come from TA job-list.js and MO dashboard.js.
             write(response, jobService.list(
+                    getCurrentUser(request),
                     request.getParameter("courseCode"),
                     request.getParameter("status"),
                     request.getParameter("keyword"),
