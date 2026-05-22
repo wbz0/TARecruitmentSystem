@@ -27,9 +27,17 @@ import java.util.regex.Pattern;
 public class MoApplicantAiSearchService {
 
     public static final String DEFAULT_QUERY = "Recommend the most suitable applicants for the current position";
+    private static final String DEFAULT_QUERY_ZH = "请推荐当前职位最合适的申请人";
     public static final String OUT_OF_SCOPE_MESSAGE =
             "I cannot process your question. Based on the current applicants for this position, I can help you recommend candidates, compare applicants, or explain the recommendation reasons.";
+    private static final String OUT_OF_SCOPE_MESSAGE_ZH =
+            "我无法处理你的问题。基于当前职位的申请人信息，我可以帮你推荐候选人、比较申请人或解释推荐理由。";
     public static final String UNAVAILABLE_MESSAGE = "AI search is temporarily unavailable. Please try again later.";
+    private static final String UNAVAILABLE_MESSAGE_ZH = "AI 搜索暂时不可用，请稍后再试。";
+    private static final String NO_APPLICANTS_MESSAGE = "No applicants available for recommendation at this time.";
+    private static final String NO_APPLICANTS_MESSAGE_ZH = "当前没有可推荐的申请人。";
+    private static final String GENERATED_MESSAGE = "AI recommendation results have been generated.";
+    private static final String GENERATED_MESSAGE_ZH = "已生成 AI 推荐结果。";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}");
     private static final Pattern PHONE_PATTERN = Pattern.compile("(?<!\\d)(?:\\+?\\d[\\d\\s().-]{6,}\\d)(?!\\d)");
@@ -46,33 +54,34 @@ public class MoApplicantAiSearchService {
                                List<Application> applications,
                                Map<String, Applicant> applicantsByUserId,
                                String rawQuery) {
+        ResponseLanguage language = detectResponseLanguage(rawQuery);
         if (job == null) {
             throw new IllegalArgumentException("Job is required.");
         }
         if (client == null || !client.isConfigured()) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         List<CandidateContext> candidates = buildCandidates(applications, applicantsByUserId);
         if (candidates.isEmpty()) {
-            return SearchResult.recommend("No applicants available for recommendation at this time.", Collections.emptyList());
+            return SearchResult.recommend(noApplicantsMessage(language), Collections.emptyList());
         }
 
-        String query = normalizeQuery(rawQuery);
+        String query = normalizeQuery(rawQuery, language);
         DeepSeekApplicantSearchClient.SearchAttempt attempt = client == null
                 ? DeepSeekApplicantSearchClient.SearchAttempt.failure("DeepSeek client is unavailable.")
-                : client.search(buildSystemPrompt(), buildUserPrompt(job, candidates, query));
+                : client.search(buildSystemPrompt(language), buildUserPrompt(job, candidates, query, language));
 
         if (!attempt.hasResult()) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         DeepSeekApplicantSearchClient.SearchPayload payload = attempt.getPayload();
         if ("out_of_scope".equals(payload.getAction())) {
-            return SearchResult.outOfScope(OUT_OF_SCOPE_MESSAGE);
+            return SearchResult.outOfScope(outOfScopeMessage(language));
         }
         if (!"recommend".equals(payload.getAction())) {
-            return SearchResult.unavailable(UNAVAILABLE_MESSAGE);
+            return SearchResult.unavailable(unavailableMessage(language));
         }
 
         Map<String, CandidateContext> byRef = new LinkedHashMap<>();
@@ -96,24 +105,30 @@ public class MoApplicantAiSearchService {
         }
 
         String message = payload.getMessage().isEmpty()
-                ? "AI recommendation results have been generated."
+                ? generatedMessage(language)
                 : replaceCandidateRefs(payload.getMessage(), byRef);
         return SearchResult.recommend(message, recommendations);
     }
 
-    private String buildSystemPrompt() {
-        return "You are an AI search assistant in the TA recruitment system that helps MO review applicants."
-                + "You can only handle current job applicant recommendations, applicant comparisons, and recommendation reason explanations."
-                + "If the user question is outside this scope, you must return JSON:"
-                + "{\"action\":\"out_of_scope\",\"message\":\"" + OUT_OF_SCOPE_MESSAGE + "\",\"results\":[]}."
-                + "If the user question is within the scope, you must return a JSON object:"
-                + "{\"action\":\"recommend\",\"message\":\"brief explanation\",\"results\":[{\"candidateRef\":\"C1\",\"recommendation\":\"recommendation reason\"}]}."
-                + "You can only use the candidateRef provided in the input, cannot fabricate candidates, and cannot output Markdown or additional text."
+    private String buildSystemPrompt(ResponseLanguage language) {
+        String outputLanguage = outputLanguageName(language);
+        return "You are an AI search assistant in the TA recruitment system that helps MO review applicants. "
+                + "You can only handle current job applicant recommendations, applicant comparisons, and recommendation reason explanations. "
+                + "Output language rule: the JSON field names stay in English, but the user-facing JSON message and every recommendation value must be written in "
+                + outputLanguage
+                + ". Do not mix output languages except for proper nouns, course codes, job titles, skill names, and fixed terms copied from the input. "
+                + "If the user question is outside this scope, you must return JSON: "
+                + "{\"action\":\"out_of_scope\",\"message\":\"" + outOfScopeMessage(language) + "\",\"results\":[]}. "
+                + "If the user question is within the scope, you must return a JSON object: "
+                + "{\"action\":\"recommend\",\"message\":\"brief explanation in " + outputLanguage + "\",\"results\":[{\"candidateRef\":\"C1\",\"recommendation\":\"recommendation reason in " + outputLanguage + "\"}]}. "
+                + "You can only use the candidateRef provided in the input, cannot fabricate candidates, and cannot output Markdown or additional text. "
                 + "Recommendation reasons should be specific, concise, and based on the candidate's skills, experience, motivation, cover letter, and job requirements.";
     }
 
-    private String buildUserPrompt(Job job, List<CandidateContext> candidates, String query) {
+    private String buildUserPrompt(Job job, List<CandidateContext> candidates, String query, ResponseLanguage language) {
         StringBuilder prompt = new StringBuilder(1600);
+        prompt.append("Target output language: ").append(outputLanguageName(language)).append("\n");
+        prompt.append("Write both the overall recommendation message and each recommendation reason in the target output language.\n\n");
         prompt.append("User question: ").append(query).append("\n\n");
         prompt.append("Current job:\n");
         prompt.append("- title: ").append(safe(job.getTitle())).append("\n");
@@ -172,9 +187,49 @@ public class MoApplicantAiSearchService {
         return candidates;
     }
 
-    private String normalizeQuery(String rawQuery) {
+    private String normalizeQuery(String rawQuery, ResponseLanguage language) {
         String query = sanitizeFreeText(rawQuery);
-        return query.isEmpty() ? DEFAULT_QUERY : query;
+        return query.isEmpty() ? defaultQuery(language) : query;
+    }
+
+    public static String unavailableMessageFor(String rawQuery) {
+        return unavailableMessage(detectResponseLanguage(rawQuery));
+    }
+
+    private static String defaultQuery(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? DEFAULT_QUERY_ZH : DEFAULT_QUERY;
+    }
+
+    private static String outOfScopeMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? OUT_OF_SCOPE_MESSAGE_ZH : OUT_OF_SCOPE_MESSAGE;
+    }
+
+    private static String unavailableMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? UNAVAILABLE_MESSAGE_ZH : UNAVAILABLE_MESSAGE;
+    }
+
+    private static String noApplicantsMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? NO_APPLICANTS_MESSAGE_ZH : NO_APPLICANTS_MESSAGE;
+    }
+
+    private static String generatedMessage(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? GENERATED_MESSAGE_ZH : GENERATED_MESSAGE;
+    }
+
+    private static ResponseLanguage detectResponseLanguage(String rawQuery) {
+        if (rawQuery != null) {
+            for (int index = 0; index < rawQuery.length(); index++) {
+                Character.UnicodeScript script = Character.UnicodeScript.of(rawQuery.charAt(index));
+                if (script == Character.UnicodeScript.HAN) {
+                    return ResponseLanguage.CHINESE;
+                }
+            }
+        }
+        return ResponseLanguage.ENGLISH;
+    }
+
+    private static String outputLanguageName(ResponseLanguage language) {
+        return language == ResponseLanguage.CHINESE ? "Simplified Chinese" : "English";
     }
 
     private String sanitizeFreeText(String text) {
@@ -242,6 +297,11 @@ public class MoApplicantAiSearchService {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private enum ResponseLanguage {
+        ENGLISH,
+        CHINESE
     }
 
     private static final class CandidateContext {

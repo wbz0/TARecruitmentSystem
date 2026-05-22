@@ -1,10 +1,18 @@
 import com.example.tarecruitment.ai.client.DeepSeekAiConfig;
+import com.example.tarecruitment.ai.client.DeepSeekApplicantSearchClient;
+import com.example.tarecruitment.ai.client.DeepSeekTaJobSearchClient;
+import com.example.tarecruitment.ai.service.MoApplicantAiSearchService;
+import com.example.tarecruitment.ai.service.TaJobAiSearchService;
+import com.example.tarecruitment.application.model.Application;
 import com.example.tarecruitment.common.storage.CsvCodec;
 import com.example.tarecruitment.common.storage.StoragePaths;
+import com.example.tarecruitment.job.model.Job;
 import com.example.tarecruitment.profile.dao.ApplicantDao;
 import com.example.tarecruitment.profile.model.Applicant;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Zhou Bohan backend test entry point.
@@ -26,6 +34,7 @@ public class ZhouBohanBackendTest {
         testApplicantCsvRoundTrip();
         testApplicantDaoDuplicateRules();
         testDeepSeekConfigFallbacks();
+        testAiRecommendationLanguageRules();
         System.out.println("[Zhou Bohan] PASS total=" + passed);
     }
 
@@ -146,6 +155,83 @@ public class ZhouBohanBackendTest {
     }
 
     /**
+     * Validate recommendation prompt language control.
+     *
+     * The two AI recommendation flows must follow the user's input language:
+     * - Chinese query -> Chinese recommendation message and reason;
+     * - English query -> English recommendation message and reason.
+     *
+     * This uses capturing fake clients, so the test verifies service-layer prompt construction
+     * and response fallback logic without calling the real DeepSeek endpoint.
+     */
+    private static void testAiRecommendationLanguageRules() {
+        Job job = new Job("mo-language", "MO Language", "Teaching Assistant - Software Engineering Studio", "DEMO-SE601");
+        job.setJobId("job-language-001");
+        job.setDescription("Support labs, review Java code, and guide testing.");
+        job.setRequiredSkills(Arrays.asList("Java", "Testing"));
+        job.setPositions(1);
+
+        Applicant taProfile = new Applicant("ta-language", "Alice Language", "S20261234");
+        taProfile.setProgram("MSc Software Engineering");
+        taProfile.setSkills(Arrays.asList("Java", "Testing"));
+        taProfile.setExperience("Helped classmates debug Java assignments.");
+
+        CapturingTaJobClient taChineseClient = new CapturingTaJobClient("", "这个职位匹配你的 Java 和测试经验。");
+        TaJobAiSearchService.SearchResult taChineseResult = new TaJobAiSearchService(taChineseClient)
+                .search(taProfile, List.of(job), "请推荐适合我的岗位");
+        assertContains(taChineseClient.systemPrompt, "Simplified Chinese", "TA Chinese system prompt");
+        assertContains(taChineseClient.userPrompt, "Target output language: Simplified Chinese", "TA Chinese user prompt");
+        assertContains(taChineseClient.userPrompt, "not applied to yet", "TA prompt explains unapplied candidate pool");
+        assertEquals("已为你生成 1 个尚未申请的开放职位推荐。", taChineseResult.getMessage(), "TA Chinese generated message");
+        assertEquals("这个职位匹配你的 Java 和测试经验。",
+                taChineseResult.getRecommendations().get(0).getRecommendation(),
+                "TA Chinese recommendation reason");
+
+        CapturingTaJobClient taBlankChineseClient = new CapturingTaJobClient("", "这个职位匹配你的 Java 和测试经验。");
+        TaJobAiSearchService.SearchResult taBlankChineseResult = new TaJobAiSearchService(taBlankChineseClient)
+                .search(taProfile, List.of(job), "", "zh-CN");
+        assertContains(taBlankChineseClient.userPrompt, "Target output language: Simplified Chinese", "TA blank query uses locale hint");
+        assertEquals("已为你生成 1 个尚未申请的开放职位推荐。", taBlankChineseResult.getMessage(), "TA blank Chinese generated message");
+
+        CapturingTaJobClient taEnglishClient = new CapturingTaJobClient("", "This role matches your Java and testing experience.");
+        TaJobAiSearchService.SearchResult taEnglishResult = new TaJobAiSearchService(taEnglishClient)
+                .search(taProfile, List.of(job), "Recommend a role for my testing skills");
+        assertContains(taEnglishClient.systemPrompt, "English", "TA English system prompt");
+        assertContains(taEnglishClient.userPrompt, "Target output language: English", "TA English user prompt");
+        assertEquals("Generated 1 AI recommendation from open positions you have not applied to yet.", taEnglishResult.getMessage(), "TA English generated message");
+        assertEquals("This role matches your Java and testing experience.",
+                taEnglishResult.getRecommendations().get(0).getRecommendation(),
+                "TA English recommendation reason");
+
+        Application application = new Application("job-language-001", "ta-language", "Alice Language", "alice@example.test");
+        application.setApplicationId("application-language-001");
+        application.setCoverLetter("I can support Java labs and testing feedback.");
+        Map<String, Applicant> applicantsByUserId = Map.of("ta-language", taProfile);
+
+        CapturingApplicantClient moChineseClient = new CapturingApplicantClient("", "该申请人具备 Java 和测试经验，适合支持实验课。");
+        MoApplicantAiSearchService.SearchResult moChineseResult = new MoApplicantAiSearchService(moChineseClient)
+                .search(job, List.of(application), applicantsByUserId, "请推荐最合适的申请人");
+        assertContains(moChineseClient.systemPrompt, "Simplified Chinese", "MO Chinese system prompt");
+        assertContains(moChineseClient.userPrompt, "Target output language: Simplified Chinese", "MO Chinese user prompt");
+        assertEquals("已生成 AI 推荐结果。", moChineseResult.getMessage(), "MO Chinese fallback message");
+        assertEquals("该申请人具备 Java 和测试经验，适合支持实验课。",
+                moChineseResult.getRecommendations().get(0).getRecommendation(),
+                "MO Chinese recommendation reason");
+
+        CapturingApplicantClient moEnglishClient = new CapturingApplicantClient("", "This applicant has Java and testing experience for lab support.");
+        MoApplicantAiSearchService.SearchResult moEnglishResult = new MoApplicantAiSearchService(moEnglishClient)
+                .search(job, List.of(application), applicantsByUserId, "Recommend the best applicant");
+        assertContains(moEnglishClient.systemPrompt, "English", "MO English system prompt");
+        assertContains(moEnglishClient.userPrompt, "Target output language: English", "MO English user prompt");
+        assertEquals("AI recommendation results have been generated.", moEnglishResult.getMessage(), "MO English fallback message");
+        assertEquals("This applicant has Java and testing experience for lab support.",
+                moEnglishResult.getRecommendations().get(0).getRecommendation(),
+                "MO English recommendation reason");
+
+        pass("AI recommendation prompts and fallback messages follow the query language");
+    }
+
+    /**
      * System Properties were temporarily changed during the test and must be restored afterward.
      * Otherwise, when continuing to run other tests in the same JVM, the configuration left by Zhou Bohan test may be read.
      */
@@ -186,6 +272,12 @@ public class ZhouBohanBackendTest {
         }
     }
 
+    private static void assertContains(String text, String expectedPart, String message) {
+        if (text == null || !text.contains(expectedPart)) {
+            throw new AssertionError(message + " expected to contain=" + expectedPart + " actual=" + text);
+        }
+    }
+
     private static void assertThrows(Class<? extends Throwable> expectedType, Runnable action, String message) {
         try {
             action.run();
@@ -196,5 +288,63 @@ public class ZhouBohanBackendTest {
             throw new AssertionError(message + " wrong exception=" + thrown);
         }
         throw new AssertionError(message + " expected exception=" + expectedType.getSimpleName());
+    }
+
+    private static final class CapturingTaJobClient extends DeepSeekTaJobSearchClient {
+        private final String responseMessage;
+        private final String recommendation;
+        private String systemPrompt;
+        private String userPrompt;
+
+        private CapturingTaJobClient(String responseMessage, String recommendation) {
+            super(DeepSeekAiConfig.load(null));
+            this.responseMessage = responseMessage;
+            this.recommendation = recommendation;
+        }
+
+        @Override
+        public boolean isConfigured() {
+            return true;
+        }
+
+        @Override
+        public SearchAttempt search(String systemPrompt, String userPrompt) {
+            this.systemPrompt = systemPrompt;
+            this.userPrompt = userPrompt;
+            return SearchAttempt.success(new SearchPayload(
+                    "recommend",
+                    responseMessage,
+                    List.of(new SearchRecommendation("J1", recommendation))
+            ));
+        }
+    }
+
+    private static final class CapturingApplicantClient extends DeepSeekApplicantSearchClient {
+        private final String responseMessage;
+        private final String recommendation;
+        private String systemPrompt;
+        private String userPrompt;
+
+        private CapturingApplicantClient(String responseMessage, String recommendation) {
+            super(DeepSeekAiConfig.load(null));
+            this.responseMessage = responseMessage;
+            this.recommendation = recommendation;
+        }
+
+        @Override
+        public boolean isConfigured() {
+            return true;
+        }
+
+        @Override
+        public SearchAttempt search(String systemPrompt, String userPrompt) {
+            this.systemPrompt = systemPrompt;
+            this.userPrompt = userPrompt;
+            return SearchAttempt.success(new SearchPayload(
+                    "recommend",
+                    responseMessage,
+                    List.of(new SearchRecommendation("C1", recommendation))
+            ));
+        }
     }
 }

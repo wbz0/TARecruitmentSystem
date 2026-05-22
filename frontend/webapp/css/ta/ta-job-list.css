@@ -475,8 +475,10 @@
 
 .job-side {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     flex-shrink: 0;
 }
 
@@ -532,6 +534,21 @@
 .job-status-chip.status-unknown {
     color: #6e6e73;
     background: #ebebf0;
+}
+
+.job-application-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--role-ta) 22%, var(--ui-border));
+    background: color-mix(in srgb, var(--role-ta) 8%, #fff);
+    color: var(--role-ta);
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .empty-state {
@@ -675,6 +692,7 @@
     .job-side {
         grid-column: 1;
         width: 100%;
+        align-items: flex-start;
         justify-content: flex-start;
     }
 

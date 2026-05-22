@@ -1,6 +1,7 @@
 package com.example.tarecruitment.job.mapper;
 
 import com.example.tarecruitment.application.dao.ApplicationDao;
+import com.example.tarecruitment.application.model.Application;
 import com.example.tarecruitment.auth.dao.UserDao;
 import com.example.tarecruitment.auth.model.User;
 import com.example.tarecruitment.common.search.FuzzySearchUtil;
@@ -73,11 +74,22 @@ public final class JobResponseMapper {
                                                      LocalDateTime referenceTime,
                                                      ApplicationDao applicationDao,
                                                      UserDao userDao) {
+        return toListPayload(jobs, searchOutcome, referenceTime, applicationDao, userDao, null);
+    }
+
+    public static Map<String, Object> toListPayload(List<Job> jobs,
+                                                     FuzzySearchUtil.SearchOutcome<Job> searchOutcome,
+                                                     LocalDateTime referenceTime,
+                                                     ApplicationDao applicationDao,
+                                                     UserDao userDao,
+                                                     User currentUser) {
         List<Map<String, Object>> jobPayloads = new ArrayList<>();
         for (Job job : jobs) {
             // List page also shows applicant count, so add applicationDao count here.
             long applicantCount = applicationDao.countByJobId(job.getJobId());
-            jobPayloads.add(toPayload(job, applicantCount, referenceTime, userDao));
+            Map<String, Object> payload = toPayload(job, applicantCount, referenceTime, userDao);
+            addTaApplicationState(payload, job, applicationDao, currentUser);
+            jobPayloads.add(payload);
         }
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("jobs", jobPayloads);
@@ -87,6 +99,22 @@ public final class JobResponseMapper {
         data.put("approximateOnly", searchOutcome != null && searchOutcome.isApproximateOnly());
         data.put("hasMatches", searchOutcome != null && searchOutcome.hasMatches());
         return data;
+    }
+
+    private static void addTaApplicationState(Map<String, Object> payload,
+                                              Job job,
+                                              ApplicationDao applicationDao,
+                                              User currentUser) {
+        if (payload == null || job == null || applicationDao == null || currentUser == null
+                || currentUser.getRole() != User.Role.TA) {
+            return;
+        }
+        applicationDao.findByJobIdAndApplicantId(job.getJobId(), currentUser.getUserId())
+                .ifPresentOrElse(application -> {
+                    payload.put("hasApplied", true);
+                    Application.Status status = application.getStatus();
+                    payload.put("applicationStatus", status != null ? status.name() : "");
+                }, () -> payload.put("hasApplied", false));
     }
 
     /**
